@@ -1,0 +1,125 @@
+{
+  "name": "Property",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Titre de l'annonce"
+    },
+    "description": {
+      "type": "string",
+      "description": "Description d\u00e9taill\u00e9e"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "maison",
+        "appartement",
+        "terrain",
+        "local_commercial",
+        "bureau"
+      ],
+      "description": "Type de bien"
+    },
+    "transaction": {
+      "type": "string",
+      "enum": [
+        "vente",
+        "location"
+      ],
+      "description": "Type de transaction"
+    },
+    "price": {
+      "type": "number",
+      "description": "Prix en euros"
+    },
+    "surface": {
+      "type": "number",
+      "description": "Surface en m\u00b2"
+    },
+    "rooms": {
+      "type": "number",
+      "description": "Nombre de pi\u00e8ces"
+    },
+    "bedrooms": {
+      "type": "number",
+      "description": "Nombre de chambres"
+    },
+    "city": {
+      "type": "string",
+      "description": "Ville"
+    },
+    "postal_code": {
+      "type": "string",
+      "description": "Code postal"
+    },
+    "address": {
+      "type": "string",
+      "description": "Adresse compl\u00e8te"
+    },
+    "condition": {
+      "type": "string",
+      "enum": [
+        "neuf",
+        "renove",
+        "a_renover",
+        "bon_etat"
+      ],
+      "description": "\u00c9tat du bien"
+    },
+    "year_built": {
+      "type": "number",
+      "description": "Ann\u00e9e de construction"
+    },
+    "images": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "URLs des images"
+    },
+    "features": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Caract\u00e9ristiques (parking, jardin, etc.)"
+    },
+    "charges_included": {
+      "type": "boolean",
+      "description": "Charges incluses (location)"
+    },
+    "monthly_charges": {
+      "type": "number",
+      "description": "Charges mensuelles"
+    },
+    "available_date": {
+      "type": "string",
+      "description": "Date de disponibilit\u00e9"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "disponible",
+        "sous_compromis",
+        "vendu",
+        "loue"
+      ],
+      "default": "disponible"
+    },
+    "featured": {
+      "type": "boolean",
+      "default": false,
+      "description": "Bien mis en avant"
+    }
+  },
+  "required": [
+    "title",
+    "type",
+    "transaction",
+    "price",
+    "surface",
+    "rooms",
+    "city"
+  ]
+}

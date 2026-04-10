@@ -1,0 +1,60 @@
+{
+  "name": "Estimation",
+  "type": "object",
+  "properties": {
+    "address": {
+      "type": "string",
+      "description": "Adresse du bien"
+    },
+    "property_type": {
+      "type": "string",
+      "enum": [
+        "maison",
+        "appartement",
+        "terrain"
+      ],
+      "description": "Type de bien"
+    },
+    "surface": {
+      "type": "number",
+      "description": "Surface en m\u00b2"
+    },
+    "rooms": {
+      "type": "number",
+      "description": "Nombre de pi\u00e8ces"
+    },
+    "condition": {
+      "type": "string",
+      "enum": [
+        "neuf",
+        "renove",
+        "a_renover",
+        "bon_etat"
+      ],
+      "description": "\u00c9tat"
+    },
+    "year_built": {
+      "type": "number",
+      "description": "Ann\u00e9e de construction"
+    },
+    "estimated_min": {
+      "type": "number",
+      "description": "Estimation basse"
+    },
+    "estimated_max": {
+      "type": "number",
+      "description": "Estimation haute"
+    },
+    "contact_requested": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "address",
+    "property_type",
+    "surface",
+    "rooms",
+    "condition"
+  ]
+}

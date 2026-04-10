@@ -1,0 +1,40 @@
+{
+  "name": "ContactMessage",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Nom du contact"
+    },
+    "email": {
+      "type": "string",
+      "description": "Email"
+    },
+    "phone": {
+      "type": "string",
+      "description": "T\u00e9l\u00e9phone"
+    },
+    "message": {
+      "type": "string",
+      "description": "Message"
+    },
+    "property_id": {
+      "type": "string",
+      "description": "ID du bien concern\u00e9 (optionnel)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "nouveau",
+        "lu",
+        "traite"
+      ],
+      "default": "nouveau"
+    }
+  },
+  "required": [
+    "name",
+    "email",
+    "message"
+  ]
+}

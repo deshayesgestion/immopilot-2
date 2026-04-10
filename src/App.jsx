@@ -5,7 +5,14 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
-// Add page imports here
+import Layout from './components/Layout';
+import Home from './pages/Home';
+import PropertiesSale from './pages/PropertiesSale';
+import PropertiesRent from './pages/PropertiesRent';
+import Estimation from './pages/Estimation';
+import Contact from './pages/Contact';
+import About from './pages/About';
+import PropertyDetail from './pages/PropertyDetail';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -33,8 +40,16 @@ const AuthenticatedApp = () => {
   // Render the main app
   return (
     <Routes>
-      {/* Add your page Route elements here */}
-      <Route path="*" element={<PageNotFound />} />
+      <Route element={<Layout />}>
+        <Route path="/" element={<Home />} />
+        <Route path="/vente" element={<PropertiesSale />} />
+        <Route path="/location" element={<PropertiesRent />} />
+        <Route path="/estimation" element={<Estimation />} />
+        <Route path="/contact" element={<Contact />} />
+        <Route path="/a-propos" element={<About />} />
+        <Route path="/bien/:id" element={<PropertyDetail />} />
+        <Route path="*" element={<PageNotFound />} />
+      </Route>
     </Routes>
   );
 };
