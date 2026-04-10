@@ -55,6 +55,7 @@ const AuthenticatedApp = () => {
         <Route path="/a-propos" element={<About />} />
         <Route path="/bien/:id" element={<PropertyDetail />} />
       </Route>
+
       <Route element={<AdminLayout />}>
         <Route path="/admin" element={<Dashboard />} />
         <Route path="/admin/biens" element={<AdminProperties />} />

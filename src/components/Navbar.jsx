@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import { useAgency } from "../hooks/useAgency";
+import { base44 } from "@/api/base44Client";
 
 const navLinks = [
   { label: "Acheter", path: "/vente" },
@@ -57,16 +58,16 @@ export default function Navbar() {
         </div>
 
         <div className="hidden lg:flex items-center">
-          <Link
-            to="/admin"
-            className={`text-xs font-medium transition-all px-3.5 py-1.5 rounded-full border ${
+          <button
+            onClick={() => base44.auth.redirectToLogin("/admin")}
+            className={`text-xs font-medium transition-all px-3.5 py-1.5 rounded-full border cursor-pointer ${
               transparent
                 ? "text-white/80 border-white/30 hover:text-white hover:border-white/60 hover:bg-white/10"
                 : "text-foreground/50 border-border hover:text-foreground hover:border-foreground/30"
             }`}
           >
             Connexion
-          </Link>
+          </button>
         </div>
 
         <button
@@ -93,10 +94,10 @@ export default function Navbar() {
               </Link>
             ))}
             <div className="pt-3 mt-1 border-t border-black/[0.06]">
-              <Link to="/admin" onClick={() => setMobileOpen(false)} className="text-xs text-foreground/40 font-medium">
+              <button onClick={() => { setMobileOpen(false); base44.auth.redirectToLogin("/admin"); }} className="text-xs text-foreground/40 font-medium">
                 Connexion agents
-              </Link>
-            </div>
+              </button>
+              </div>
           </div>
         </div>
       )}
