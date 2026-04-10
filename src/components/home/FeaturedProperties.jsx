@@ -8,16 +8,18 @@ export default function FeaturedProperties({ properties }) {
   if (!properties?.length) return null;
 
   return (
-    <section className="py-16 lg:py-24">
+    <section className="py-24">
       <div className="max-w-7xl mx-auto px-6">
         <AnimatedSection>
-          <div className="flex items-end justify-between mb-10">
+          <div className="flex items-end justify-between mb-12">
             <div>
-              <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Biens à la une</h2>
-              <p className="mt-1.5 text-muted-foreground">Notre sélection du moment</p>
+              <p className="text-xs font-semibold tracking-[0.15em] uppercase text-primary mb-3">Sélection</p>
+              <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">Nos derniers biens</h2>
             </div>
             <Link to="/vente">
-              <Button variant="ghost" className="gap-2 text-sm">Voir tout <ArrowRight className="w-4 h-4" /></Button>
+              <Button variant="ghost" className="gap-2 text-sm hidden sm:flex">
+                Voir tous les biens <ArrowRight className="w-4 h-4" />
+              </Button>
             </Link>
           </div>
         </AnimatedSection>
@@ -28,6 +30,14 @@ export default function FeaturedProperties({ properties }) {
               <PropertyCard property={p} />
             </AnimatedSection>
           ))}
+        </div>
+
+        <div className="mt-10 text-center sm:hidden">
+          <Link to="/vente">
+            <Button variant="outline" className="rounded-full gap-2">
+              Voir tous les biens <ArrowRight className="w-4 h-4" />
+            </Button>
+          </Link>
         </div>
       </div>
     </section>

@@ -3,45 +3,43 @@ import { Star } from "lucide-react";
 
 const testimonials = [
   {
-    name: "Sophie Martin",
-    role: "Directrice, Agence Prestige Lyon",
-    content: "ImmoPilot a transformé notre façon de travailler. La diffusion automatique nous fait gagner un temps précieux chaque jour.",
+    name: "Marie & Julien B.",
+    role: "Acheteurs, Paris 8e",
+    content: "Une agence à l'écoute, professionnelle et réactive. Notre appartement a été vendu en moins de 3 semaines, au prix demandé.",
     rating: 5,
   },
   {
-    name: "Thomas Dubois",
-    role: "Agent immobilier, Paris",
-    content: "L'estimation par IA est remarquablement précise. Nos clients sont impressionnés par la rapidité et la qualité du service.",
+    name: "Philippe D.",
+    role: "Vendeur, Bordeaux",
+    content: "Estimation juste du marché, communication parfaite et accompagnement jusqu'à la signature. Je recommande sans hésitation.",
     rating: 5,
   },
   {
-    name: "Claire Bernard",
-    role: "Gérante, Immobilier Sud",
-    content: "Le CRM intégré nous permet de ne manquer aucun prospect. Notre taux de conversion a augmenté de 40% depuis l'adoption d'ImmoPilot.",
+    name: "Camille R.",
+    role: "Locataire, Lyon",
+    content: "Service impeccable, disponible et à l'écoute. J'ai trouvé mon appartement en une semaine. Équipe très professionnelle.",
     rating: 5,
   },
 ];
 
 export default function TestimonialsSection() {
   return (
-    <section className="py-24 lg:py-32">
+    <section className="py-24 bg-secondary/30">
       <div className="max-w-7xl mx-auto px-6">
-        <AnimatedSection className="text-center max-w-3xl mx-auto mb-16">
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight">
+        <AnimatedSection className="text-center max-w-2xl mx-auto mb-14">
+          <p className="text-xs font-semibold tracking-[0.15em] uppercase text-primary mb-3">Témoignages</p>
+          <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">
             Ils nous font confiance.
           </h2>
-          <p className="mt-5 text-lg text-muted-foreground">
-            Découvrez ce que disent les professionnels qui utilisent ImmoPilot au quotidien.
-          </p>
         </AnimatedSection>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           {testimonials.map((t, index) => (
-            <AnimatedSection key={index} delay={index * 150}>
-              <div className="bg-card rounded-2xl p-7 border border-border/50 h-full flex flex-col">
+            <AnimatedSection key={index} delay={index * 120}>
+              <div className="bg-white rounded-2xl p-7 border border-border/50 h-full flex flex-col shadow-sm">
                 <div className="flex gap-1 mb-4">
                   {Array.from({ length: t.rating }).map((_, i) => (
-                    <Star key={i} className="w-4 h-4 fill-primary text-primary" />
+                    <Star key={i} className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
                   ))}
                 </div>
                 <p className="text-sm leading-relaxed text-muted-foreground flex-1">"{t.content}"</p>
