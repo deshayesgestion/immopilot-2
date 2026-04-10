@@ -21,6 +21,7 @@ import AdminAI from './pages/admin/AdminAI';
 import AdminSettings from './pages/admin/AdminSettings';
 import AdminAgents from './pages/admin/AdminAgents';
 import AdminDossiers from './pages/admin/AdminDossiers';
+import AdminLocation from './pages/admin/AdminLocation';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -65,6 +66,7 @@ const AuthenticatedApp = () => {
         <Route path="/admin/ia" element={<AdminAI />} />
         <Route path="/admin/equipe" element={<AdminAgents />} />
         <Route path="/admin/dossiers" element={<AdminDossiers />} />
+        <Route path="/admin/location" element={<AdminLocation />} />
         <Route path="/admin/parametres" element={<AdminSettings />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
