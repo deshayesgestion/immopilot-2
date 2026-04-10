@@ -1,0 +1,47 @@
+{
+  "name": "User",
+  "type": "object",
+  "properties": {
+    "role": {
+      "type": "string",
+      "enum": [
+        "directeur",
+        "responsable_location",
+        "responsable_vente",
+        "agent",
+        "locataire",
+        "proprietaire",
+        "acquereur",
+        "prestataire",
+        "admin"
+      ],
+      "default": "agent",
+      "description": "R\u00f4le dans l'agence"
+    },
+    "agency_id": {
+      "type": "string",
+      "description": "ID de l'agence"
+    },
+    "acces_location": {
+      "type": "boolean",
+      "default": false
+    },
+    "acces_vente": {
+      "type": "boolean",
+      "default": false
+    },
+    "acces_finances": {
+      "type": "boolean",
+      "default": false
+    },
+    "statut": {
+      "type": "string",
+      "enum": [
+        "actif",
+        "inactif",
+        "invite"
+      ],
+      "default": "actif"
+    }
+  }
+}

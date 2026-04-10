@@ -19,6 +19,8 @@ import AdminProperties from './pages/admin/AdminProperties';
 import AdminCRM from './pages/admin/AdminCRM';
 import AdminAI from './pages/admin/AdminAI';
 import AdminSettings from './pages/admin/AdminSettings';
+import AdminAgents from './pages/admin/AdminAgents';
+import AdminDossiers from './pages/admin/AdminDossiers';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -61,6 +63,8 @@ const AuthenticatedApp = () => {
         <Route path="/admin/biens" element={<AdminProperties />} />
         <Route path="/admin/crm" element={<AdminCRM />} />
         <Route path="/admin/ia" element={<AdminAI />} />
+        <Route path="/admin/equipe" element={<AdminAgents />} />
+        <Route path="/admin/dossiers" element={<AdminDossiers />} />
         <Route path="/admin/parametres" element={<AdminSettings />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />

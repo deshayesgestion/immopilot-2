@@ -1,0 +1,76 @@
+{
+  "name": "Dossier",
+  "type": "object",
+  "properties": {
+    "agency_id": {
+      "type": "string"
+    },
+    "reference": {
+      "type": "string",
+      "description": "R\u00e9f\u00e9rence dossier"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "location",
+        "vente"
+      ],
+      "description": "Type de dossier"
+    },
+    "statut": {
+      "type": "string",
+      "enum": [
+        "en_cours",
+        "signe",
+        "archive",
+        "annule"
+      ],
+      "default": "en_cours"
+    },
+    "client_id": {
+      "type": "string",
+      "description": "ID client (User)"
+    },
+    "client_email": {
+      "type": "string"
+    },
+    "client_nom": {
+      "type": "string"
+    },
+    "agent_id": {
+      "type": "string",
+      "description": "Agent assign\u00e9"
+    },
+    "agent_email": {
+      "type": "string"
+    },
+    "property_id": {
+      "type": "string",
+      "description": "Bien immobilier li\u00e9"
+    },
+    "property_title": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "documents": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "URLs des documents"
+    },
+    "historique": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Historique des actions"
+    }
+  },
+  "required": [
+    "type",
+    "client_nom"
+  ]
+}
