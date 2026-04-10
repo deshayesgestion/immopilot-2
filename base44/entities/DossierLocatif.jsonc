@@ -1,0 +1,117 @@
+{
+  "name": "DossierLocatif",
+  "type": "object",
+  "properties": {
+    "agency_id": {
+      "type": "string"
+    },
+    "reference": {
+      "type": "string"
+    },
+    "property_title": {
+      "type": "string"
+    },
+    "property_address": {
+      "type": "string"
+    },
+    "property_id": {
+      "type": "string"
+    },
+    "agent_email": {
+      "type": "string"
+    },
+    "agent_name": {
+      "type": "string"
+    },
+    "owner_name": {
+      "type": "string"
+    },
+    "loyer": {
+      "type": "number"
+    },
+    "charges": {
+      "type": "number"
+    },
+    "depot_garantie": {
+      "type": "number"
+    },
+    "current_step": {
+      "type": "number",
+      "default": 1
+    },
+    "statut": {
+      "type": "string",
+      "enum": [
+        "en_cours",
+        "en_attente",
+        "termine",
+        "archive"
+      ],
+      "default": "en_cours"
+    },
+    "candidatures": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "visites": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "documents": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "locataire_selectionne": {
+      "type": "object"
+    },
+    "ia_scoring": {
+      "type": "object"
+    },
+    "paiements": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "edl_entree": {
+      "type": "object"
+    },
+    "edl_sortie": {
+      "type": "object"
+    },
+    "incidents": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "contrat_url": {
+      "type": "string"
+    },
+    "date_entree": {
+      "type": "string"
+    },
+    "date_sortie": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "steps_completed": {
+      "type": "array",
+      "items": {
+        "type": "number"
+      }
+    }
+  },
+  "required": [
+    "property_title",
+    "agent_email"
+  ]
+}

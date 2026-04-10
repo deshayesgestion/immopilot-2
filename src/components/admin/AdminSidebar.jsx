@@ -9,12 +9,14 @@ import {
   Settings,
   ExternalLink,
   KeySquare,
+  BookOpen,
 } from "lucide-react";
 
 const navItems = [
   { label: "Dashboard", path: "/admin", icon: LayoutDashboard },
 
   { label: "Gestion Location", path: "/admin/location", icon: KeySquare },
+  { label: "Dossier locatif", path: "/admin/dossier-locatif", icon: BookOpen },
   { label: "Dossiers", path: "/admin/dossiers", icon: FolderOpen },
   { label: "Agents & Clients", path: "/admin/equipe", icon: Users },
   { label: "Estimation IA", path: "/admin/ia", icon: Brain },

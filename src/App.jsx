@@ -22,6 +22,8 @@ import AdminSettings from './pages/admin/AdminSettings';
 import AdminAgents from './pages/admin/AdminAgents';
 import AdminDossiers from './pages/admin/AdminDossiers';
 import AdminLocation from './pages/admin/AdminLocation';
+import DossierLocatif from './pages/admin/DossierLocatif';
+import DossierLocatifDetail from './pages/admin/DossierLocatifDetail';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -67,6 +69,8 @@ const AuthenticatedApp = () => {
         <Route path="/admin/equipe" element={<AdminAgents />} />
         <Route path="/admin/dossiers" element={<AdminDossiers />} />
         <Route path="/admin/location" element={<AdminLocation />} />
+        <Route path="/admin/dossier-locatif" element={<DossierLocatif />} />
+        <Route path="/admin/dossier-locatif/:id" element={<DossierLocatifDetail />} />
         <Route path="/admin/parametres" element={<AdminSettings />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
