@@ -13,7 +13,7 @@ import {
 
 const navItems = [
   { label: "Dashboard", path: "/admin", icon: LayoutDashboard },
-  { label: "Biens", path: "/admin/biens", icon: Home },
+
   { label: "Gestion Location", path: "/admin/location", icon: KeySquare },
   { label: "Dossiers", path: "/admin/dossiers", icon: FolderOpen },
   { label: "Agents & Clients", path: "/admin/equipe", icon: Users },
