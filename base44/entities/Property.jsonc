@@ -2,6 +2,10 @@
   "name": "Property",
   "type": "object",
   "properties": {
+    "agency_id": {
+      "type": "string",
+      "description": "ID agence (multi-tenant)"
+    },
     "title": {
       "type": "string",
       "description": "Titre de l'annonce"
@@ -83,7 +87,7 @@
       "items": {
         "type": "string"
       },
-      "description": "Caract\u00e9ristiques (parking, jardin, etc.)"
+      "description": "Caract\u00e9ristiques"
     },
     "charges_included": {
       "type": "boolean",
@@ -109,8 +113,15 @@
     },
     "featured": {
       "type": "boolean",
-      "default": false,
-      "description": "Bien mis en avant"
+      "default": false
+    },
+    "ai_generated_description": {
+      "type": "string",
+      "description": "Description g\u00e9n\u00e9r\u00e9e par IA"
+    },
+    "ai_price_suggestion": {
+      "type": "number",
+      "description": "Prix sugg\u00e9r\u00e9 par IA"
     }
   },
   "required": [

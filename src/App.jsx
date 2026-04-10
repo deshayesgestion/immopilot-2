@@ -13,6 +13,12 @@ import Estimation from './pages/Estimation';
 import Contact from './pages/Contact';
 import About from './pages/About';
 import PropertyDetail from './pages/PropertyDetail';
+import AdminLayout from './components/admin/AdminLayout';
+import Dashboard from './pages/admin/Dashboard';
+import AdminProperties from './pages/admin/AdminProperties';
+import AdminCRM from './pages/admin/AdminCRM';
+import AdminAI from './pages/admin/AdminAI';
+import AdminSettings from './pages/admin/AdminSettings';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -48,8 +54,15 @@ const AuthenticatedApp = () => {
         <Route path="/contact" element={<Contact />} />
         <Route path="/a-propos" element={<About />} />
         <Route path="/bien/:id" element={<PropertyDetail />} />
-        <Route path="*" element={<PageNotFound />} />
       </Route>
+      <Route element={<AdminLayout />}>
+        <Route path="/admin" element={<Dashboard />} />
+        <Route path="/admin/biens" element={<AdminProperties />} />
+        <Route path="/admin/crm" element={<AdminCRM />} />
+        <Route path="/admin/ia" element={<AdminAI />} />
+        <Route path="/admin/parametres" element={<AdminSettings />} />
+      </Route>
+      <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
 };

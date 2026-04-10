@@ -2,6 +2,10 @@
   "name": "ContactMessage",
   "type": "object",
   "properties": {
+    "agency_id": {
+      "type": "string",
+      "description": "ID agence (multi-tenant)"
+    },
     "name": {
       "type": "string",
       "description": "Nom du contact"

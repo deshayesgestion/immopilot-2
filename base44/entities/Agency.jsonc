@@ -1,0 +1,85 @@
+{
+  "name": "Agency",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Nom de l'agence"
+    },
+    "slogan": {
+      "type": "string",
+      "description": "Slogan / tagline"
+    },
+    "logo_url": {
+      "type": "string",
+      "description": "URL du logo"
+    },
+    "primary_color": {
+      "type": "string",
+      "default": "#4F46E5",
+      "description": "Couleur principale (#hex)"
+    },
+    "address": {
+      "type": "string",
+      "description": "Adresse physique"
+    },
+    "city": {
+      "type": "string",
+      "description": "Ville"
+    },
+    "postal_code": {
+      "type": "string",
+      "description": "Code postal"
+    },
+    "phone": {
+      "type": "string",
+      "description": "T\u00e9l\u00e9phone"
+    },
+    "email": {
+      "type": "string",
+      "description": "Email de contact"
+    },
+    "domain": {
+      "type": "string",
+      "description": "Domaine du site"
+    },
+    "description": {
+      "type": "string",
+      "description": "Pr\u00e9sentation de l'agence"
+    },
+    "expertise": {
+      "type": "string",
+      "description": "Zones d'expertise / sp\u00e9cialit\u00e9s"
+    },
+    "founded_year": {
+      "type": "number",
+      "description": "Ann\u00e9e de cr\u00e9ation"
+    },
+    "agents_count": {
+      "type": "number",
+      "description": "Nombre d'agents"
+    },
+    "hero_image_url": {
+      "type": "string",
+      "description": "Image hero de l'accueil"
+    },
+    "social_instagram": {
+      "type": "string"
+    },
+    "social_linkedin": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "inactive"
+      ],
+      "default": "active"
+    }
+  },
+  "required": [
+    "name",
+    "email"
+  ]
+}

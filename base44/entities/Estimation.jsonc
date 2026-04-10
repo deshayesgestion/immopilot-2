@@ -2,9 +2,12 @@
   "name": "Estimation",
   "type": "object",
   "properties": {
-    "address": {
+    "agency_id": {
       "type": "string",
-      "description": "Adresse du bien"
+      "description": "ID agence (multi-tenant)"
+    },
+    "address": {
+      "type": "string"
     },
     "property_type": {
       "type": "string",
@@ -12,16 +15,13 @@
         "maison",
         "appartement",
         "terrain"
-      ],
-      "description": "Type de bien"
+      ]
     },
     "surface": {
-      "type": "number",
-      "description": "Surface en m\u00b2"
+      "type": "number"
     },
     "rooms": {
-      "type": "number",
-      "description": "Nombre de pi\u00e8ces"
+      "type": "number"
     },
     "condition": {
       "type": "string",
@@ -30,20 +30,16 @@
         "renove",
         "a_renover",
         "bon_etat"
-      ],
-      "description": "\u00c9tat"
+      ]
     },
     "year_built": {
-      "type": "number",
-      "description": "Ann\u00e9e de construction"
+      "type": "number"
     },
     "estimated_min": {
-      "type": "number",
-      "description": "Estimation basse"
+      "type": "number"
     },
     "estimated_max": {
-      "type": "number",
-      "description": "Estimation haute"
+      "type": "number"
     },
     "contact_requested": {
       "type": "boolean",
