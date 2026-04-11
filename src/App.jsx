@@ -25,6 +25,7 @@ import AdminLocation from './pages/admin/AdminLocation';
 import DossierLocatif from './pages/admin/DossierLocatif';
 import DossierLocatifDetail from './pages/admin/DossierLocatifDetail';
 import AdminAttribution from './pages/admin/AdminAttribution';
+import AdminAttributionDetail from './pages/admin/AdminAttributionDetail';
 import AdminSuivi from './pages/admin/AdminSuivi';
 
 const AuthenticatedApp = () => {
@@ -74,6 +75,7 @@ const AuthenticatedApp = () => {
         <Route path="/admin/dossier-locatif" element={<DossierLocatif />} />
         <Route path="/admin/dossier-locatif/:id" element={<DossierLocatifDetail />} />
         <Route path="/admin/attribution" element={<AdminAttribution />} />
+        <Route path="/admin/attribution/:id" element={<AdminAttributionDetail />} />
         <Route path="/admin/suivi" element={<AdminSuivi />} />
         <Route path="/admin/parametres" element={<AdminSettings />} />
       </Route>
