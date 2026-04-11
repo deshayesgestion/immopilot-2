@@ -10,6 +10,7 @@ import {
   CreditCard, ClipboardCheck, Key, Users
 } from "lucide-react";
 import CandidatureStep from "../../components/admin/attribution/CandidatureStep";
+import ValidationStep from "../../components/admin/attribution/ValidationStep";
 
 const STEPS = [
   { id: 1, label: "Candidatures", icon: Users, desc: "Collecte et gestion des candidats" },
@@ -80,9 +81,7 @@ function StepContent({ step, dossier, onUpdate }) {
         <CandidatureStep dossier={dossier} onUpdate={onUpdate} />
       )}
       {step.id === 2 && (
-        <div className="bg-secondary/40 rounded-xl p-4 text-xs text-muted-foreground text-center">
-          La validation des dossiers et le scoring IA seront disponibles ici.
-        </div>
+        <ValidationStep dossier={dossier} onUpdate={onUpdate} />
       )}
       {step.id === 3 && (
         <div className="bg-secondary/40 rounded-xl p-4 text-xs text-muted-foreground text-center">
