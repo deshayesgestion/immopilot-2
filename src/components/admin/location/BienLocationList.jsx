@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { base44 } from "@/api/base44Client";
 import { Pencil, Trash2, Globe, Plus, ChevronDown, ChevronUp, Loader2 } from "lucide-react";
@@ -25,6 +26,7 @@ const DPE_COLORS = {
 };
 
 export default function BienLocationList({ biens, onEdit, onRefresh }) {
+  const navigate = useNavigate();
   const [expanded, setExpanded] = useState(null);
   const [histEdit, setHistEdit] = useState({});
   const [savingHist, setSavingHist] = useState(null);
@@ -50,7 +52,7 @@ export default function BienLocationList({ biens, onEdit, onRefresh }) {
 
   const createAttribution = async (bien) => {
     setCreatingAttrib(bien.id);
-    await base44.entities.DossierLocatif.create({
+    const dossier = await base44.entities.DossierLocatif.create({
       property_id: bien.id,
       property_title: bien.title,
       property_address: [bien.address, bien.city, bien.postal_code].filter(Boolean).join(", "),
@@ -65,7 +67,7 @@ export default function BienLocationList({ biens, onEdit, onRefresh }) {
       reference: `ATTR-${Date.now()}`,
     });
     setCreatingAttrib(null);
-    alert(`Attribution créée pour "${bien.title}"`);
+    navigate(`/admin/attribution/${dossier.id}`);
   };
 
   const toggleStatus = async (bien) => {
