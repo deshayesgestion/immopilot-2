@@ -12,6 +12,7 @@ import {
 import CandidatureStep from "../../components/admin/attribution/CandidatureStep";
 import ValidationStep from "../../components/admin/attribution/ValidationStep";
 import BailStep from "../../components/admin/attribution/BailStep";
+import PaiementStep from "../../components/admin/attribution/PaiementStep";
 
 const STEPS = [
   { id: 1, label: "Candidatures", icon: Users, desc: "Collecte et gestion des candidats" },
@@ -88,20 +89,7 @@ function StepContent({ step, dossier, onUpdate }) {
         <BailStep dossier={dossier} onUpdate={onUpdate} />
       )}
       {step.id === 4 && (
-        <div className="bg-secondary/40 rounded-xl p-4 space-y-2">
-          <div className="flex items-center justify-between text-xs">
-            <span className="text-muted-foreground">Loyer</span>
-            <span className="font-semibold">{dossier.loyer || 0} €/mois</span>
-          </div>
-          <div className="flex items-center justify-between text-xs">
-            <span className="text-muted-foreground">Charges</span>
-            <span className="font-semibold">{dossier.charges || 0} €/mois</span>
-          </div>
-          <div className="flex items-center justify-between text-xs">
-            <span className="text-muted-foreground">Dépôt de garantie</span>
-            <span className="font-semibold">{dossier.depot_garantie || 0} €</span>
-          </div>
-        </div>
+        <PaiementStep dossier={dossier} onUpdate={onUpdate} />
       )}
       {step.id === 5 && (
         <div className="bg-secondary/40 rounded-xl p-4 text-xs text-muted-foreground text-center">
