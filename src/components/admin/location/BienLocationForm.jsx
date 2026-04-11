@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { X, Sparkles, Loader2, Upload, Trash2, ImagePlus, User } from "lucide-react";
+import { X, Sparkles, Loader2, Trash2, ImagePlus, User, RotateCcw } from "lucide-react";
+import AIImageModal from "./AIImageModal";
 
 const SECTION = ({ title, children }) => (
   <div>
@@ -52,7 +53,8 @@ export default function BienLocationForm({ bien, onClose, onSave }) {
   const [aiLoading, setAiLoading] = useState(false);
   const [agents, setAgents] = useState([]);
   const [uploadingIdx, setUploadingIdx] = useState(null);
-  const [aiImgLoading, setAiImgLoading] = useState(null);
+  const [aiModalImg, setAiModalImg] = useState(null); // { idx, url }
+  // images stored as { url, original?, enhanced?, tag? }
   const fileRef = useRef();
 
   const set = (k, v) => setForm((p) => ({ ...p, [k]: v }));
@@ -79,7 +81,7 @@ Ton élégant, vendeur, professionnel. 3-4 phrases maximum. En français.`,
     for (let i = 0; i < files.length; i++) {
       setUploadingIdx(i);
       const { file_url } = await base44.integrations.Core.UploadFile({ file: files[i] });
-      setForm((p) => ({ ...p, images: [...(p.images || []), file_url] }));
+      setForm((p) => ({ ...p, images: [...(p.images || []), { url: file_url }] }));
     }
     setUploadingIdx(null);
   };
@@ -88,20 +90,26 @@ Ton élégant, vendeur, professionnel. 3-4 phrases maximum. En français.`,
     setForm((p) => ({ ...p, images: p.images.filter((_, i) => i !== idx) }));
   };
 
-  const enhanceWithAI = async (idx) => {
-    setAiImgLoading(idx);
-    const imageUrl = form.images[idx];
-    const res = await base44.integrations.Core.GenerateImage({
-      prompt: "Professional real estate interior photo, bright lighting, clean and modern, home staging style, high quality photography",
-      existing_image_urls: [imageUrl],
-    });
+  const revertImage = (idx) => {
     setForm((p) => {
       const imgs = [...p.images];
-      imgs[idx] = res.url;
+      if (imgs[idx].original) {
+        imgs[idx] = { url: imgs[idx].original };
+      }
       return { ...p, images: imgs };
     });
-    setAiImgLoading(null);
   };
+
+  const handleAIApply = ({ original, enhanced, type, style }) => {
+    const idx = aiModalImg.idx;
+    setForm((p) => {
+      const imgs = [...p.images];
+      imgs[idx] = { url: enhanced, original: original, tag: style ? `home staging ${style}` : type };
+      return { ...p, images: imgs };
+    });
+  };
+
+
 
   const selectAgent = (agentId) => {
     const agent = agents.find((a) => a.id === agentId);
@@ -121,6 +129,7 @@ Ton élégant, vendeur, professionnel. 3-4 phrases maximum. En français.`,
     setLoading(true);
     const data = {
       ...form,
+      images: (form.images || []).map((img) => typeof img === 'string' ? img : img.url),
       surface: Number(form.surface) || 0,
       rooms: Number(form.rooms) || 1,
       price: Number(form.price) || 0,
@@ -138,6 +147,7 @@ Ton élégant, vendeur, professionnel. 3-4 phrases maximum. En français.`,
   };
 
   return (
+    <>
     <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/30 backdrop-blur-sm overflow-y-auto py-8 px-4" onClick={onClose}>
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl border border-border/50" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between px-8 py-5 border-b border-border/50">
@@ -275,30 +285,47 @@ Ton élégant, vendeur, professionnel. 3-4 phrases maximum. En français.`,
           {/* 4. Photos */}
           <SECTION title="Photos du bien">
             <div className="grid grid-cols-3 gap-3">
-              {(form.images || []).map((url, idx) => (
-                <div key={idx} className="relative group aspect-square rounded-xl overflow-hidden bg-secondary/40 border border-border/50">
-                  <img src={url} alt="" className="w-full h-full object-cover" loading="lazy" />
-                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-1.5">
-                    <button
-                      type="button"
-                      onClick={() => enhanceWithAI(idx)}
-                      disabled={aiImgLoading === idx}
-                      className="flex items-center gap-1 bg-white/90 hover:bg-white text-xs font-medium px-2.5 py-1 rounded-full"
-                    >
-                      {aiImgLoading === idx ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3 text-primary" />}
-                      IA
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => removeImage(idx)}
-                      className="flex items-center gap-1 bg-red-500 text-white text-xs font-medium px-2.5 py-1 rounded-full"
-                    >
-                      <Trash2 className="w-3 h-3" />
-                      Suppr.
-                    </button>
+              {(form.images || []).map((img, idx) => {
+                const imgObj = typeof img === 'string' ? { url: img } : img;
+                return (
+                  <div key={idx} className="relative group aspect-square rounded-xl overflow-hidden bg-secondary/40 border border-border/50">
+                    <img src={imgObj.url} alt="" className="w-full h-full object-cover" loading="lazy" />
+                    {imgObj.tag && (
+                      <div className="absolute top-1.5 left-1.5 bg-primary/90 text-white text-[10px] font-medium px-2 py-0.5 rounded-full">
+                        ✨ {imgObj.tag}
+                      </div>
+                    )}
+                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => setAiModalImg({ idx, url: imgObj.url })}
+                        className="flex items-center gap-1 bg-white/90 hover:bg-white text-xs font-medium px-2.5 py-1 rounded-full"
+                      >
+                        <Sparkles className="w-3 h-3 text-primary" />
+                        Home Staging IA
+                      </button>
+                      {imgObj.original && (
+                        <button
+                          type="button"
+                          onClick={() => revertImage(idx)}
+                          className="flex items-center gap-1 bg-white/80 hover:bg-white text-xs font-medium px-2.5 py-1 rounded-full"
+                        >
+                          <RotateCcw className="w-3 h-3" />
+                          Revenir à l'original
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => removeImage(idx)}
+                        className="flex items-center gap-1 bg-red-500 text-white text-xs font-medium px-2.5 py-1 rounded-full"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                        Supprimer
+                      </button>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
 
               <button
                 type="button"
@@ -317,7 +344,7 @@ Ton élégant, vendeur, professionnel. 3-4 phrases maximum. En français.`,
               className="hidden"
               onChange={(e) => e.target.files?.length && handleUploadImages(Array.from(e.target.files))}
             />
-            <p className="text-xs text-muted-foreground">Survolez une image pour l'améliorer avec l'IA (home staging) ou la supprimer.</p>
+            <p className="text-xs text-muted-foreground">Survolez une image pour accéder au Home Staging IA ou la supprimer.</p>
           </SECTION>
 
           {/* 5. Disponibilité & finances */}
@@ -449,5 +476,14 @@ Ton élégant, vendeur, professionnel. 3-4 phrases maximum. En français.`,
         </form>
       </div>
     </div>
+
+    {aiModalImg && (
+      <AIImageModal
+        imageUrl={aiModalImg.url}
+        onClose={() => setAiModalImg(null)}
+        onApply={handleAIApply}
+      />
+    )}
+    </>
   );
 }
