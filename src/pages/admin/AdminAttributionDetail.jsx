@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import CandidatureStep from "../../components/admin/attribution/CandidatureStep";
 import ValidationStep from "../../components/admin/attribution/ValidationStep";
+import BailStep from "../../components/admin/attribution/BailStep";
 
 const STEPS = [
   { id: 1, label: "Candidatures", icon: Users, desc: "Collecte et gestion des candidats" },
@@ -84,9 +85,7 @@ function StepContent({ step, dossier, onUpdate }) {
         <ValidationStep dossier={dossier} onUpdate={onUpdate} />
       )}
       {step.id === 3 && (
-        <div className="bg-secondary/40 rounded-xl p-4 text-xs text-muted-foreground text-center">
-          La génération et signature du bail seront disponibles ici.
-        </div>
+        <BailStep dossier={dossier} onUpdate={onUpdate} />
       )}
       {step.id === 4 && (
         <div className="bg-secondary/40 rounded-xl p-4 space-y-2">
