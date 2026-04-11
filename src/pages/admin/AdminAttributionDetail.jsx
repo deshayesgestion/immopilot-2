@@ -13,6 +13,7 @@ import CandidatureStep from "../../components/admin/attribution/CandidatureStep"
 import ValidationStep from "../../components/admin/attribution/ValidationStep";
 import BailStep from "../../components/admin/attribution/BailStep";
 import PaiementStep from "../../components/admin/attribution/PaiementStep";
+import EdlStep from "../../components/admin/attribution/EdlStep";
 
 const STEPS = [
   { id: 1, label: "Candidatures", icon: Users, desc: "Collecte et gestion des candidats" },
@@ -92,9 +93,7 @@ function StepContent({ step, dossier, onUpdate }) {
         <PaiementStep dossier={dossier} onUpdate={onUpdate} />
       )}
       {step.id === 5 && (
-        <div className="bg-secondary/40 rounded-xl p-4 text-xs text-muted-foreground text-center">
-          L'état des lieux d'entrée sera réalisé et enregistré ici.
-        </div>
+        <EdlStep dossier={dossier} onUpdate={onUpdate} />
       )}
       {step.id === 6 && (
         <div className="bg-secondary/40 rounded-xl p-4 text-xs text-muted-foreground text-center">
