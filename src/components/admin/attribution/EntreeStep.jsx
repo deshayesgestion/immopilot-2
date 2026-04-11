@@ -105,12 +105,23 @@ Réponds UNIQUEMENT avec ce JSON.`,
     setArchiving(true);
     const stepsCompleted = [...(dossier.steps_completed || [])];
     if (!stepsCompleted.includes(6)) stepsCompleted.push(6);
+
+    // 1. Finalize dossier
     await base44.entities.DossierLocatif.update(dossier.id, {
       steps_completed: stepsCompleted,
       current_step: 6,
       statut: "termine",
       date_entree: new Date().toISOString().split("T")[0],
     });
+
+    // 2. Update property: mark as loué, remove from site
+    if (dossier.property_id) {
+      await base44.entities.Property.update(dossier.property_id, {
+        status: "loue",
+        publish_site: false,
+      });
+    }
+
     setDone(true);
     setArchiving(false);
     onUpdate();
