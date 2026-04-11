@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
+import MiniMap from "../components/MiniMap";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { MapPin, Maximize, BedDouble, Calendar, ArrowLeft, Heart, Share2, Loader2, Home, CheckCircle } from "lucide-react";
@@ -133,6 +134,11 @@ export default function PropertyDetail() {
                 </div>
               </div>
             )}
+
+            <div>
+              <h2 className="text-lg font-semibold mb-3">Localisation</h2>
+              <MiniMap property={property} />
+            </div>
           </AnimatedSection>
 
           <AnimatedSection delay={300}>

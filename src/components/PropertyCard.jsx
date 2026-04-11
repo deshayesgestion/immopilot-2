@@ -1,5 +1,4 @@
 import { Link } from "react-router-dom";
-import MiniMap from "./MiniMap";
 import { Heart, MapPin, Maximize, BedDouble } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
@@ -74,8 +73,6 @@ export default function PropertyCard({ property, onFavorite }) {
             <span>{property.rooms} pièces</span>
           </div>
         </div>
-
-        <MiniMap property={property} />
 
         <Link to={`/bien/${property.id}`}>
           <Button variant="outline" size="sm" className="w-full mt-4 rounded-full">
