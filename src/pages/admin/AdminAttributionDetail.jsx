@@ -6,9 +6,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
-  ArrowLeft, Loader2, CheckCircle2, Circle, Home, User, FileText,
-  CreditCard, ClipboardCheck, Key, Users, ChevronRight
+  ArrowLeft, Loader2, CheckCircle2, Home, User, FileText,
+  CreditCard, ClipboardCheck, Key, Users
 } from "lucide-react";
+import CandidatureStep from "../../components/admin/attribution/CandidatureStep";
 
 const STEPS = [
   { id: 1, label: "Candidatures", icon: Users, desc: "Collecte et gestion des candidats" },
@@ -76,9 +77,7 @@ function StepContent({ step, dossier, onUpdate }) {
 
       {/* Step-specific placeholders */}
       {step.id === 1 && (
-        <div className="bg-secondary/40 rounded-xl p-4 text-xs text-muted-foreground text-center">
-          Les candidatures seront listées ici. Vous pourrez les ajouter et les évaluer.
-        </div>
+        <CandidatureStep dossier={dossier} onUpdate={onUpdate} />
       )}
       {step.id === 2 && (
         <div className="bg-secondary/40 rounded-xl p-4 text-xs text-muted-foreground text-center">
