@@ -152,9 +152,9 @@ export default function AdminLocation() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Tous statuts</SelectItem>
-              <SelectItem value="disponible">Publié</SelectItem>
-              <SelectItem value="loue">Loué</SelectItem>
-              <SelectItem value="sous_compromis">En cours</SelectItem>
+              <SelectItem value="disponible">Disponible</SelectItem>
+              <SelectItem value="loue">Occupé</SelectItem>
+              <SelectItem value="sous_compromis">En cours d'attribution</SelectItem>
               <SelectItem value="vendu">Archivé</SelectItem>
             </SelectContent>
           </Select>

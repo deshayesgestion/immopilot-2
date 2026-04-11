@@ -151,6 +151,10 @@
       "type": "string",
       "description": "Date de disponibilit\u00e9"
     },
+    "historique": {
+      "type": "string",
+      "description": "Historique interne du logement (usage agent uniquement)"
+    },
     "owner_name": {
       "type": "string"
     },

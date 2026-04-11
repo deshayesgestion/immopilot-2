@@ -10,12 +10,23 @@ import {
   ExternalLink,
   KeySquare,
   BookOpen,
+  ChevronRight,
+  FileText,
+  ClipboardList,
+  Eye,
 } from "lucide-react";
 
 const navItems = [
   { label: "Dashboard", path: "/admin", icon: LayoutDashboard },
-
-  { label: "Gestion Location", path: "/admin/location", icon: KeySquare },
+  {
+    label: "Location",
+    icon: KeySquare,
+    children: [
+      { label: "Biens", path: "/admin/location", icon: Home },
+      { label: "Attribution", path: "/admin/attribution", icon: ClipboardList },
+      { label: "Suivi", path: "/admin/suivi", icon: Eye },
+    ],
+  },
   { label: "Dossier locatif", path: "/admin/dossier-locatif", icon: BookOpen },
   { label: "Dossiers", path: "/admin/dossiers", icon: FolderOpen },
   { label: "Agents & Clients", path: "/admin/equipe", icon: Users },
@@ -40,6 +51,40 @@ export default function AdminSidebar({ agency }) {
       {/* Nav */}
       <nav className="flex-1 space-y-0.5">
         {navItems.map((item) => {
+          if (item.children) {
+            const isGroupActive = item.children.some((c) => location.pathname === c.path);
+            const Icon = item.icon;
+            return (
+              <div key={item.label}>
+                <div className={`flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold uppercase tracking-wide mt-2 ${
+                  isGroupActive ? "text-primary" : "text-muted-foreground/60"
+                }`}>
+                  <Icon className="w-3.5 h-3.5" />
+                  {item.label}
+                </div>
+                <div className="ml-3 border-l border-border/40 pl-3 space-y-0.5">
+                  {item.children.map((child) => {
+                    const CIcon = child.icon;
+                    const isActive = location.pathname === child.path;
+                    return (
+                      <Link
+                        key={child.path}
+                        to={child.path}
+                        className={`flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-sm font-medium transition-all ${
+                          isActive
+                            ? "bg-secondary text-foreground"
+                            : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
+                        }`}
+                      >
+                        <CIcon className={`w-3.5 h-3.5 flex-shrink-0 ${isActive ? "text-primary" : "text-muted-foreground/60"}`} />
+                        {child.label}
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          }
           const Icon = item.icon;
           const isActive = location.pathname === item.path;
           return (
