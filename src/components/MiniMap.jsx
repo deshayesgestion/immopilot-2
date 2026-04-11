@@ -60,8 +60,8 @@ export default function MiniMap({ property }) {
   }, [property.id]);
 
   const mapsUrl = coords
-    ? `https://www.google.com/maps?q=${coords.lat},${coords.lon}`
-    : `https://www.google.com/maps/search/${encodeURIComponent([property.address, property.city].filter(Boolean).join(", "))}`;
+    ? `https://www.openstreetmap.org/?mlat=${coords.lat}&mlon=${coords.lon}#map=16/${coords.lat}/${coords.lon}`
+    : `https://www.openstreetmap.org/search?query=${encodeURIComponent([property.address, property.city].filter(Boolean).join(", "))}`;
 
   return (
     <div className="relative rounded-xl overflow-hidden border border-border/50" style={{ height: 220 }}>
@@ -75,7 +75,7 @@ export default function MiniMap({ property }) {
           <span className="text-xs text-muted-foreground/50">Localisation non disponible</span>
           <a href={mapsUrl} target="_blank" rel="noopener noreferrer"
             className="text-xs text-primary hover:underline">
-            Rechercher sur Google Maps →
+            Voir sur OpenStreetMap →
           </a>
         </div>
       ) : (
@@ -105,7 +105,7 @@ export default function MiniMap({ property }) {
           className="absolute bottom-2 right-2 flex items-center gap-1 text-xs bg-white/90 backdrop-blur-sm px-2.5 py-1 rounded-full shadow-sm hover:bg-white transition-colors font-medium text-foreground/70 hover:text-foreground z-[500]"
         >
           <ExternalLink className="w-3 h-3" />
-          Google Maps
+          OpenStreetMap
         </a>
       )}
     </div>
