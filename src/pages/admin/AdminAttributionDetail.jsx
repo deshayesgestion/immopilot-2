@@ -14,6 +14,7 @@ import ValidationStep from "../../components/admin/attribution/ValidationStep";
 import BailStep from "../../components/admin/attribution/BailStep";
 import PaiementStep from "../../components/admin/attribution/PaiementStep";
 import EdlStep from "../../components/admin/attribution/EdlStep";
+import EntreeStep from "../../components/admin/attribution/EntreeStep";
 
 const STEPS = [
   { id: 1, label: "Candidatures", icon: Users, desc: "Collecte et gestion des candidats" },
@@ -96,9 +97,7 @@ function StepContent({ step, dossier, onUpdate }) {
         <EdlStep dossier={dossier} onUpdate={onUpdate} />
       )}
       {step.id === 6 && (
-        <div className="bg-secondary/40 rounded-xl p-4 text-xs text-muted-foreground text-center">
-          Remise des clés et finalisation de l'entrée du locataire.
-        </div>
+        <EntreeStep dossier={dossier} onUpdate={onUpdate} />
       )}
 
       {/* Notes */}
