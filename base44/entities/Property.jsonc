@@ -49,6 +49,10 @@
       "type": "number",
       "description": "Nombre de chambres"
     },
+    "floor": {
+      "type": "string",
+      "description": "\u00c9tage"
+    },
     "city": {
       "type": "string",
       "description": "Ville"
@@ -75,6 +79,18 @@
       "type": "number",
       "description": "Ann\u00e9e de construction"
     },
+    "dpe": {
+      "type": "string",
+      "description": "Classe DPE (A-G)"
+    },
+    "ges": {
+      "type": "string",
+      "description": "Classe GES (A-G)"
+    },
+    "heating": {
+      "type": "string",
+      "description": "Type de chauffage"
+    },
     "images": {
       "type": "array",
       "items": {
@@ -89,6 +105,36 @@
       },
       "description": "Caract\u00e9ristiques"
     },
+    "furnished": {
+      "type": "boolean",
+      "description": "Logement meubl\u00e9",
+      "default": false
+    },
+    "elevator": {
+      "type": "boolean",
+      "description": "Ascenseur",
+      "default": false
+    },
+    "balcony": {
+      "type": "boolean",
+      "description": "Balcon",
+      "default": false
+    },
+    "parking": {
+      "type": "boolean",
+      "description": "Parking",
+      "default": false
+    },
+    "cellar": {
+      "type": "boolean",
+      "description": "Cave",
+      "default": false
+    },
+    "terrace": {
+      "type": "boolean",
+      "description": "Terrasse",
+      "default": false
+    },
     "charges_included": {
       "type": "boolean",
       "description": "Charges incluses (location)"
@@ -97,9 +143,49 @@
       "type": "number",
       "description": "Charges mensuelles"
     },
+    "deposit": {
+      "type": "number",
+      "description": "D\u00e9p\u00f4t de garantie"
+    },
     "available_date": {
       "type": "string",
       "description": "Date de disponibilit\u00e9"
+    },
+    "owner_name": {
+      "type": "string"
+    },
+    "owner_email": {
+      "type": "string"
+    },
+    "owner_phone": {
+      "type": "string"
+    },
+    "agent_id": {
+      "type": "string",
+      "description": "ID de l'agent assign\u00e9"
+    },
+    "agent_email": {
+      "type": "string"
+    },
+    "agent_name": {
+      "type": "string"
+    },
+    "conditions_revenus_min": {
+      "type": "number",
+      "description": "Revenus minimum requis (\u20ac)"
+    },
+    "conditions_garant": {
+      "type": "boolean",
+      "description": "Garant requis",
+      "default": false
+    },
+    "conditions_contrat": {
+      "type": "string",
+      "description": "Type de contrat requis (CDI, etc.)"
+    },
+    "conditions_notes": {
+      "type": "string",
+      "description": "Autres conditions"
     },
     "status": {
       "type": "string",
@@ -115,13 +201,19 @@
       "type": "boolean",
       "default": false
     },
+    "publish_site": {
+      "type": "boolean",
+      "default": false
+    },
+    "publish_platforms": {
+      "type": "boolean",
+      "default": false
+    },
     "ai_generated_description": {
-      "type": "string",
-      "description": "Description g\u00e9n\u00e9r\u00e9e par IA"
+      "type": "string"
     },
     "ai_price_suggestion": {
-      "type": "number",
-      "description": "Prix sugg\u00e9r\u00e9 par IA"
+      "type": "number"
     }
   },
   "required": [
