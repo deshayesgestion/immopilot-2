@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
   ArrowLeft, Loader2, Home, User, Euro, Calendar, FileText,
-  AlertTriangle, MessageSquare, Plus, CheckCircle2, Clock, X
+  AlertTriangle, MessageSquare, Plus, CheckCircle2, Clock, X, Mail
 } from "lucide-react";
 
 const TABS = [
@@ -26,69 +26,171 @@ const formatEuro = (n) =>
   new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(n || 0);
 
 // ── LOYER TAB ──────────────────────────────────────────────────────────────
+const MOIS_OPTIONS = (() => {
+  const opts = [];
+  const now = new Date();
+  for (let i = 0; i < 12; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    opts.push(d.toLocaleDateString("fr-FR", { month: "long", year: "numeric" }));
+  }
+  return opts;
+})();
+
+function isRetard(p) {
+  // A payment is "en_retard" if status is retard, or if en_attente and the month is past
+  if (p.statut === "retard" || p.statut === "en_retard") return true;
+  return false;
+}
+
 function LoyerTab({ dossier, onUpdate }) {
   const paiements = dossier.paiements || [];
   const [adding, setAdding] = useState(false);
-  const [form, setForm] = useState({ mois: "", montant: dossier.loyer || "", statut: "recu", note: "" });
+  const now = new Date();
+  const moisCourant = now.toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
+  const [form, setForm] = useState({
+    mois: moisCourant,
+    loyer: dossier.loyer || "",
+    charges: dossier.charges || "",
+    assurance: "",
+    statut: "recu",
+    note: ""
+  });
   const [saving, setSaving] = useState(false);
+  const [relancing, setRelancing] = useState(null);
 
   const addPaiement = async () => {
     setSaving(true);
-    const updated = [...paiements, { ...form, id: Date.now(), date: new Date().toISOString() }];
+    const total = Number(form.loyer || 0) + Number(form.charges || 0) + Number(form.assurance || 0);
+    const entry = { ...form, id: Date.now(), total, date: new Date().toISOString() };
+    const updated = [...paiements, entry];
     await base44.entities.DossierLocatif.update(dossier.id, { paiements: updated });
     setSaving(false);
     setAdding(false);
-    setForm({ mois: "", montant: dossier.loyer || "", statut: "recu", note: "" });
+    setForm({ mois: moisCourant, loyer: dossier.loyer || "", charges: dossier.charges || "", assurance: "", statut: "recu", note: "" });
     onUpdate();
   };
 
-  const totalRecu = paiements.filter((p) => p.statut === "recu").reduce((s, p) => s + Number(p.montant || 0), 0);
+  const updateStatut = async (id, statut) => {
+    const updated = paiements.map((p) => p.id === id ? { ...p, statut } : p);
+    await base44.entities.DossierLocatif.update(dossier.id, { paiements: updated });
+    onUpdate();
+  };
+
+  const sendRelance = async (p) => {
+    const locataire = dossier.locataire_selectionne;
+    if (!locataire?.email) return;
+    setRelancing(p.id);
+    await base44.integrations.Core.SendEmail({
+      to: locataire.email,
+      subject: `Rappel de paiement — ${p.mois}`,
+      body: `Bonjour ${locataire.nom},\n\nNous vous contactons car le paiement de votre loyer pour le mois de ${p.mois} n'a pas encore été enregistré.\n\nDétail :\n- Loyer : ${formatEuro(p.loyer)}\n- Charges : ${formatEuro(p.charges)}${p.assurance ? `\n- Assurance : ${formatEuro(p.assurance)}` : ""}\n- Total : ${formatEuro(p.total)}\n\nNous vous remercions de régulariser cette situation dans les meilleurs délais.\n\nCordialement,\n${dossier.agent_name || "L'agence"}`,
+    });
+    const updated = paiements.map((x) => x.id === p.id ? { ...x, relance_envoyee: true, relance_date: new Date().toISOString() } : x);
+    await base44.entities.DossierLocatif.update(dossier.id, { paiements: updated });
+    setRelancing(null);
+    onUpdate();
+  };
+
+  const totalRecu = paiements.filter((p) => p.statut === "recu").reduce((s, p) => s + Number(p.total || p.montant || 0), 0);
+  const retards = paiements.filter((p) => isRetard(p));
+  const enAttente = paiements.filter((p) => p.statut === "en_attente");
+
+  const STATUT_CONFIG = {
+    recu: { label: "Payé", color: "bg-green-100 text-green-700" },
+    en_attente: { label: "En attente", color: "bg-amber-100 text-amber-700" },
+    retard: { label: "En retard", color: "bg-red-100 text-red-600" },
+    en_retard: { label: "En retard", color: "bg-red-100 text-red-600" },
+  };
 
   return (
     <div className="space-y-5">
       {/* Summary */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-4 gap-3">
         {[
-          { label: "Loyer mensuel", value: formatEuro(dossier.loyer) },
-          { label: "Charges", value: formatEuro(dossier.charges) },
-          { label: "Total perçu", value: formatEuro(totalRecu) },
-        ].map(({ label, value }) => (
-          <div key={label} className="bg-secondary/30 rounded-xl p-4 text-center">
-            <p className="text-lg font-bold">{value}</p>
+          { label: "Loyer mensuel", value: formatEuro(dossier.loyer), sub: `+ ${formatEuro(dossier.charges)} charges` },
+          { label: "Total perçu", value: formatEuro(totalRecu), color: "text-green-600" },
+          { label: "En attente", value: enAttente.length, color: enAttente.length > 0 ? "text-amber-600" : "text-muted-foreground" },
+          { label: "En retard", value: retards.length, color: retards.length > 0 ? "text-red-600" : "text-muted-foreground" },
+        ].map(({ label, value, sub, color }) => (
+          <div key={label} className="bg-secondary/30 rounded-xl p-4">
+            <p className={`text-lg font-bold ${color || ""}`}>{value}</p>
             <p className="text-xs text-muted-foreground mt-0.5">{label}</p>
+            {sub && <p className="text-[11px] text-muted-foreground/60 mt-0.5">{sub}</p>}
           </div>
         ))}
       </div>
 
-      {/* Payments list */}
-      <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <p className="text-sm font-semibold">Paiements</p>
-          <Button size="sm" variant="outline" className="rounded-full gap-1.5 text-xs h-8" onClick={() => setAdding(true)}>
-            <Plus className="w-3 h-3" /> Ajouter
-          </Button>
+      {/* Alerts retard */}
+      {retards.length > 0 && (
+        <div className="bg-red-50 border border-red-200 rounded-xl p-4 space-y-2">
+          <p className="text-sm font-semibold text-red-700 flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4" /> {retards.length} paiement{retards.length > 1 ? "s" : ""} en retard
+          </p>
+          {retards.map((p) => (
+            <div key={p.id} className="flex items-center justify-between gap-4">
+              <p className="text-sm text-red-700">{p.mois} — {formatEuro(p.total || p.montant)}</p>
+              <div className="flex items-center gap-2">
+                {p.relance_envoyee && (
+                  <span className="text-xs text-muted-foreground">Relance envoyée ✓</span>
+                )}
+                <Button size="sm" variant="outline" className="rounded-full h-7 text-xs gap-1.5 border-red-200 text-red-600 hover:bg-red-50"
+                  onClick={() => sendRelance(p)} disabled={relancing === p.id}>
+                  {relancing === p.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Mail className="w-3 h-3" />}
+                  Relancer
+                </Button>
+              </div>
+            </div>
+          ))}
         </div>
+      )}
 
-        {adding && (
-          <div className="border border-border/50 rounded-xl p-4 space-y-3 bg-white">
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-xs text-muted-foreground mb-1 block">Mois</label>
-                <Input placeholder="ex: Avril 2026" value={form.mois} onChange={(e) => setForm({ ...form, mois: e.target.value })} className="h-8 text-sm" />
-              </div>
-              <div>
-                <label className="text-xs text-muted-foreground mb-1 block">Montant (€)</label>
-                <Input type="number" value={form.montant} onChange={(e) => setForm({ ...form, montant: e.target.value })} className="h-8 text-sm" />
-              </div>
+      {/* Add button */}
+      <div className="flex items-center justify-between">
+        <p className="text-sm font-semibold">Historique des paiements</p>
+        <Button size="sm" variant="outline" className="rounded-full gap-1.5 text-xs h-8" onClick={() => setAdding(true)}>
+          <Plus className="w-3 h-3" /> Ajouter
+        </Button>
+      </div>
+
+      {/* Add form */}
+      {adding && (
+        <div className="border border-border/50 rounded-xl p-4 space-y-3 bg-white">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="col-span-2">
+              <label className="text-xs text-muted-foreground mb-1 block">Mois</label>
+              <select value={form.mois} onChange={(e) => setForm({ ...form, mois: e.target.value })}
+                className="w-full h-8 rounded-md border border-input bg-transparent px-3 text-sm">
+                {MOIS_OPTIONS.map((m) => <option key={m} value={m}>{m}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="text-xs text-muted-foreground mb-1 block">Loyer (€)</label>
+              <Input type="number" value={form.loyer} onChange={(e) => setForm({ ...form, loyer: e.target.value })} className="h-8 text-sm" />
+            </div>
+            <div>
+              <label className="text-xs text-muted-foreground mb-1 block">Charges (€)</label>
+              <Input type="number" value={form.charges} onChange={(e) => setForm({ ...form, charges: e.target.value })} className="h-8 text-sm" />
+            </div>
+            <div>
+              <label className="text-xs text-muted-foreground mb-1 block">Assurance (€)</label>
+              <Input type="number" value={form.assurance} onChange={(e) => setForm({ ...form, assurance: e.target.value })} className="h-8 text-sm" />
             </div>
             <div>
               <label className="text-xs text-muted-foreground mb-1 block">Statut</label>
-              <select value={form.statut} onChange={(e) => setForm({ ...form, statut: e.target.value })} className="w-full h-8 rounded-md border border-input bg-transparent px-3 text-sm">
-                <option value="recu">Reçu</option>
+              <select value={form.statut} onChange={(e) => setForm({ ...form, statut: e.target.value })}
+                className="w-full h-8 rounded-md border border-input bg-transparent px-3 text-sm">
+                <option value="recu">Payé</option>
                 <option value="en_attente">En attente</option>
                 <option value="retard">En retard</option>
               </select>
             </div>
+          </div>
+          <div>
+            <label className="text-xs text-muted-foreground mb-1 block">Note</label>
+            <Input value={form.note} onChange={(e) => setForm({ ...form, note: e.target.value })} className="h-8 text-sm" placeholder="Optionnel..." />
+          </div>
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-muted-foreground">Total : <strong>{formatEuro(Number(form.loyer||0)+Number(form.charges||0)+Number(form.assurance||0))}</strong></p>
             <div className="flex gap-2">
               <Button size="sm" variant="outline" className="rounded-full h-8 text-xs" onClick={() => setAdding(false)}>Annuler</Button>
               <Button size="sm" className="rounded-full h-8 text-xs" onClick={addPaiement} disabled={saving}>
@@ -96,25 +198,53 @@ function LoyerTab({ dossier, onUpdate }) {
               </Button>
             </div>
           </div>
-        )}
+        </div>
+      )}
 
-        {paiements.length === 0 ? (
-          <p className="text-sm text-muted-foreground text-center py-6">Aucun paiement enregistré</p>
-        ) : (
-          <div className="divide-y divide-border/30 border border-border/50 rounded-xl overflow-hidden">
-            {[...paiements].reverse().map((p) => (
-              <div key={p.id} className="flex items-center gap-3 px-4 py-3">
-                <div className={`w-2 h-2 rounded-full flex-shrink-0 ${p.statut === "recu" ? "bg-green-500" : p.statut === "retard" ? "bg-red-500" : "bg-amber-400"}`} />
-                <p className="text-sm font-medium flex-1">{p.mois || "—"}</p>
-                <p className="text-sm font-semibold">{formatEuro(p.montant)}</p>
-                <span className={`text-xs px-2 py-0.5 rounded-full ${p.statut === "recu" ? "bg-green-100 text-green-700" : p.statut === "retard" ? "bg-red-100 text-red-600" : "bg-amber-100 text-amber-700"}`}>
-                  {p.statut === "recu" ? "Reçu" : p.statut === "retard" ? "En retard" : "En attente"}
-                </span>
-              </div>
+      {/* Payments list */}
+      {paiements.length === 0 ? (
+        <p className="text-sm text-muted-foreground text-center py-6">Aucun paiement enregistré</p>
+      ) : (
+        <div className="divide-y divide-border/30 border border-border/50 rounded-xl overflow-hidden">
+          {/* Header */}
+          <div className="grid grid-cols-[1.5fr_1fr_1fr_1fr_1fr_auto] gap-3 px-4 py-2.5 bg-secondary/30">
+            {["Mois", "Loyer", "Charges", "Assurance", "Statut", ""].map((h) => (
+              <p key={h} className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">{h}</p>
             ))}
           </div>
-        )}
-      </div>
+          {[...paiements].reverse().map((p) => {
+            const sc = STATUT_CONFIG[p.statut] || STATUT_CONFIG.en_attente;
+            return (
+              <div key={p.id} className="grid grid-cols-[1.5fr_1fr_1fr_1fr_1fr_auto] gap-3 items-center px-4 py-3 hover:bg-secondary/10">
+                <div>
+                  <p className="text-sm font-medium">{p.mois}</p>
+                  {p.note && <p className="text-xs text-muted-foreground">{p.note}</p>}
+                  {p.relance_envoyee && <p className="text-[11px] text-blue-500">Relance envoyée</p>}
+                </div>
+                <p className="text-sm">{formatEuro(p.loyer || 0)}</p>
+                <p className="text-sm">{formatEuro(p.charges || 0)}</p>
+                <p className="text-sm">{formatEuro(p.assurance || 0)}</p>
+                <div className="flex items-center gap-1">
+                  <select value={p.statut} onChange={(e) => updateStatut(p.id, e.target.value)}
+                    className={`text-xs font-medium px-2 py-1 rounded-full border-0 cursor-pointer ${sc.color}`}>
+                    <option value="recu">Payé</option>
+                    <option value="en_attente">En attente</option>
+                    <option value="retard">En retard</option>
+                  </select>
+                </div>
+                <div className="flex items-center gap-1">
+                  {(p.statut === "retard" || p.statut === "en_retard") && (
+                    <button onClick={() => sendRelance(p)} disabled={relancing === p.id}
+                      className="p-1 rounded-lg hover:bg-red-50 text-red-400 hover:text-red-600 transition-colors" title="Envoyer relance">
+                      {relancing === p.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Mail className="w-3.5 h-3.5" />}
+                    </button>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
