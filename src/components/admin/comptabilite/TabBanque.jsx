@@ -153,6 +153,8 @@ export default function TabBanque() {
   const [showIban, setShowIban] = useState({});
   const [assigning, setAssigning] = useState(null);
   const [txComptables, setTxComptables] = useState([]);
+  const [syncingAPI, setSyncingAPI] = useState(false);
+  const [reconciling, setReconciling] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -173,6 +175,20 @@ export default function TabBanque() {
     setSyncing(true);
     await base44.functions.invoke("syncBancaire", { mode: "match" });
     setSyncing(false);
+    load();
+  };
+
+  const lancerSyncAPI = async () => {
+    setSyncingAPI(true);
+    await base44.functions.invoke("syncBancaireAPI", { mode: "full" });
+    setSyncingAPI(false);
+    load();
+  };
+
+  const lancerReconciliation = async () => {
+    setReconciling(true);
+    await base44.functions.invoke("syncBancaireAPI", { mode: "reconcile" });
+    setReconciling(false);
     load();
   };
 
@@ -238,8 +254,18 @@ export default function TabBanque() {
               <div key={c.id} className="bg-white rounded-2xl border border-border/50 shadow-sm p-5 space-y-3">
                 <div className="flex items-start justify-between">
                   <div>
-                    <p className="text-sm font-semibold">{c.nom}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-semibold">{c.nom}</p>
+                      <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
+                        c.statut_connexion === 'connecte' ? 'bg-green-100 text-green-700' :
+                        c.statut_connexion === 'erreur' ? 'bg-red-100 text-red-700' :
+                        'bg-amber-100 text-amber-700'
+                      }`}>
+                        {c.statut_connexion === 'connecte' ? '✓ Connecté' : c.statut_connexion === 'erreur' ? '✗ Erreur' : '⚠ Expiration proche'}
+                      </span>
+                    </div>
                     <p className="text-xs text-muted-foreground">{c.banque}</p>
+                    {c.erreur_connexion && <p className="text-xs text-red-600 mt-0.5">{c.erreur_connexion}</p>}
                   </div>
                   <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center">
                     <Building2 className="w-4 h-4 text-primary" />
@@ -272,11 +298,18 @@ export default function TabBanque() {
       {/* Actions */}
       <div className="flex flex-wrap gap-2">
         <Button size="sm" variant="outline" className="rounded-full h-9 text-xs gap-1.5" onClick={() => setShowImport(true)}>
-          <Upload className="w-3.5 h-3.5" /> Importer des transactions
+          <Upload className="w-3.5 h-3.5" /> Import manuel
         </Button>
-        <Button size="sm" className="rounded-full h-9 text-xs gap-1.5 bg-primary" onClick={lancerMatching} disabled={syncing}>
+        <Button size="sm" className="rounded-full h-9 text-xs gap-1.5 bg-blue-600 hover:bg-blue-700" onClick={lancerSyncAPI} disabled={syncingAPI}>
+          {syncingAPI ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
+          Sync API + Anomalies
+        </Button>
+        <Button size="sm" className="rounded-full h-9 text-xs gap-1.5" onClick={lancerMatching} disabled={syncing}>
           {syncing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
-          Lancer le matching IA
+          Matching IA
+        </Button>
+        <Button size="sm" variant="outline" className="rounded-full h-9 text-xs gap-1.5" onClick={lancerReconciliation} disabled={reconciling}>
+          {reconciling ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Réconciliation"}  
         </Button>
       </div>
 

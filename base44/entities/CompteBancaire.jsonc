@@ -31,9 +31,36 @@
       "type": "boolean",
       "default": true
     },
+    "api_token": {
+      "type": "string",
+      "description": "Token API pour agr\u00e9gateur bancaire (Plaid, Linxo, etc)"
+    },
+    "api_provider": {
+      "type": "string",
+      "enum": [
+        "manual",
+        "plaid",
+        "linxo",
+        "budget_insight"
+      ],
+      "default": "manual"
+    },
     "derniere_sync": {
       "type": "string",
       "description": "Date derni\u00e8re synchronisation"
+    },
+    "statut_connexion": {
+      "type": "string",
+      "enum": [
+        "connecte",
+        "erreur",
+        "expiration_proche"
+      ],
+      "default": "connecte"
+    },
+    "erreur_connexion": {
+      "type": "string",
+      "description": "D\u00e9tail de l'erreur si statut=erreur"
     },
     "notes": {
       "type": "string"
