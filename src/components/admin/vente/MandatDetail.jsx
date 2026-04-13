@@ -485,9 +485,82 @@ Rédige un compte-rendu structuré, factuel et professionnel à destination du d
               <Field label="Date d'expiration">
                 <Input type="date" value={form.mandat_date_expiration} onChange={(e) => set("mandat_date_expiration", e.target.value)} />
               </Field>
-              <Field label="Prix de mise en vente (€) *">
-                <Input type="number" value={form.prix_mandat} onChange={(e) => set("prix_mandat", e.target.value)} />
-              </Field>
+            </div>
+
+            {/* Choix du prix de mise en vente */}
+            <div className="space-y-3">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Prix de mise en vente *</p>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {/* Option 1 : Prix IA */}
+                {form.estimation_ia ? (
+                  <button
+                    type="button"
+                    onClick={() => set("prix_mandat", form.estimation_ia)}
+                    className={`rounded-xl border-2 p-4 text-left transition-all ${
+                      String(form.prix_mandat) === String(form.estimation_ia)
+                        ? "border-primary bg-primary/5"
+                        : "border-border/50 hover:border-primary/40"
+                    }`}
+                  >
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <Sparkles className="w-3.5 h-3.5 text-primary" />
+                      <span className="text-xs font-semibold text-primary">Prix IA conseillé</span>
+                    </div>
+                    <p className="text-lg font-bold">{fmt(form.estimation_ia)}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">Recommandé par l'analyse IA</p>
+                  </button>
+                ) : (
+                  <div className="rounded-xl border-2 border-dashed border-border/40 p-4 opacity-50">
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <Sparkles className="w-3.5 h-3.5 text-muted-foreground" />
+                      <span className="text-xs font-semibold text-muted-foreground">Prix IA conseillé</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground">Non disponible — faites une estimation à l'étape 2</p>
+                  </div>
+                )}
+                {/* Option 2 : Prix vendeur */}
+                {form.prix_vendeur ? (
+                  <button
+                    type="button"
+                    onClick={() => set("prix_mandat", form.prix_vendeur)}
+                    className={`rounded-xl border-2 p-4 text-left transition-all ${
+                      String(form.prix_mandat) === String(form.prix_vendeur)
+                        ? "border-amber-500 bg-amber-50"
+                        : "border-border/50 hover:border-amber-300"
+                    }`}
+                  >
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <span className="text-xs font-semibold text-amber-600">Prix vendeur</span>
+                    </div>
+                    <p className="text-lg font-bold">{fmt(form.prix_vendeur)}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">Souhaité par le vendeur</p>
+                  </button>
+                ) : (
+                  <div className="rounded-xl border-2 border-dashed border-border/40 p-4 opacity-50">
+                    <span className="text-xs font-semibold text-muted-foreground">Prix vendeur</span>
+                    <p className="text-xs text-muted-foreground mt-1">Non renseigné — ajoutez-le à l'étape 1</p>
+                  </div>
+                )}
+                {/* Option 3 : Prix manuel */}
+                <div className={`rounded-xl border-2 p-4 transition-all ${
+                  form.prix_mandat && String(form.prix_mandat) !== String(form.estimation_ia) && String(form.prix_mandat) !== String(form.prix_vendeur)
+                    ? "border-green-500 bg-green-50"
+                    : "border-border/50"
+                }`}>
+                  <p className="text-xs font-semibold text-green-700 mb-2">Prix personnalisé</p>
+                  <Input
+                    type="number"
+                    value={form.prix_mandat}
+                    onChange={(e) => set("prix_mandat", e.target.value)}
+                    placeholder="Saisir un prix..."
+                    className="h-8 text-sm"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1.5">Ou modifiez directement ici</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
               <Field label="Honoraires (%)">
                 <Input type="number" value={form.honoraires_taux} onChange={(e) => set("honoraires_taux", e.target.value)} step="0.1" />
               </Field>
