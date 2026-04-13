@@ -255,6 +255,8 @@ function DocumentsTab({ dossier, onUpdate }) {
   const [adding, setAdding] = useState(false);
   const [form, setForm] = useState({ nom: "", type: "contrat", url: "" });
   const [saving, setSaving] = useState(false);
+  const [generating, setGenerating] = useState(false);
+  const [viewDoc, setViewDoc] = useState(null);
 
   const addDoc = async () => {
     setSaving(true);
@@ -266,8 +268,31 @@ function DocumentsTab({ dossier, onUpdate }) {
     onUpdate();
   };
 
+  const genererEtEnvoyer = async () => {
+    setGenerating(true);
+    await base44.functions.invoke("genererDocumentsLocatifs", { dossier_id: dossier.id });
+    setGenerating(false);
+    onUpdate();
+  };
+
+  const TYPE_LABELS = { quittance: "Quittance", avis_echeance: "Avis d'échéance", contrat: "Contrat", edl: "État des lieux", autre: "Autre" };
+  const TYPE_COLORS = { quittance: "bg-green-100 text-green-700", avis_echeance: "bg-blue-100 text-blue-700", contrat: "bg-purple-100 text-purple-700", edl: "bg-amber-100 text-amber-700" };
+
   return (
     <div className="space-y-4">
+      {/* Auto-generate banner */}
+      <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 flex items-center justify-between gap-4">
+        <div>
+          <p className="text-sm font-semibold">Génération automatique</p>
+          <p className="text-xs text-muted-foreground mt-0.5">Génère et envoie la quittance + avis d'échéance du mois par email au locataire.</p>
+          <p className="text-xs text-muted-foreground/60 mt-0.5">⚙️ Envoi automatique activé le 1er de chaque mois.</p>
+        </div>
+        <Button size="sm" className="rounded-full gap-1.5 text-xs h-9 flex-shrink-0" onClick={genererEtEnvoyer} disabled={generating}>
+          {generating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Mail className="w-3.5 h-3.5" />}
+          Envoyer maintenant
+        </Button>
+      </div>
+
       <div className="flex items-center justify-between">
         <p className="text-sm font-semibold">Documents ({docs.length})</p>
         <Button size="sm" variant="outline" className="rounded-full gap-1.5 text-xs h-8" onClick={() => setAdding(true)}>
@@ -288,6 +313,7 @@ function DocumentsTab({ dossier, onUpdate }) {
                 <option value="contrat">Contrat</option>
                 <option value="edl">État des lieux</option>
                 <option value="quittance">Quittance</option>
+                <option value="avis_echeance">Avis d'échéance</option>
                 <option value="autre">Autre</option>
               </select>
             </div>
@@ -301,19 +327,43 @@ function DocumentsTab({ dossier, onUpdate }) {
         </div>
       )}
 
+      {/* View document modal */}
+      {viewDoc && (
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={() => setViewDoc(null)}>
+          <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[80vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-5 py-4 border-b border-border/50">
+              <p className="text-sm font-semibold">{viewDoc.nom}</p>
+              <button onClick={() => setViewDoc(null)} className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground"><X className="w-4 h-4" /></button>
+            </div>
+            <div className="p-5 overflow-y-auto flex-1">
+              <pre className="text-xs whitespace-pre-wrap font-mono text-foreground/80 leading-relaxed">{viewDoc.contenu}</pre>
+            </div>
+          </div>
+        </div>
+      )}
+
       {docs.length === 0 ? (
         <p className="text-sm text-muted-foreground text-center py-6">Aucun document</p>
       ) : (
         <div className="divide-y divide-border/30 border border-border/50 rounded-xl overflow-hidden">
-          {docs.map((doc) => (
+          {[...docs].reverse().map((doc) => (
             <div key={doc.id} className="flex items-center gap-3 px-4 py-3">
               <FileText className="w-4 h-4 text-muted-foreground flex-shrink-0" />
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium">{doc.nom}</p>
-                <p className="text-xs text-muted-foreground capitalize">{doc.type}</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-medium">{doc.nom}</p>
+                  {doc.genere_auto && <span className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded-full">Auto</span>}
+                </div>
+                <p className="text-xs text-muted-foreground">{new Date(doc.date).toLocaleDateString("fr-FR")}</p>
               </div>
+              <span className={`text-xs px-2 py-0.5 rounded-full ${TYPE_COLORS[doc.type] || "bg-gray-100 text-gray-500"}`}>
+                {TYPE_LABELS[doc.type] || doc.type}
+              </span>
+              {doc.contenu && (
+                <button onClick={() => setViewDoc(doc)} className="text-xs text-primary hover:underline font-medium">Voir</button>
+              )}
               {doc.url && (
-                <a href={doc.url} target="_blank" rel="noreferrer" className="text-xs text-primary hover:underline">Voir</a>
+                <a href={doc.url} target="_blank" rel="noreferrer" className="text-xs text-primary hover:underline">Lien</a>
               )}
             </div>
           ))}
