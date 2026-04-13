@@ -19,27 +19,40 @@ export default function PreavisBanner({ dossier, onUpdate }) {
 
   const recevoirPreavis = async () => {
     setLoading(true);
-    await base44.entities.DossierLocatif.update(dossier.id, {
-      statut_bail: "preavis",
-      preavis_date_reception: new Date().toISOString(),
-      preavis_date_sortie: dateSortie || null,
-    });
-    // Notify locataire par email (best-effort)
-    const loc = dossier.locataire_selectionne;
-    if (loc?.email) {
-      try {
-        await base44.integrations.Core.SendEmail({
-          to: loc.email,
-          subject: "Accusé de réception de votre préavis",
-          body: `Bonjour ${loc.nom},\n\nNous accusons réception de votre préavis de départ concernant le bien : ${dossier.property_title}.\n\n${dateSortie ? `Date de sortie prévue : ${new Date(dateSortie).toLocaleDateString("fr-FR")}\n\n` : ""}L'état des lieux de sortie sera planifié prochainement.\n\nCordialement,\n${dossier.agent_name || "L'agence"}`,
-        });
-      } catch (e) {
-        // Email optionnel, on continue même si erreur
-      }
+    try {
+      // Archiver le dossier suivi
+      await base44.entities.DossierLocatif.update(dossier.id, {
+        statut_bail: "termine",
+        statut: "archive",
+        preavis_date_reception: new Date().toISOString(),
+        preavis_date_sortie: dateSortie || null,
+        date_sortie: dateSortie || null,
+      });
+      // Créer dossier de sortie
+      const ds = await base44.entities.DossierSortie.create({
+        dossier_suivi_id: dossier.id,
+        property_id: dossier.property_id,
+        property_title: dossier.property_title,
+        property_address: dossier.property_address,
+        locataire: dossier.locataire_selectionne,
+        agent_email: dossier.agent_email,
+        agent_name: dossier.agent_name,
+        loyer: dossier.loyer,
+        charges: dossier.charges,
+        depot_garantie: dossier.depot_garantie,
+        date_entree: dossier.date_entree,
+        date_sortie_prevue: dateSortie || null,
+        statut: "ouvert",
+        reference: `SORTIE-${Date.now()}`,
+        historique: [{ id: Date.now(), content: "Dossier créé automatiquement à la réception du préavis.", date: new Date().toISOString() }],
+      });
+      setLoading(false);
+      setConfirming(false);
+      navigate(`/admin/sortie/${ds.id}`);
+    } catch (err) {
+      console.error("Erreur réception préavis:", err);
+      setLoading(false);
     }
-    setLoading(false);
-    setConfirming(false);
-    onUpdate();
   };
 
   const cloturerPreavis = async () => {
