@@ -14,6 +14,10 @@ import {
   UserCheck,
   FileSignature,
   CheckSquare,
+  Calculator,
+  ArrowLeftRight,
+  BarChart2,
+  Bell,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -40,6 +44,7 @@ const navItems = [
       { label: "Clôtures", path: "/admin/vente/cloture", icon: CheckSquare },
     ],
   },
+  { label: "Comptabilité", path: "/admin/comptabilite", icon: Calculator },
   {
     label: "Paramètres",
     icon: Settings,

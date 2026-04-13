@@ -1,0 +1,61 @@
+{
+  "name": "Depense",
+  "type": "object",
+  "properties": {
+    "agency_id": {
+      "type": "string"
+    },
+    "libelle": {
+      "type": "string"
+    },
+    "categorie": {
+      "type": "string",
+      "enum": [
+        "travaux",
+        "maintenance",
+        "frais_agence",
+        "assurance",
+        "impots",
+        "publicite",
+        "autre"
+      ],
+      "default": "autre"
+    },
+    "montant": {
+      "type": "number"
+    },
+    "date": {
+      "type": "string"
+    },
+    "fournisseur": {
+      "type": "string"
+    },
+    "bien_id": {
+      "type": "string"
+    },
+    "bien_titre": {
+      "type": "string"
+    },
+    "facture_url": {
+      "type": "string"
+    },
+    "statut": {
+      "type": "string",
+      "enum": [
+        "a_payer",
+        "payee"
+      ],
+      "default": "payee"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "agent_email": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "libelle",
+    "montant"
+  ]
+}

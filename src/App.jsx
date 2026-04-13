@@ -35,6 +35,7 @@ import AdminTransactions from './pages/admin/AdminTransactions';
 import AdminTransactionDetail from './pages/admin/AdminTransactionDetail';
 import AdminVenteCloture from './pages/admin/AdminVenteCloture';
 import AdminMandats from './pages/admin/AdminMandats';
+import AdminComptabilite from './pages/admin/AdminComptabilite';
 import AdminSuiviDetail from './pages/admin/AdminSuiviDetail';
 
 const AuthenticatedApp = () => {
@@ -92,6 +93,7 @@ const AuthenticatedApp = () => {
         <Route path="/admin/vente/transactions" element={<AdminTransactions />} />
         <Route path="/admin/vente/transactions/:id" element={<AdminTransactionDetail />} />
         <Route path="/admin/vente/cloture" element={<AdminVenteCloture />} />
+        <Route path="/admin/comptabilite" element={<AdminComptabilite />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>

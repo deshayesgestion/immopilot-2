@@ -1,0 +1,77 @@
+{
+  "name": "Transaction",
+  "type": "object",
+  "properties": {
+    "agency_id": {
+      "type": "string"
+    },
+    "reference": {
+      "type": "string"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "loyer",
+        "commission_vente",
+        "honoraires",
+        "depense",
+        "remboursement",
+        "autre"
+      ]
+    },
+    "statut": {
+      "type": "string",
+      "enum": [
+        "paye",
+        "en_attente",
+        "en_retard",
+        "annule"
+      ],
+      "default": "en_attente"
+    },
+    "montant": {
+      "type": "number"
+    },
+    "date_echeance": {
+      "type": "string"
+    },
+    "date_paiement": {
+      "type": "string"
+    },
+    "tiers_nom": {
+      "type": "string"
+    },
+    "tiers_email": {
+      "type": "string"
+    },
+    "bien_titre": {
+      "type": "string"
+    },
+    "bien_id": {
+      "type": "string"
+    },
+    "dossier_id": {
+      "type": "string"
+    },
+    "dossier_type": {
+      "type": "string",
+      "enum": [
+        "location",
+        "vente"
+      ]
+    },
+    "categorie": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "agent_email": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "type",
+    "montant"
+  ]
+}

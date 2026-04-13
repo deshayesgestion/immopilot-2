@@ -1,0 +1,82 @@
+{
+  "name": "Facture",
+  "type": "object",
+  "properties": {
+    "agency_id": {
+      "type": "string"
+    },
+    "numero": {
+      "type": "string"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "loyer",
+        "honoraires",
+        "commission",
+        "autre"
+      ],
+      "default": "loyer"
+    },
+    "statut": {
+      "type": "string",
+      "enum": [
+        "brouillon",
+        "emise",
+        "payee",
+        "annulee"
+      ],
+      "default": "brouillon"
+    },
+    "client_nom": {
+      "type": "string"
+    },
+    "client_email": {
+      "type": "string"
+    },
+    "bien_titre": {
+      "type": "string"
+    },
+    "bien_id": {
+      "type": "string"
+    },
+    "montant_ht": {
+      "type": "number"
+    },
+    "tva_taux": {
+      "type": "number",
+      "default": 0
+    },
+    "montant_ttc": {
+      "type": "number"
+    },
+    "date_emission": {
+      "type": "string"
+    },
+    "date_echeance": {
+      "type": "string"
+    },
+    "date_paiement": {
+      "type": "string"
+    },
+    "lignes": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "notes": {
+      "type": "string"
+    },
+    "pdf_url": {
+      "type": "string"
+    },
+    "transaction_id": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "client_nom",
+    "montant_ttc"
+  ]
+}

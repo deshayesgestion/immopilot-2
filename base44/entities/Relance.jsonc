@@ -1,0 +1,61 @@
+{
+  "name": "Relance",
+  "type": "object",
+  "properties": {
+    "agency_id": {
+      "type": "string"
+    },
+    "transaction_id": {
+      "type": "string"
+    },
+    "tiers_nom": {
+      "type": "string"
+    },
+    "tiers_email": {
+      "type": "string"
+    },
+    "bien_titre": {
+      "type": "string"
+    },
+    "montant": {
+      "type": "number"
+    },
+    "niveau": {
+      "type": "number",
+      "description": "1=rappel, 2=relance ferme, 3=mise en demeure"
+    },
+    "statut": {
+      "type": "string",
+      "enum": [
+        "planifiee",
+        "envoyee",
+        "ignoree",
+        "resolue"
+      ],
+      "default": "planifiee"
+    },
+    "date_envoi": {
+      "type": "string"
+    },
+    "canal": {
+      "type": "string",
+      "enum": [
+        "email",
+        "sms",
+        "courrier"
+      ],
+      "default": "email"
+    },
+    "contenu": {
+      "type": "string"
+    },
+    "auto": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "tiers_nom",
+    "montant"
+  ]
+}
