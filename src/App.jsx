@@ -70,8 +70,7 @@ const AuthenticatedApp = () => {
       <Route element={<AdminLayout />}>
         <Route path="/admin" element={<Dashboard />} />
 
-        <Route path="/admin/crm" element={<AdminCRM />} />
-        <Route path="/admin/ia" element={<AdminAI />} />
+
         <Route path="/admin/equipe" element={<AdminAgents />} />
         <Route path="/admin/location" element={<AdminLocation />} />
         <Route path="/admin/attribution" element={<AdminAttribution />} />

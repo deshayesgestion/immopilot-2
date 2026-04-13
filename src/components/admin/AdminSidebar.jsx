@@ -31,8 +31,7 @@ const navItems = [
   },
 
   { label: "Agents & Clients", path: "/admin/equipe", icon: Users },
-  { label: "Estimation IA", path: "/admin/ia", icon: Brain },
-  { label: "CRM", path: "/admin/crm", icon: MessageSquare },
+
   { label: "Paramètres", path: "/admin/parametres", icon: Settings },
 ];
 
