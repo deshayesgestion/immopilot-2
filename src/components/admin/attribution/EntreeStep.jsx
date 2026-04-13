@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useAgency } from "../../../hooks/useAgency";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, Loader2, Key, Mail, Download, Archive, Sparkles, PartyPopper } from "lucide-react";
@@ -49,6 +50,7 @@ function generatePdfContent(dossier) {
 }
 
 export default function EntreeStep({ dossier, onUpdate }) {
+  const { agency } = useAgency();
   const [generating, setGenerating] = useState(false);
   const [sending, setSending] = useState(false);
   const [archiving, setArchiving] = useState(false);
@@ -56,15 +58,99 @@ export default function EntreeStep({ dossier, onUpdate }) {
   const [emailSent, setEmailSent] = useState(!!dossier.entree_email_sent);
   const locataire = dossier.locataire_selectionne;
 
-  const downloadPdf = () => {
-    const content = generatePdfContent(dossier);
-    const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `recap-${dossier.reference || "dossier"}.txt`;
-    a.click();
-    URL.revokeObjectURL(url);
+  const downloadPdf = async () => {
+    const { jsPDF } = await import("jspdf");
+    const doc = new jsPDF({ unit: "mm", format: "a4" });
+    const pageW = doc.internal.pageSize.getWidth();
+    const pageH = doc.internal.pageSize.getHeight();
+    const margin = 20;
+    const contentW = pageW - margin * 2;
+    const locataire = dossier.locataire_selectionne || {};
+
+    // Header band
+    doc.setFillColor(79, 70, 229);
+    doc.rect(0, 0, pageW, 28, "F");
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(14);
+    doc.setFont("helvetica", "bold");
+    doc.text(agency?.name || "Agence Immobilière", margin, 13);
+    doc.setFontSize(8);
+    doc.setFont("helvetica", "normal");
+    const agencyInfo = [agency?.address, agency?.phone, agency?.email].filter(Boolean).join("  ·  ");
+    if (agencyInfo) doc.text(agencyInfo, margin, 21);
+
+    // Title
+    doc.setTextColor(30, 30, 30);
+    doc.setFontSize(16);
+    doc.setFont("helvetica", "bold");
+    doc.text("RÉCAPITULATIF DOSSIER LOCATIF", pageW / 2, 42, { align: "center" });
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(100, 100, 100);
+    doc.text(`Réf. : ${dossier.reference || "—"}  ·  Édité le ${new Date().toLocaleDateString("fr-FR")}`, pageW / 2, 49, { align: "center" });
+    doc.setDrawColor(200, 200, 200);
+    doc.line(margin, 53, pageW - margin, 53);
+
+    // Section helper
+    let y = 61;
+    const section = (title) => {
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(79, 70, 229);
+      doc.text(title, margin, y);
+      y += 6;
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(30, 30, 30);
+      doc.setFontSize(9.5);
+    };
+    const row = (label, value) => {
+      if (!value) return;
+      doc.setTextColor(100, 100, 100);
+      doc.text(label, margin, y);
+      doc.setTextColor(30, 30, 30);
+      doc.text(String(value), margin + 45, y);
+      y += 6;
+    };
+
+    section("BIEN LOUÉ");
+    row("Titre :", dossier.property_title);
+    row("Adresse :", dossier.property_address);
+    row("Loyer :", `${formatEuro(dossier.loyer)}/mois`);
+    row("Charges :", `${formatEuro(dossier.charges)}/mois`);
+    row("Dépôt de garantie :", formatEuro(dossier.depot_garantie));
+    y += 4;
+
+    section("LOCATAIRE");
+    row("Nom :", locataire.nom);
+    row("Email :", locataire.email);
+    row("Téléphone :", locataire.telephone);
+    y += 4;
+
+    section("BAILLEUR / AGENCE");
+    row("Agence :", agency?.name);
+    row("Adresse :", agency?.address ? `${agency.address} ${agency.postal_code || ""} ${agency.city || ""}` : null);
+    row("Téléphone :", agency?.phone);
+    row("Email :", agency?.email);
+    row("Agent en charge :", dossier.agent_name || dossier.agent_email);
+    y += 4;
+
+    section("ÉTAPES COMPLÉTÉES");
+    const steps = ["Candidatures recueillies", "Dossier validé et scoring IA effectué", "Bail généré et signé", "Paiements initiaux reçus", "État des lieux d'entrée réalisé", "Entrée locataire finalisée"];
+    steps.forEach((s) => {
+      doc.setTextColor(34, 197, 94);
+      doc.text("✓", margin, y);
+      doc.setTextColor(30, 30, 30);
+      doc.text(s, margin + 6, y);
+      y += 6;
+    });
+
+    // Footer
+    doc.setFontSize(7.5);
+    doc.setTextColor(150, 150, 150);
+    doc.line(margin, pageH - 14, pageW - margin, pageH - 14);
+    doc.text(`${agency?.name || ""} — Document généré le ${new Date().toLocaleDateString("fr-FR")}`, margin, pageH - 9);
+
+    doc.save(`recap-${dossier.reference || "dossier"}.pdf`);
   };
 
   const sendEmail = async () => {
