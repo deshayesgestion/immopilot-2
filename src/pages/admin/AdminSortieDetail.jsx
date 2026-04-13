@@ -13,8 +13,9 @@ const STATUTS = [
   { value: "edl_planifie", label: "EDL planifié", color: "bg-blue-100 text-blue-700" },
   { value: "edl_realise", label: "EDL réalisé", color: "bg-purple-100 text-purple-700" },
   { value: "restitution_caution", label: "Restitution caution", color: "bg-orange-100 text-orange-700" },
-  { value: "cloture", label: "Clôturé", color: "bg-gray-100 text-gray-500" },
 ];
+// "cloture" is a terminal state only reachable via explicit button
+const ALL_STATUTS = [...STATUTS, { value: "cloture", label: "Clôturé", color: "bg-gray-100 text-gray-500" }];
 
 export default function AdminSortieDetail() {
   const { id } = useParams();
@@ -93,7 +94,7 @@ export default function AdminSortieDetail() {
     </div>
   );
 
-  const statutObj = STATUTS.find((s) => s.value === dossier.statut) || STATUTS[0];
+  const statutObj = ALL_STATUTS.find((s) => s.value === dossier.statut) || ALL_STATUTS[0];
   const totalRetenues = (dossier.retenues || []).reduce((s, r) => s + Number(r.montant || 0), 0);
   const restitution = Math.max(0, (dossier.depot_garantie || 0) - totalRetenues);
 
@@ -147,23 +148,29 @@ export default function AdminSortieDetail() {
       <div className="bg-white rounded-2xl border border-border/50 shadow-sm p-5">
         <p className="text-sm font-semibold mb-4">Avancement</p>
         <div className="flex items-center gap-2 flex-wrap">
-          {STATUTS.map((s, i) => {
-            const idx = STATUTS.findIndex((x) => x.value === dossier.statut);
+          {ALL_STATUTS.map((s, i) => {
+            const idx = ALL_STATUTS.findIndex((x) => x.value === dossier.statut);
             const isDone = i < idx;
             const isCurrent = i === idx;
+            const isNext = i === idx + 1;
+            const isCloture = s.value === "cloture";
+            // Only allow clicking the next step (not cloture, handled by button)
+            const clickable = isNext && !isCloture && !saving;
             return (
               <button
                 key={s.value}
-                onClick={() => !isDone && updateStatut(s.value)}
-                disabled={saving}
+                onClick={() => clickable && updateStatut(s.value)}
+                disabled={!clickable}
                 className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium border transition-all ${
                   isCurrent ? s.color + " border-current" :
                   isDone ? "bg-green-50 text-green-700 border-green-200" :
-                  "bg-secondary/30 text-muted-foreground border-transparent hover:border-border"
+                  isNext && !isCloture ? "bg-secondary/50 text-foreground border-border cursor-pointer hover:border-primary" :
+                  "bg-secondary/20 text-muted-foreground border-transparent cursor-default opacity-50"
                 }`}
               >
                 {isDone && <CheckCircle2 className="w-3 h-3" />}
                 {s.label}
+                {isNext && !isCloture && <span className="text-[10px] opacity-60">→</span>}
               </button>
             );
           })}
