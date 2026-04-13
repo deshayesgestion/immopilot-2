@@ -36,6 +36,11 @@ export default function PropertyCard({ property, onFavorite }) {
               Sous compromis
             </span>
           )}
+          {property.status === "bientot_disponible" && (
+            <span className="px-3 py-1 bg-emerald-500/90 text-white backdrop-blur-sm rounded-full text-xs font-medium">
+              Bientôt disponible
+            </span>
+          )}
         </div>
         <button
           onClick={(e) => {

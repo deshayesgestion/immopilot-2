@@ -195,6 +195,7 @@
       "type": "string",
       "enum": [
         "disponible",
+        "bientot_disponible",
         "sous_compromis",
         "vendu",
         "loue"

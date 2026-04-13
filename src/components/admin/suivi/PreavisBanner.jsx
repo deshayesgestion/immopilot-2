@@ -28,6 +28,14 @@ export default function PreavisBanner({ dossier, onUpdate }) {
         preavis_date_sortie: dateSortie || null,
         date_sortie: dateSortie || null,
       });
+      // Republier le bien comme "bientôt disponible"
+      if (dossier.property_id) {
+        await base44.entities.Property.update(dossier.property_id, {
+          status: "bientot_disponible",
+          publish_site: true,
+          available_date: dateSortie || undefined,
+        });
+      }
       // Créer dossier de sortie
       const ds = await base44.entities.DossierSortie.create({
         dossier_suivi_id: dossier.id,
@@ -64,6 +72,14 @@ export default function PreavisBanner({ dossier, onUpdate }) {
         statut: "archive",
         date_sortie: dateSortie || new Date().toISOString(),
       });
+      // Republier le bien comme "bientôt disponible"
+      if (dossier.property_id) {
+        await base44.entities.Property.update(dossier.property_id, {
+          status: "bientot_disponible",
+          publish_site: true,
+          available_date: dateSortie || dossier.preavis_date_sortie || undefined,
+        });
+      }
       // Créer dossier de sortie
       const ds = await base44.entities.DossierSortie.create({
         dossier_suivi_id: dossier.id,
@@ -84,6 +100,7 @@ export default function PreavisBanner({ dossier, onUpdate }) {
       });
       setCloturing(false);
       navigate(`/admin/sortie/${ds.id}`);
+
     } catch (err) {
       console.error("Erreur clôture préavis:", err);
       setCloturing(false);
