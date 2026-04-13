@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Loader2, ChevronDown, ChevronRight, User, Euro, Calendar, Home, FileText, AlertTriangle, CreditCard } from "lucide-react";
+import { Loader2, ChevronDown, ChevronRight, User, Euro, Calendar, Home, FileText, AlertTriangle, CreditCard, Download } from "lucide-react";
+import { jsPDF } from "jspdf";
 
 const formatEuro = (n) =>
   new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(n || 0);
@@ -169,6 +170,101 @@ function DossierArchive({ dossier }) {
   );
 }
 
+function exportAllToPDF(dossiers) {
+  const doc = new jsPDF();
+  const fmt = (n) => new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(n || 0);
+  const fmtDate = (d) => d ? new Date(d).toLocaleDateString("fr-FR") : "—";
+
+  doc.setFontSize(18);
+  doc.setFont(undefined, "bold");
+  doc.text("Archives Location", 20, 20);
+  doc.setFontSize(10);
+  doc.setFont(undefined, "normal");
+  doc.setTextColor(120);
+  doc.text(`Exporté le ${new Date().toLocaleDateString("fr-FR")} — ${dossiers.length} dossier(s)`, 20, 28);
+  doc.setTextColor(0);
+
+  let y = 40;
+
+  dossiers.forEach((d, idx) => {
+    if (y > 250) { doc.addPage(); y = 20; }
+
+    // Separator
+    doc.setDrawColor(220);
+    doc.line(20, y, 190, y);
+    y += 6;
+
+    doc.setFontSize(12);
+    doc.setFont(undefined, "bold");
+    doc.text(`${idx + 1}. ${d.property_title || "—"}`, 20, y);
+    y += 5;
+
+    doc.setFontSize(9);
+    doc.setFont(undefined, "normal");
+    doc.setTextColor(100);
+    doc.text(`${d.property_address || ""} · Réf. ${d.reference || "—"}`, 20, y);
+    doc.setTextColor(0);
+    y += 7;
+
+    const loc = d.locataire_selectionne || {};
+    const rows = [
+      ["Locataire", loc.nom || "—", "Email", loc.email || "—"],
+      ["Entrée", fmtDate(d.date_entree), "Sortie", fmtDate(d.date_sortie)],
+      ["Loyer", fmt(d.loyer), "Charges", fmt(d.charges)],
+      ["Caution", fmt(d.depot_garantie), "Total perçu", fmt((d.paiements || []).filter(p => p.statut === "recu").reduce((s, p) => s + Number(p.total || 0), 0))],
+    ];
+
+    rows.forEach(([l1, v1, l2, v2]) => {
+      if (y > 270) { doc.addPage(); y = 20; }
+      doc.setFont(undefined, "bold"); doc.setFontSize(8);
+      doc.text(l1 + ":", 22, y);
+      doc.setFont(undefined, "normal");
+      doc.text(String(v1), 55, y);
+      doc.setFont(undefined, "bold");
+      doc.text(l2 + ":", 110, y);
+      doc.setFont(undefined, "normal");
+      doc.text(String(v2), 145, y);
+      y += 5;
+    });
+
+    // Paiements summary
+    const paiements = d.paiements || [];
+    if (paiements.length > 0) {
+      if (y > 260) { doc.addPage(); y = 20; }
+      y += 3;
+      doc.setFontSize(9); doc.setFont(undefined, "bold");
+      doc.text(`Paiements (${paiements.length})`, 22, y);
+      doc.setFont(undefined, "normal"); doc.setFontSize(8);
+      y += 4;
+      paiements.slice(0, 6).forEach((p) => {
+        if (y > 270) { doc.addPage(); y = 20; }
+        const sl = { recu: "Payé", en_attente: "En attente", retard: "En retard", en_retard: "En retard" }[p.statut] || p.statut;
+        doc.text(`• ${p.mois || ""} — ${fmt(p.total || 0)} — ${sl}`, 25, y);
+        y += 4;
+      });
+      if (paiements.length > 6) {
+        doc.text(`... et ${paiements.length - 6} autres paiements`, 25, y);
+        y += 4;
+      }
+    }
+
+    // Incidents
+    const incidents = (d.incidents || []).filter(i => i.statut !== "resolu");
+    if (incidents.length > 0) {
+      if (y > 260) { doc.addPage(); y = 20; }
+      y += 2;
+      doc.setFontSize(9); doc.setFont(undefined, "bold"); doc.setTextColor(180, 60, 0);
+      doc.text(`⚠ ${incidents.length} incident(s) ouvert(s)`, 22, y);
+      doc.setTextColor(0); doc.setFont(undefined, "normal");
+      y += 5;
+    }
+
+    y += 8;
+  });
+
+  doc.save(`archives-location-${new Date().toISOString().slice(0, 10)}.pdf`);
+}
+
 export default function ArchivesList() {
   const [dossiers, setDossiers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -178,6 +274,8 @@ export default function ArchivesList() {
       .then(setDossiers)
       .finally(() => setLoading(false));
   }, []);
+
+  const handleExport = () => exportAllToPDF(dossiers);
 
   if (loading) return (
     <div className="flex items-center justify-center py-16">
@@ -195,7 +293,12 @@ export default function ArchivesList() {
 
   return (
     <div className="space-y-3">
-      <p className="text-xs text-muted-foreground">{dossiers.length} dossier{dossiers.length > 1 ? "s" : ""} archivé{dossiers.length > 1 ? "s" : ""}</p>
+      <div className="flex items-center justify-between">
+        <p className="text-xs text-muted-foreground">{dossiers.length} dossier{dossiers.length > 1 ? "s" : ""} archivé{dossiers.length > 1 ? "s" : ""}</p>
+        <button onClick={handleExport} className="flex items-center gap-1.5 text-xs font-medium text-primary hover:underline">
+          <Download className="w-3.5 h-3.5" /> Exporter tout en PDF
+        </button>
+      </div>
       {dossiers.map((d) => <DossierArchive key={d.id} dossier={d} />)}
     </div>
   );
