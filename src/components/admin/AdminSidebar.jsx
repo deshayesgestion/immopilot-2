@@ -29,8 +29,7 @@ const navItems = [
       { label: "Sortie", path: "/admin/sortie", icon: LogOut },
     ],
   },
-  { label: "Dossier locatif", path: "/admin/dossier-locatif", icon: BookOpen },
-  { label: "Dossiers", path: "/admin/dossiers", icon: FolderOpen },
+
   { label: "Agents & Clients", path: "/admin/equipe", icon: Users },
   { label: "Estimation IA", path: "/admin/ia", icon: Brain },
   { label: "CRM", path: "/admin/crm", icon: MessageSquare },

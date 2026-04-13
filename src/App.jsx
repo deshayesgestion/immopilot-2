@@ -73,10 +73,7 @@ const AuthenticatedApp = () => {
         <Route path="/admin/crm" element={<AdminCRM />} />
         <Route path="/admin/ia" element={<AdminAI />} />
         <Route path="/admin/equipe" element={<AdminAgents />} />
-        <Route path="/admin/dossiers" element={<AdminDossiers />} />
         <Route path="/admin/location" element={<AdminLocation />} />
-        <Route path="/admin/dossier-locatif" element={<DossierLocatif />} />
-        <Route path="/admin/dossier-locatif/:id" element={<DossierLocatifDetail />} />
         <Route path="/admin/attribution" element={<AdminAttribution />} />
         <Route path="/admin/attribution/:id" element={<AdminAttributionDetail />} />
         <Route path="/admin/suivi" element={<AdminSuivi />} />
