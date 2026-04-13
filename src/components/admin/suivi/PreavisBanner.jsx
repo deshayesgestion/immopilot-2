@@ -24,14 +24,18 @@ export default function PreavisBanner({ dossier, onUpdate }) {
       preavis_date_reception: new Date().toISOString(),
       preavis_date_sortie: dateSortie || null,
     });
-    // Notify locataire par email
+    // Notify locataire par email (best-effort)
     const loc = dossier.locataire_selectionne;
     if (loc?.email) {
-      await base44.integrations.Core.SendEmail({
-        to: loc.email,
-        subject: "Accusé de réception de votre préavis",
-        body: `Bonjour ${loc.nom},\n\nNous accusons réception de votre préavis de départ concernant le bien : ${dossier.property_title}.\n\n${dateSortie ? `Date de sortie prévue : ${new Date(dateSortie).toLocaleDateString("fr-FR")}\n\n` : ""}L'état des lieux de sortie sera planifié prochainement.\n\nCordialement,\n${dossier.agent_name || "L'agence"}`,
-      });
+      try {
+        await base44.integrations.Core.SendEmail({
+          to: loc.email,
+          subject: "Accusé de réception de votre préavis",
+          body: `Bonjour ${loc.nom},\n\nNous accusons réception de votre préavis de départ concernant le bien : ${dossier.property_title}.\n\n${dateSortie ? `Date de sortie prévue : ${new Date(dateSortie).toLocaleDateString("fr-FR")}\n\n` : ""}L'état des lieux de sortie sera planifié prochainement.\n\nCordialement,\n${dossier.agent_name || "L'agence"}`,
+        });
+      } catch (e) {
+        // Email optionnel, on continue même si erreur
+      }
     }
     setLoading(false);
     setConfirming(false);
