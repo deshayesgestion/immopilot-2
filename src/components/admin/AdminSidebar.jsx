@@ -10,6 +10,10 @@ import {
   Eye,
   LogOut,
   ChevronDown,
+  TrendingUp,
+  UserCheck,
+  FileSignature,
+  CheckSquare,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -23,6 +27,16 @@ const navItems = [
       { label: "Attribution", path: "/admin/attribution", icon: ClipboardList },
       { label: "Suivi", path: "/admin/suivi", icon: Eye },
       { label: "Sortie", path: "/admin/sortie", icon: LogOut },
+    ],
+  },
+  {
+    label: "Vente",
+    icon: TrendingUp,
+    children: [
+      { label: "Biens", path: "/admin/vente/biens", icon: Home },
+      { label: "Acquéreurs", path: "/admin/vente/acquereurs", icon: UserCheck },
+      { label: "Transactions", path: "/admin/vente/transactions", icon: FileSignature },
+      { label: "Clôtures", path: "/admin/vente/cloture", icon: CheckSquare },
     ],
   },
   {

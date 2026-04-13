@@ -1,0 +1,115 @@
+{
+  "name": "TransactionVente",
+  "type": "object",
+  "properties": {
+    "agency_id": {
+      "type": "string"
+    },
+    "reference": {
+      "type": "string"
+    },
+    "property_id": {
+      "type": "string"
+    },
+    "property_title": {
+      "type": "string"
+    },
+    "property_address": {
+      "type": "string"
+    },
+    "prix_affiche": {
+      "type": "number"
+    },
+    "acquereur_id": {
+      "type": "string"
+    },
+    "acquereur_nom": {
+      "type": "string"
+    },
+    "acquereur_email": {
+      "type": "string"
+    },
+    "agent_email": {
+      "type": "string"
+    },
+    "agent_nom": {
+      "type": "string"
+    },
+    "current_step": {
+      "type": "number",
+      "default": 1
+    },
+    "statut": {
+      "type": "string",
+      "enum": [
+        "prospection",
+        "visites",
+        "offre",
+        "verification",
+        "compromis",
+        "notaire",
+        "vendu",
+        "annule"
+      ],
+      "default": "prospection"
+    },
+    "prix_offre": {
+      "type": "number"
+    },
+    "prix_vente_final": {
+      "type": "number"
+    },
+    "commission_agence": {
+      "type": "number"
+    },
+    "date_offre": {
+      "type": "string"
+    },
+    "date_compromis": {
+      "type": "string"
+    },
+    "date_acte_prevue": {
+      "type": "string"
+    },
+    "date_acte_signe": {
+      "type": "string"
+    },
+    "notaire_nom": {
+      "type": "string"
+    },
+    "notaire_email": {
+      "type": "string"
+    },
+    "visites": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "offres": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "documents": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "notes": {
+      "type": "string"
+    },
+    "historique": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    }
+  },
+  "required": [
+    "property_title",
+    "acquereur_nom"
+  ]
+}

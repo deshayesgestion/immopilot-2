@@ -1,0 +1,90 @@
+{
+  "name": "Acquereur",
+  "type": "object",
+  "properties": {
+    "agency_id": {
+      "type": "string"
+    },
+    "nom": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string"
+    },
+    "telephone": {
+      "type": "string"
+    },
+    "budget_min": {
+      "type": "number"
+    },
+    "budget_max": {
+      "type": "number"
+    },
+    "surface_min": {
+      "type": "number"
+    },
+    "types_recherches": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "localisations": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "nb_pieces_min": {
+      "type": "number"
+    },
+    "financement_valide": {
+      "type": "boolean",
+      "default": false
+    },
+    "banque": {
+      "type": "string"
+    },
+    "apport": {
+      "type": "number"
+    },
+    "score_ia": {
+      "type": "number"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "statut": {
+      "type": "string",
+      "enum": [
+        "actif",
+        "en_attente",
+        "inactif"
+      ],
+      "default": "actif"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "site_web",
+        "telephone",
+        "recommandation",
+        "portail",
+        "autre"
+      ]
+    },
+    "agent_email": {
+      "type": "string"
+    },
+    "historique": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    }
+  },
+  "required": [
+    "nom",
+    "email"
+  ]
+}

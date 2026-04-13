@@ -29,6 +29,11 @@ import AdminAttributionDetail from './pages/admin/AdminAttributionDetail';
 import AdminSuivi from './pages/admin/AdminSuivi';
 import AdminSortie from './pages/admin/AdminSortie';
 import AdminSortieDetail from './pages/admin/AdminSortieDetail';
+import AdminVenteBiens from './pages/admin/AdminVenteBiens';
+import AdminAcquereurs from './pages/admin/AdminAcquereurs';
+import AdminTransactions from './pages/admin/AdminTransactions';
+import AdminTransactionDetail from './pages/admin/AdminTransactionDetail';
+import AdminVenteCloture from './pages/admin/AdminVenteCloture';
 import AdminSuiviDetail from './pages/admin/AdminSuiviDetail';
 
 const AuthenticatedApp = () => {
@@ -80,6 +85,11 @@ const AuthenticatedApp = () => {
         <Route path="/admin/sortie" element={<AdminSortie />} />
         <Route path="/admin/sortie/:id" element={<AdminSortieDetail />} />
         <Route path="/admin/parametres" element={<AdminSettings />} />
+        <Route path="/admin/vente/biens" element={<AdminVenteBiens />} />
+        <Route path="/admin/vente/acquereurs" element={<AdminAcquereurs />} />
+        <Route path="/admin/vente/transactions" element={<AdminTransactions />} />
+        <Route path="/admin/vente/transactions/:id" element={<AdminTransactionDetail />} />
+        <Route path="/admin/vente/cloture" element={<AdminVenteCloture />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>
