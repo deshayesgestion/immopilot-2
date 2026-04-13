@@ -336,14 +336,21 @@ Rédige un compte-rendu structuré, factuel et professionnel à destination du d
     const pdfBlob = doc.output("blob");
     const file = new File([pdfBlob], `Mandat_${mandat?.reference || "vente"}.pdf`, { type: "application/pdf" });
     const { file_url } = await base44.integrations.Core.UploadFile({ file });
-    await base44.integrations.Core.SendEmail({
-      to: form.vendeur_email,
-      subject: `Mandat de vente à signer — ${form.bien_adresse || form.bien_ville}`,
-      body: `Bonjour ${form.vendeur_nom},\n\nVeuillez trouver ci-joint votre mandat de vente pour le bien situé ${form.bien_adresse || form.bien_ville}.\n\nMerci de le signer et de nous le retourner.\n\nDocument : ${file_url}\n\nCordialement,\n${agency?.name || "L'agence"}\n${agency?.phone || ""}`,
-    });
-    await base44.entities.MandatVente.update(mandat.id, {
-      historique: [...(mandat.historique || []), { id: Date.now(), content: `Mandat envoyé en signature électronique à ${form.vendeur_email}.`, date: new Date().toISOString() }],
-    });
+    try {
+      await base44.integrations.Core.SendEmail({
+        to: form.vendeur_email,
+        subject: `Mandat de vente à signer — ${form.bien_adresse || form.bien_ville}`,
+        body: `Bonjour ${form.vendeur_nom},\n\nVeuillez trouver ci-joint votre mandat de vente pour le bien situé ${form.bien_adresse || form.bien_ville}.\n\nMerci de le signer et de nous le retourner.\n\nDocument : ${file_url}\n\nCordialement,\n${agency?.name || "L'agence"}\n${agency?.phone || ""}`,
+      });
+      await base44.entities.MandatVente.update(mandat.id, {
+        historique: [...(mandat.historique || []), { id: Date.now(), content: `Mandat envoyé en signature électronique à ${form.vendeur_email}.`, date: new Date().toISOString() }],
+      });
+      alert(`Mandat envoyé à ${form.vendeur_email} avec succès.`);
+    } catch (err) {
+      // Fallback : copier le lien si l'email échoue (destinataire non enregistré dans l'app)
+      await navigator.clipboard.writeText(file_url).catch(() => {});
+      alert(`Impossible d'envoyer l'email automatiquement (le vendeur n'est pas un utilisateur de l'app).\n\nLe lien du document a été copié dans le presse-papiers :\n${file_url}`);
+    }
     setSaving(false);
     onUpdate();
   };
