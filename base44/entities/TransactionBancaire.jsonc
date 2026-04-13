@@ -1,0 +1,81 @@
+{
+  "name": "TransactionBancaire",
+  "type": "object",
+  "properties": {
+    "agency_id": {
+      "type": "string"
+    },
+    "compte_id": {
+      "type": "string",
+      "description": "ID du compte bancaire source"
+    },
+    "compte_nom": {
+      "type": "string"
+    },
+    "date": {
+      "type": "string"
+    },
+    "libelle": {
+      "type": "string"
+    },
+    "montant": {
+      "type": "number",
+      "description": "Positif = cr\u00e9dit, n\u00e9gatif = d\u00e9bit"
+    },
+    "solde_apres": {
+      "type": "number"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "credit",
+        "debit"
+      ],
+      "default": "credit"
+    },
+    "statut_matching": {
+      "type": "string",
+      "enum": [
+        "non_assigne",
+        "assigne",
+        "suggestion",
+        "ignore"
+      ],
+      "default": "non_assigne"
+    },
+    "transaction_id": {
+      "type": "string",
+      "description": "ID transaction comptable associ\u00e9e"
+    },
+    "match_score": {
+      "type": "number",
+      "description": "Score de confiance du matching IA (0-100)"
+    },
+    "match_suggestion": {
+      "type": "object",
+      "description": "Suggestion de matching IA"
+    },
+    "reference_externe": {
+      "type": "string"
+    },
+    "beneficiaire": {
+      "type": "string"
+    },
+    "categorie_ia": {
+      "type": "string",
+      "description": "Cat\u00e9gorie sugg\u00e9r\u00e9e par l'IA"
+    },
+    "anomalie": {
+      "type": "boolean",
+      "default": false
+    },
+    "anomalie_detail": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "date",
+    "libelle",
+    "montant"
+  ]
+}

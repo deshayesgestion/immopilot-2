@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { LayoutDashboard, ArrowLeftRight, FileText, Home, TrendingDown, Bell, BarChart2 } from "lucide-react";
+import { LayoutDashboard, ArrowLeftRight, FileText, Home, TrendingDown, Bell, BarChart2, Building2 } from "lucide-react";
+import TabBanque from "../../components/admin/comptabilite/TabBanque";
 import TabDashboard from "../../components/admin/comptabilite/TabDashboard";
 import TabTransactions from "../../components/admin/comptabilite/TabTransactions";
 import TabFacturation from "../../components/admin/comptabilite/TabFacturation";
@@ -16,6 +17,7 @@ const TABS = [
   { id: "depenses", label: "Dépenses", icon: TrendingDown },
   { id: "relances", label: "Relances", icon: Bell },
   { id: "rapports", label: "Rapports", icon: BarChart2 },
+  { id: "banque", label: "Liaison bancaire", icon: Building2 },
 ];
 
 export default function AdminComptabilite() {
@@ -57,6 +59,7 @@ export default function AdminComptabilite() {
       {activeTab === "depenses" && <TabDepenses />}
       {activeTab === "relances" && <TabRelances />}
       {activeTab === "rapports" && <TabRapports />}
+      {activeTab === "banque" && <TabBanque />}
     </div>
   );
 }

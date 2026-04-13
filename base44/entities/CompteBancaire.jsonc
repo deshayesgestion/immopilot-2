@@ -1,0 +1,46 @@
+{
+  "name": "CompteBancaire",
+  "type": "object",
+  "properties": {
+    "agency_id": {
+      "type": "string"
+    },
+    "nom": {
+      "type": "string",
+      "description": "Nom du compte (ex: Compte courant principal)"
+    },
+    "banque": {
+      "type": "string",
+      "description": "Nom de la banque"
+    },
+    "iban": {
+      "type": "string"
+    },
+    "bic": {
+      "type": "string"
+    },
+    "solde": {
+      "type": "number",
+      "default": 0
+    },
+    "devise": {
+      "type": "string",
+      "default": "EUR"
+    },
+    "actif": {
+      "type": "boolean",
+      "default": true
+    },
+    "derniere_sync": {
+      "type": "string",
+      "description": "Date derni\u00e8re synchronisation"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "nom",
+    "banque"
+  ]
+}
