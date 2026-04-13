@@ -44,32 +44,37 @@ export default function PreavisBanner({ dossier, onUpdate }) {
 
   const cloturerPreavis = async () => {
     setCloturing(true);
-    // Archiver le dossier suivi
-    await base44.entities.DossierLocatif.update(dossier.id, {
-      statut_bail: "termine",
-      statut: "archive",
-      date_sortie: dateSortie || new Date().toISOString(),
-    });
-    // Créer dossier de sortie
-    const ds = await base44.entities.DossierSortie.create({
-      dossier_suivi_id: dossier.id,
-      property_id: dossier.property_id,
-      property_title: dossier.property_title,
-      property_address: dossier.property_address,
-      locataire: dossier.locataire_selectionne,
-      agent_email: dossier.agent_email,
-      agent_name: dossier.agent_name,
-      loyer: dossier.loyer,
-      charges: dossier.charges,
-      depot_garantie: dossier.depot_garantie,
-      date_entree: dossier.date_entree,
-      date_sortie_prevue: dateSortie || dossier.preavis_date_sortie || null,
-      statut: "ouvert",
-      reference: `SORTIE-${Date.now()}`,
-      historique: [{ id: Date.now(), content: "Dossier créé automatiquement depuis le suivi locataire.", date: new Date().toISOString() }],
-    });
-    setCloturing(false);
-    navigate(`/admin/sortie/${ds.id}`);
+    try {
+      // Archiver le dossier suivi
+      await base44.entities.DossierLocatif.update(dossier.id, {
+        statut_bail: "termine",
+        statut: "archive",
+        date_sortie: dateSortie || new Date().toISOString(),
+      });
+      // Créer dossier de sortie
+      const ds = await base44.entities.DossierSortie.create({
+        dossier_suivi_id: dossier.id,
+        property_id: dossier.property_id,
+        property_title: dossier.property_title,
+        property_address: dossier.property_address,
+        locataire: dossier.locataire_selectionne,
+        agent_email: dossier.agent_email,
+        agent_name: dossier.agent_name,
+        loyer: dossier.loyer,
+        charges: dossier.charges,
+        depot_garantie: dossier.depot_garantie,
+        date_entree: dossier.date_entree,
+        date_sortie_prevue: dateSortie || dossier.preavis_date_sortie || null,
+        statut: "ouvert",
+        reference: `SORTIE-${Date.now()}`,
+        historique: [{ id: Date.now(), content: "Dossier créé automatiquement depuis le suivi locataire.", date: new Date().toISOString() }],
+      });
+      setCloturing(false);
+      navigate(`/admin/sortie/${ds.id}`);
+    } catch (err) {
+      console.error("Erreur clôture préavis:", err);
+      setCloturing(false);
+    }
   };
 
   const remettreEnLocation = async () => {
