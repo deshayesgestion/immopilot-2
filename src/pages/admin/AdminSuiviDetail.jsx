@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import IncidentsTab from "../../components/admin/suivi/IncidentsTab";
 import RevisionIRL from "../../components/admin/suivi/RevisionIRL";
+import PreavisBanner from "../../components/admin/suivi/PreavisBanner";
 
 const TABS = [
   { id: "loyer", label: "Loyer", icon: Euro },
@@ -446,6 +447,9 @@ export default function AdminSuiviDetail() {
           <p className="text-xs text-muted-foreground mt-1">{dossier.property_address} · Réf. {dossier.reference}</p>
         </div>
       </div>
+
+      {/* Préavis banner */}
+      <PreavisBanner dossier={dossier} onUpdate={load} />
 
       {/* Info cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
