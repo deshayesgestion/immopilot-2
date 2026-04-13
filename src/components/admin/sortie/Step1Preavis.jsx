@@ -41,6 +41,14 @@ export default function Step1Preavis({ dossier, onUpdate, onNext }) {
 
   const confirmerPreavis = async () => {
     setSaving(true);
+    // Publier le bien en "bientôt disponible"
+    if (dossier.property_id) {
+      await base44.entities.Property.update(dossier.property_id, {
+        status: "bientot_disponible",
+        publish_site: true,
+        available_date: fin || undefined,
+      });
+    }
     await base44.entities.DossierSortie.update(dossier.id, {
       statut: "edl_planifie",
       date_sortie_prevue: debut,
