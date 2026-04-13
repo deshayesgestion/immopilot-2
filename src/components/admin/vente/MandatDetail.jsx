@@ -1,9 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { jsPDF } from "jspdf";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Loader2, Sparkles, CheckCircle2, ChevronRight, ChevronLeft, Home, Save } from "lucide-react";
+import { ArrowLeft, Loader2, Sparkles, CheckCircle2, ChevronRight, ChevronLeft, Home, Save, FileText, Send } from "lucide-react";
 
 const STEPS = [
   { id: "contact", label: "Prise de contact" },
@@ -207,6 +208,141 @@ Rédige un compte-rendu structuré, factuel et professionnel à destination du d
         ...(mandat.historique || []),
         { id: Date.now(), content: `Bien créé et mis en vente (ID: ${prop.id}).`, date: new Date().toISOString() },
       ],
+    });
+    setSaving(false);
+    onUpdate();
+  };
+
+  const generatePDF = (agency) => {
+    const doc = new jsPDF();
+    const color = agency?.primary_color || "#4F46E5";
+    const hexToRgb = (hex) => {
+      const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
+      return [r,g,b];
+    };
+    const [cr,cg,cb] = hexToRgb(color);
+
+    doc.setFillColor(cr,cg,cb);
+    doc.rect(0,0,210,28,"F");
+    doc.setTextColor(255,255,255);
+    doc.setFontSize(16); doc.setFont("helvetica","bold");
+    doc.text(agency?.name || "Agence Immobilière", 14, 12);
+    doc.setFontSize(9); doc.setFont("helvetica","normal");
+    doc.text("MANDAT DE VENTE", 14, 20);
+    if (mandat?.reference) doc.text(`Réf. ${mandat.reference}`, 196, 20, { align: "right" });
+
+    doc.setTextColor(30,30,30);
+    let y = 38;
+
+    const section = (title) => {
+      doc.setFillColor(240,242,255); doc.rect(10, y-4, 190, 8, "F");
+      doc.setFontSize(9); doc.setFont("helvetica","bold"); doc.setTextColor(cr,cg,cb);
+      doc.text(title.toUpperCase(), 14, y+1);
+      doc.setTextColor(30,30,30); doc.setFont("helvetica","normal");
+      y += 10;
+    };
+
+    const row = (label, value) => {
+      if (!value) return;
+      doc.setFontSize(8); doc.setFont("helvetica","bold");
+      doc.text(label, 14, y);
+      doc.setFont("helvetica","normal");
+      doc.text(String(value), 75, y);
+      y += 6;
+      if (y > 270) { doc.addPage(); y = 20; }
+    };
+
+    section("Vendeur");
+    row("Nom :", form.vendeur_nom);
+    row("Téléphone :", form.vendeur_telephone);
+    row("Email :", form.vendeur_email);
+    y += 3;
+
+    section("Bien immobilier");
+    row("Type :", form.bien_type);
+    row("Adresse :", form.bien_adresse);
+    row("Ville :", `${form.bien_ville} ${form.bien_code_postal}`);
+    row("Surface :", form.bien_surface ? `${form.bien_surface} m²` : null);
+    row("Pièces :", form.bien_pieces);
+    row("Année construction :", form.bien_annee);
+    row("DPE :", form.dpe_classe);
+    row("GES :", form.ges_classe);
+    y += 3;
+
+    section("Estimation & Prix");
+    row("Prix souhaité vendeur :", form.prix_vendeur ? fmt(form.prix_vendeur) : null);
+    row("Estimation IA :", form.estimation_ia ? fmt(form.estimation_ia) : null);
+    row("Fourchette :", form.estimation_min && form.estimation_max ? `${fmt(form.estimation_min)} — ${fmt(form.estimation_max)}` : null);
+    row("Prix de mise en vente :", form.prix_mandat ? fmt(form.prix_mandat) : null);
+    y += 3;
+
+    section("Conditions du mandat");
+    row("Type de mandat :", form.mandat_type);
+    row("Durée :", form.mandat_duree_mois ? `${form.mandat_duree_mois} mois` : null);
+    row("Date de signature :", form.mandat_date_signature);
+    row("Date d'expiration :", form.mandat_date_expiration);
+    row("Honoraires :", form.honoraires_taux ? `${form.honoraires_taux}%${form.honoraires_montant ? " — " + fmt(form.honoraires_montant) : ""}` : null);
+    row("Honoraires à charge :", form.honoraires_a_charge);
+    y += 3;
+
+    if (form.compte_rendu_visite) {
+      section("Compte-rendu de visite");
+      const lines = doc.splitTextToSize(form.compte_rendu_visite, 180);
+      doc.setFontSize(8);
+      lines.forEach((l) => { doc.text(l, 14, y); y += 5; if (y > 270) { doc.addPage(); y = 20; } });
+      y += 3;
+    }
+
+    if (form.estimation_notes) {
+      section("Analyse & notes");
+      const lines = doc.splitTextToSize(form.estimation_notes, 180);
+      doc.setFontSize(8);
+      lines.forEach((l) => { doc.text(l, 14, y); y += 5; if (y > 270) { doc.addPage(); y = 20; } });
+      y += 3;
+    }
+
+    if (y > 220) { doc.addPage(); y = 20; }
+    y += 10;
+    doc.setDrawColor(cr,cg,cb);
+    doc.line(14, y, 100, y); doc.line(110, y, 196, y);
+    doc.setFontSize(8); doc.setTextColor(100,100,100);
+    doc.text("Signature du vendeur", 14, y+5);
+    doc.text("Signature de l'agent", 110, y+5);
+
+    const pages = doc.getNumberOfPages();
+    for (let i = 1; i <= pages; i++) {
+      doc.setPage(i);
+      doc.setFontSize(7); doc.setTextColor(150,150,150);
+      doc.text(`${agency?.name || ""} — ${agency?.address || ""} — ${agency?.phone || ""} — ${agency?.email || ""}`, 105, 290, { align: "center" });
+      doc.text(`Page ${i}/${pages}`, 196, 290, { align: "right" });
+    }
+
+    return doc;
+  };
+
+  const exportPDF = async () => {
+    const agencies = await base44.entities.Agency.list("-created_date", 1);
+    const agency = agencies[0] || null;
+    const doc = generatePDF(agency);
+    doc.save(`Mandat_${form.vendeur_nom.replace(/\s+/g,"_")}_${mandat?.reference || ""}.pdf`);
+  };
+
+  const envoyerSignature = async () => {
+    if (!form.vendeur_email) { alert("Email vendeur manquant."); return; }
+    setSaving(true);
+    const agencies = await base44.entities.Agency.list("-created_date", 1);
+    const agency = agencies[0] || null;
+    const doc = generatePDF(agency);
+    const pdfBlob = doc.output("blob");
+    const file = new File([pdfBlob], `Mandat_${mandat?.reference || "vente"}.pdf`, { type: "application/pdf" });
+    const { file_url } = await base44.integrations.Core.UploadFile({ file });
+    await base44.integrations.Core.SendEmail({
+      to: form.vendeur_email,
+      subject: `Mandat de vente à signer — ${form.bien_adresse || form.bien_ville}`,
+      body: `Bonjour ${form.vendeur_nom},\n\nVeuillez trouver ci-joint votre mandat de vente pour le bien situé ${form.bien_adresse || form.bien_ville}.\n\nMerci de le signer et de nous le retourner.\n\nDocument : ${file_url}\n\nCordialement,\n${agency?.name || "L'agence"}\n${agency?.phone || ""}`,
+    });
+    await base44.entities.MandatVente.update(mandat.id, {
+      historique: [...(mandat.historique || []), { id: Date.now(), content: `Mandat envoyé en signature électronique à ${form.vendeur_email}.`, date: new Date().toISOString() }],
     });
     setSaving(false);
     onUpdate();
@@ -500,7 +636,6 @@ Rédige un compte-rendu structuré, factuel et professionnel à destination du d
             <div className="space-y-3">
               <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Prix de mise en vente *</p>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                {/* Option 1 : Prix IA */}
                 {form.estimation_ia ? (
                   <button
                     type="button"
@@ -527,7 +662,6 @@ Rédige un compte-rendu structuré, factuel et professionnel à destination du d
                     <p className="text-xs text-muted-foreground">Non disponible — faites une estimation à l'étape 2</p>
                   </div>
                 )}
-                {/* Option 2 : Prix vendeur */}
                 {form.prix_vendeur ? (
                   <button
                     type="button"
@@ -550,7 +684,6 @@ Rédige un compte-rendu structuré, factuel et professionnel à destination du d
                     <p className="text-xs text-muted-foreground mt-1">Non renseigné — ajoutez-le à l'étape 1</p>
                   </div>
                 )}
-                {/* Option 3 : Prix manuel */}
                 <div className={`rounded-xl border-2 p-4 transition-all ${
                   form.prix_mandat && String(form.prix_mandat) !== String(form.estimation_ia) && String(form.prix_mandat) !== String(form.prix_vendeur)
                     ? "border-green-500 bg-green-50"
@@ -612,12 +745,18 @@ Rédige un compte-rendu structuré, factuel et professionnel à destination du d
                     <div><span className="text-muted-foreground">DPE :</span> <strong>{form.dpe_classe || "—"}</strong></div>
                   </div>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex flex-wrap items-center gap-2">
                   <Button className="rounded-full gap-2" onClick={createPropertyFromMandat} disabled={saving || !form.prix_mandat}>
                     {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Home className="w-4 h-4" />}
                     Créer le bien & mettre en vente
                   </Button>
-                  <p className="text-xs text-muted-foreground">Crée automatiquement la fiche dans "Biens à vendre"</p>
+                  <Button variant="outline" className="rounded-full gap-2" onClick={exportPDF} disabled={saving}>
+                    <FileText className="w-4 h-4" /> Exporter PDF
+                  </Button>
+                  <Button variant="outline" className="rounded-full gap-2" onClick={envoyerSignature} disabled={saving || !form.vendeur_email}>
+                    {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                    Envoyer en signature
+                  </Button>
                 </div>
               </div>
             )}
