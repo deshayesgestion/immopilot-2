@@ -15,7 +15,7 @@ import About from './pages/About';
 import PropertyDetail from './pages/PropertyDetail';
 import AdminLayout from './components/admin/AdminLayout';
 import Dashboard from './pages/admin/Dashboard';
-import AdminProperties from './pages/admin/AdminProperties';
+
 import AdminCRM from './pages/admin/AdminCRM';
 import AdminAI from './pages/admin/AdminAI';
 import AdminSettings from './pages/admin/AdminSettings';
@@ -69,7 +69,7 @@ const AuthenticatedApp = () => {
 
       <Route element={<AdminLayout />}>
         <Route path="/admin" element={<Dashboard />} />
-        <Route path="/admin/biens" element={<AdminProperties />} />
+
         <Route path="/admin/crm" element={<AdminCRM />} />
         <Route path="/admin/ia" element={<AdminAI />} />
         <Route path="/admin/equipe" element={<AdminAgents />} />
