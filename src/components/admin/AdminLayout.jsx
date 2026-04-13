@@ -7,12 +7,13 @@ import { useState } from "react";
 export default function AdminLayout() {
   const { agency } = useAgency();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
 
   return (
     <div className="flex min-h-screen bg-[#F9F9FB]">
       {/* Desktop sidebar */}
       <div className="hidden lg:block sticky top-0 h-screen flex-shrink-0">
-        <AdminSidebar agency={agency} />
+        <AdminSidebar agency={agency} collapsed={collapsed} onToggle={() => setCollapsed(!collapsed)} />
       </div>
 
       {/* Mobile sidebar */}
@@ -20,7 +21,7 @@ export default function AdminLayout() {
         <div className="lg:hidden fixed inset-0 z-50 flex">
           <div className="absolute inset-0 bg-black/50" onClick={() => setSidebarOpen(false)} />
           <div className="relative z-10 h-full">
-            <AdminSidebar agency={agency} />
+            <AdminSidebar agency={agency} collapsed={false} onToggle={() => setSidebarOpen(false)} />
           </div>
         </div>
       )}
