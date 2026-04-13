@@ -30,7 +30,7 @@ const navItems = [
     ],
   },
 
-  { label: "Agents & Clients", path: "/admin/equipe", icon: Users },
+  { label: "Utilisateurs & rôles", path: "/admin/equipe", icon: Users },
 
   { label: "Paramètres", path: "/admin/parametres", icon: Settings },
 ];
