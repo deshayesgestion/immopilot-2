@@ -74,7 +74,16 @@ export default function MandatDetail({ mandat, onBack, onUpdate }) {
   const [saving, setSaving] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
 
-  const set = (k, v) => setForm((p) => ({ ...p, [k]: v }));
+  const set = (k, v) => setForm((p) => {
+    const next = { ...p, [k]: v };
+    // Auto-calcul honoraires €
+    if (k === "honoraires_taux" || k === "prix_mandat") {
+      const prix = Number(k === "prix_mandat" ? v : p.prix_mandat) || 0;
+      const taux = Number(k === "honoraires_taux" ? v : p.honoraires_taux) || 0;
+      if (prix && taux) next.honoraires_montant = Math.round(prix * taux / 100);
+    }
+    return next;
+  });
 
   const save = async (newStatut) => {
     setSaving(true);
