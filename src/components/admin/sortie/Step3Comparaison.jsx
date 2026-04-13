@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
-import { Loader2, ChevronLeft, ChevronRight, Sparkles, AlertTriangle, CheckCircle2, Minus } from "lucide-react";
+import { Loader2, ChevronLeft, ChevronRight, Sparkles, AlertTriangle, CheckCircle2, Minus, Info } from "lucide-react";
 
 const ETAT_SCORE = { "Bon état": 4, "Usage normal": 3, "Dégradé": 2, "À remplacer": 1, "": 3 };
 const ETAT_COLORS = {
@@ -24,12 +24,22 @@ function getDiff(etatEntree, etatSortie) {
 export default function Step3Comparaison({ dossier, onUpdate, onNext, onPrev }) {
   const [aiLoading, setAiLoading] = useState(false);
   const [aiAnalyse, setAiAnalyse] = useState(dossier.edl_comparaison_ai || null);
+  const [edlEntree, setEdlEntree] = useState(null);
+  const [loadingEdl, setLoadingEdl] = useState(false);
 
-  const edlEntree = dossier.edl_entree || null; // from DossierLocatif (copied at creation if needed)
+  useEffect(() => {
+    if (!dossier.dossier_suivi_id) return;
+    setLoadingEdl(true);
+    base44.entities.DossierLocatif.filter({ id: dossier.dossier_suivi_id })
+      .then((res) => {
+        const d = res[0];
+        if (d?.edl_entree) setEdlEntree(d.edl_entree);
+      })
+      .finally(() => setLoadingEdl(false));
+  }, [dossier.dossier_suivi_id]);
+
   const edlSortie = dossier.edl_sortie || null;
-
   const checklistSortie = edlSortie?.checklist || [];
-  // Try to find matching entry EDL from dossier source (may not always exist)
   const checklistEntree = edlEntree?.checklist || [];
 
   const degradations = checklistSortie.flatMap((cat, ci) => {
@@ -93,7 +103,18 @@ Donne :
         </div>
       </div>
 
-      {/* Comparaison par pièce */}
+      {loadingEdl && (
+        <div className="flex items-center gap-2 text-xs text-muted-foreground bg-secondary/30 rounded-xl px-4 py-3">
+          <Loader2 className="w-3.5 h-3.5 animate-spin" /> Chargement de l'EDL d'entrée...
+        </div>
+      )}
+
+      {!loadingEdl && !edlEntree && dossier.dossier_suivi_id && (
+        <div className="flex items-center gap-2 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
+          <Info className="w-3.5 h-3.5 flex-shrink-0" /> EDL d'entrée non trouvé dans le dossier d'attribution source.
+        </div>
+      )}
+
       {checklistSortie.length > 0 ? (
         <div className="bg-white rounded-2xl border border-border/50 shadow-sm overflow-hidden">
           <div className="px-5 py-4 border-b border-border/50">
