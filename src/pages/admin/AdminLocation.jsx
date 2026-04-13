@@ -3,14 +3,16 @@ import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Search, Home, Users, Globe, BarChart3, Loader2, RefreshCw } from "lucide-react";
+import { Plus, Search, Home, Globe, BarChart3, Loader2, RefreshCw, FolderOpen } from "lucide-react";
 import BienLocationForm from "../../components/admin/location/BienLocationForm";
 import BienLocationList from "../../components/admin/location/BienLocationList";
+import ArchivesList from "../../components/admin/location/ArchivesList";
 
 const TABS = [
   { id: "biens", label: "Biens en location", icon: Home },
   { id: "publications", label: "Publications", icon: Globe },
   { id: "stats", label: "Aperçu", icon: BarChart3 },
+  { id: "archives", label: "Archives", icon: FolderOpen },
 ];
 
 function StatCard({ label, value, sub, color = "text-foreground" }) {
@@ -169,6 +171,8 @@ export default function AdminLocation() {
         </div>
       ) : tab === "biens" ? (
         <BienLocationList biens={filtered} onEdit={openEdit} onRefresh={load} />
+      ) : tab === "archives" ? (
+        <ArchivesList />
       ) : tab === "publications" ? (
         <div className="bg-white rounded-2xl border border-border/50 shadow-sm overflow-hidden">
           <div className="px-5 py-4 border-b border-border/50">
