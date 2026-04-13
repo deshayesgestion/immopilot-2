@@ -4,7 +4,7 @@ import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Loader2, CheckCircle2, ChevronRight, Calendar, FileText, Sparkles, Plus, Euro } from "lucide-react";
+import { ArrowLeft, Loader2, CheckCircle2, ChevronRight, Calendar, FileText, Sparkles, Plus, Euro, X } from "lucide-react";
 
 const STEPS = [
   { id: 1, key: "prospection", label: "Prospection" },
@@ -24,29 +24,171 @@ function getStepIndex(statut) {
   return idx >= 0 ? idx : 0;
 }
 
+function AcquereurProspectionCard({ acq, onUpdate, tx }) {
+  const [showVisites, setShowVisites] = useState(false);
+  const [date, setDate] = useState("");
+  const [note, setNote] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  const ajouterVisite = async () => {
+    if (!date) return;
+    setSaving(true);
+    const updated = (tx.acquereurs_prospection || []).map((a) =>
+      a.id === acq.id
+        ? { ...a, visites: [...(a.visites || []), { id: Date.now(), date, note, statut: "planifiee" }] }
+        : a
+    );
+    await base44.entities.TransactionVente.update(tx.id, { acquereurs_prospection: updated });
+    setDate(""); setNote(""); setSaving(false);
+    onUpdate();
+  };
+
+  const supprimerVisite = async (vid) => {
+    const updated = (tx.acquereurs_prospection || []).map((a) =>
+      a.id === acq.id ? { ...a, visites: (a.visites || []).filter((v) => v.id !== vid) } : a
+    );
+    await base44.entities.TransactionVente.update(tx.id, { acquereurs_prospection: updated });
+    onUpdate();
+  };
+
+  return (
+    <div className="border border-border/50 rounded-xl overflow-hidden">
+      <div className="flex items-center gap-3 px-4 py-3 bg-secondary/20">
+        <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary font-bold text-sm flex-shrink-0">
+          {acq.nom?.charAt(0)?.toUpperCase()}
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-semibold">{acq.nom}</p>
+          <p className="text-xs text-muted-foreground">{acq.email} {acq.telephone ? `· ${acq.telephone}` : ""}</p>
+        </div>
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <span className="text-xs bg-white border border-border/50 rounded-full px-2.5 py-1">
+            {(acq.visites || []).length} visite{(acq.visites || []).length > 1 ? "s" : ""}
+          </span>
+          <button onClick={() => setShowVisites(!showVisites)}
+            className="text-xs text-primary hover:underline">
+            {showVisites ? "Masquer" : "Voir visites"}
+          </button>
+        </div>
+      </div>
+      {showVisites && (
+        <div className="p-4 space-y-3 bg-white">
+          <div className="flex gap-2">
+            <Input type="datetime-local" value={date} onChange={(e) => setDate(e.target.value)} className="h-8 text-xs flex-1" />
+            <Input placeholder="Note..." value={note} onChange={(e) => setNote(e.target.value)} className="h-8 text-xs flex-1" />
+            <Button size="sm" className="rounded-full h-8 text-xs gap-1" onClick={ajouterVisite} disabled={saving || !date}>
+              {saving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Plus className="w-3 h-3" />}
+            </Button>
+          </div>
+          {(acq.visites || []).length === 0 ? (
+            <p className="text-xs text-muted-foreground">Aucune visite planifiée.</p>
+          ) : (
+            <div className="space-y-1.5">
+              {(acq.visites || []).map((v) => (
+                <div key={v.id} className="flex items-center gap-2 bg-secondary/20 rounded-lg px-3 py-2">
+                  <Calendar className="w-3 h-3 text-primary flex-shrink-0" />
+                  <p className="text-xs flex-1">{new Date(v.date).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" })}</p>
+                  {v.note && <p className="text-xs text-muted-foreground truncate max-w-[120px]">{v.note}</p>}
+                  <button onClick={() => supprimerVisite(v.id)} className="text-muted-foreground/40 hover:text-red-500 transition-colors">
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function StepProspection({ tx, onUpdate }) {
+  const [acquereurs, setAcquereurs] = useState([]);
+  const [showAdd, setShowAdd] = useState(false);
+  const [selectedId, setSelectedId] = useState("");
+  const [adding, setAdding] = useState(false);
+
+  useEffect(() => {
+    base44.entities.Acquereur.list("-created_date", 100).then(setAcquereurs);
+  }, []);
+
+  const prospection = tx.acquereurs_prospection || [];
+
+  const ajouterAcquereur = async () => {
+    if (!selectedId) return;
+    const found = acquereurs.find((a) => a.id === selectedId);
+    if (!found) return;
+    if (prospection.some((p) => p.id === selectedId)) return;
+    setAdding(true);
+    const updated = [...prospection, { id: found.id, nom: found.nom, email: found.email, telephone: found.telephone || "", visites: [], added_at: new Date().toISOString() }];
+    await base44.entities.TransactionVente.update(tx.id, { acquereurs_prospection: updated });
+    setAdding(false); setShowAdd(false); setSelectedId("");
+    onUpdate();
+  };
+
+  const retirerAcquereur = async (id) => {
+    const updated = prospection.filter((a) => a.id !== id);
+    await base44.entities.TransactionVente.update(tx.id, { acquereurs_prospection: updated });
+    onUpdate();
+  };
+
   return (
     <div className="space-y-4">
-      <div className="bg-white rounded-2xl border border-border/50 shadow-sm p-5 space-y-3">
-        <p className="text-sm font-semibold">Informations générales</p>
-        <div className="grid grid-cols-2 gap-3">
-          <div className="bg-secondary/30 rounded-xl p-3">
-            <p className="text-xs text-muted-foreground">Bien</p>
-            <p className="text-sm font-semibold mt-0.5">{tx.property_title}</p>
-          </div>
-          <div className="bg-secondary/30 rounded-xl p-3">
-            <p className="text-xs text-muted-foreground">Prix affiché</p>
-            <p className="text-sm font-semibold mt-0.5">{fmt(tx.prix_affiche)}</p>
-          </div>
-          <div className="bg-secondary/30 rounded-xl p-3">
-            <p className="text-xs text-muted-foreground">Acquéreur</p>
-            <p className="text-sm font-semibold mt-0.5">{tx.acquereur_nom}</p>
-          </div>
-          <div className="bg-secondary/30 rounded-xl p-3">
-            <p className="text-xs text-muted-foreground">Agent</p>
-            <p className="text-sm font-semibold mt-0.5">{tx.agent_nom || "—"}</p>
-          </div>
+      {/* Infos bien */}
+      <div className="grid grid-cols-2 gap-3">
+        <div className="bg-white border border-border/50 rounded-xl p-3">
+          <p className="text-xs text-muted-foreground">Bien</p>
+          <p className="text-sm font-semibold mt-0.5">{tx.property_title}</p>
         </div>
+        <div className="bg-white border border-border/50 rounded-xl p-3">
+          <p className="text-xs text-muted-foreground">Prix affiché</p>
+          <p className="text-sm font-semibold mt-0.5">{fmt(tx.prix_affiche)}</p>
+        </div>
+      </div>
+
+      {/* Acquéreurs en prospection */}
+      <div className="bg-white rounded-2xl border border-border/50 shadow-sm p-5 space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm font-semibold">Acquéreurs en prospection</p>
+            <p className="text-xs text-muted-foreground mt-0.5">{prospection.length} acquéreur{prospection.length > 1 ? "s" : ""} · gérez les visites par acquéreur</p>
+          </div>
+          <Button size="sm" variant="outline" className="rounded-full h-8 text-xs gap-1" onClick={() => setShowAdd(!showAdd)}>
+            <Plus className="w-3 h-3" /> Ajouter
+          </Button>
+        </div>
+
+        {showAdd && (
+          <div className="flex gap-2 items-center bg-secondary/30 rounded-xl p-3">
+            <select value={selectedId} onChange={(e) => setSelectedId(e.target.value)}
+              className="flex-1 h-9 rounded-md border border-input bg-white px-3 text-sm">
+              <option value="">Sélectionner un acquéreur...</option>
+              {acquereurs.filter((a) => !prospection.some((p) => p.id === a.id)).map((a) => (
+                <option key={a.id} value={a.id}>{a.nom} — {a.email}</option>
+              ))}
+            </select>
+            <Button size="sm" className="rounded-full h-9 text-xs" onClick={ajouterAcquereur} disabled={adding || !selectedId}>
+              {adding ? <Loader2 className="w-3 h-3 animate-spin" /> : "Ajouter"}
+            </Button>
+            <Button size="sm" variant="outline" className="rounded-full h-9 text-xs" onClick={() => setShowAdd(false)}>Annuler</Button>
+          </div>
+        )}
+
+        {prospection.length === 0 ? (
+          <div className="text-center py-6 text-sm text-muted-foreground">Aucun acquéreur ajouté. Cliquez sur "Ajouter" pour commencer.</div>
+        ) : (
+          <div className="space-y-2">
+            {prospection.map((acq) => (
+              <div key={acq.id} className="relative">
+                <AcquereurProspectionCard acq={acq} tx={tx} onUpdate={onUpdate} />
+                <button onClick={() => retirerAcquereur(acq.id)}
+                  className="absolute top-3 right-3 text-muted-foreground/30 hover:text-red-500 transition-colors z-10">
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

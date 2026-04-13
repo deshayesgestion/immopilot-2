@@ -53,6 +53,13 @@
       ],
       "default": "prospection"
     },
+    "acquereurs_prospection": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "description": "Acqu\u00e9reurs en prospection avec leurs visites individuelles"
+    },
     "prix_offre": {
       "type": "number"
     },
