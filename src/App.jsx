@@ -27,6 +27,7 @@ import DossierLocatifDetail from './pages/admin/DossierLocatifDetail';
 import AdminAttribution from './pages/admin/AdminAttribution';
 import AdminAttributionDetail from './pages/admin/AdminAttributionDetail';
 import AdminSuivi from './pages/admin/AdminSuivi';
+import AdminSuiviDetail from './pages/admin/AdminSuiviDetail';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -77,6 +78,7 @@ const AuthenticatedApp = () => {
         <Route path="/admin/attribution" element={<AdminAttribution />} />
         <Route path="/admin/attribution/:id" element={<AdminAttributionDetail />} />
         <Route path="/admin/suivi" element={<AdminSuivi />} />
+        <Route path="/admin/suivi/:id" element={<AdminSuiviDetail />} />
         <Route path="/admin/parametres" element={<AdminSettings />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
