@@ -8,6 +8,7 @@ import {
   ArrowLeft, Loader2, Home, User, Euro, Calendar, FileText,
   AlertTriangle, MessageSquare, Plus, CheckCircle2, Clock, X, Mail
 } from "lucide-react";
+import IncidentsTab from "../../components/admin/suivi/IncidentsTab";
 
 const TABS = [
   { id: "loyer", label: "Loyer", icon: Euro },
@@ -365,95 +366,6 @@ function DocumentsTab({ dossier, onUpdate }) {
               {doc.url && (
                 <a href={doc.url} target="_blank" rel="noreferrer" className="text-xs text-primary hover:underline">Lien</a>
               )}
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ── INCIDENTS TAB ──────────────────────────────────────────────────────────
-function IncidentsTab({ dossier, onUpdate }) {
-  const incidents = dossier.incidents || [];
-  const [adding, setAdding] = useState(false);
-  const [form, setForm] = useState({ titre: "", description: "", gravite: "moyen", statut: "ouvert" });
-  const [saving, setSaving] = useState(false);
-
-  const addIncident = async () => {
-    setSaving(true);
-    const updated = [...incidents, { ...form, id: Date.now(), date: new Date().toISOString() }];
-    await base44.entities.DossierLocatif.update(dossier.id, { incidents: updated });
-    setSaving(false);
-    setAdding(false);
-    setForm({ titre: "", description: "", gravite: "moyen", statut: "ouvert" });
-    onUpdate();
-  };
-
-  const closeIncident = async (id) => {
-    const updated = incidents.map((i) => i.id === id ? { ...i, statut: "resolu" } : i);
-    await base44.entities.DossierLocatif.update(dossier.id, { incidents: updated });
-    onUpdate();
-  };
-
-  const GRAVITE = { faible: "bg-blue-100 text-blue-700", moyen: "bg-amber-100 text-amber-700", eleve: "bg-red-100 text-red-600" };
-  const open = incidents.filter((i) => i.statut !== "resolu");
-  const resolved = incidents.filter((i) => i.statut === "resolu");
-
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-sm font-semibold">Incidents</p>
-          <p className="text-xs text-muted-foreground">{open.length} ouvert{open.length > 1 ? "s" : ""} · {resolved.length} résolu{resolved.length > 1 ? "s" : ""}</p>
-        </div>
-        <Button size="sm" variant="outline" className="rounded-full gap-1.5 text-xs h-8" onClick={() => setAdding(true)}>
-          <Plus className="w-3 h-3" /> Signaler
-        </Button>
-      </div>
-
-      {adding && (
-        <div className="border border-border/50 rounded-xl p-4 space-y-3 bg-white">
-          <Input placeholder="Titre de l'incident" value={form.titre} onChange={(e) => setForm({ ...form, titre: e.target.value })} className="h-8 text-sm" />
-          <Textarea placeholder="Description..." value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="text-sm resize-none min-h-[70px]" />
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-xs text-muted-foreground mb-1 block">Gravité</label>
-              <select value={form.gravite} onChange={(e) => setForm({ ...form, gravite: e.target.value })} className="w-full h-8 rounded-md border border-input bg-transparent px-3 text-sm">
-                <option value="faible">Faible</option>
-                <option value="moyen">Moyen</option>
-                <option value="eleve">Élevé</option>
-              </select>
-            </div>
-          </div>
-          <div className="flex gap-2">
-            <Button size="sm" variant="outline" className="rounded-full h-8 text-xs" onClick={() => setAdding(false)}>Annuler</Button>
-            <Button size="sm" className="rounded-full h-8 text-xs" onClick={addIncident} disabled={saving}>
-              {saving ? <Loader2 className="w-3 h-3 animate-spin" /> : "Enregistrer"}
-            </Button>
-          </div>
-        </div>
-      )}
-
-      {incidents.length === 0 ? (
-        <p className="text-sm text-muted-foreground text-center py-6">Aucun incident signalé</p>
-      ) : (
-        <div className="space-y-2">
-          {[...incidents].reverse().map((inc) => (
-            <div key={inc.id} className={`border rounded-xl p-4 space-y-2 ${inc.statut === "resolu" ? "opacity-50 bg-secondary/10" : "bg-white border-border/50"}`}>
-              <div className="flex items-start justify-between gap-2">
-                <div>
-                  <p className="text-sm font-medium">{inc.titre}</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">{new Date(inc.date).toLocaleDateString("fr-FR")}</p>
-                </div>
-                <div className="flex items-center gap-2 flex-shrink-0">
-                  <span className={`text-xs px-2 py-0.5 rounded-full ${GRAVITE[inc.gravite] || GRAVITE.moyen}`}>{inc.gravite}</span>
-                  {inc.statut !== "resolu" && (
-                    <button onClick={() => closeIncident(inc.id)} className="text-xs text-green-600 hover:underline font-medium">Résoudre</button>
-                  )}
-                </div>
-              </div>
-              {inc.description && <p className="text-xs text-muted-foreground">{inc.description}</p>}
             </div>
           ))}
         </div>
