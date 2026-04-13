@@ -9,6 +9,7 @@ import {
   AlertTriangle, MessageSquare, Plus, CheckCircle2, Clock, X, Mail
 } from "lucide-react";
 import IncidentsTab from "../../components/admin/suivi/IncidentsTab";
+import HistoriquePaiements from "../../components/admin/comptabilite/HistoriquePaiements";
 import RevisionIRL from "../../components/admin/suivi/RevisionIRL";
 import PreavisBanner from "../../components/admin/suivi/PreavisBanner";
 
@@ -17,6 +18,7 @@ const TABS = [
   { id: "documents", label: "Documents", icon: FileText },
   { id: "incidents", label: "Incidents", icon: AlertTriangle },
   { id: "historique", label: "Historique", icon: MessageSquare },
+  { id: "comptabilite", label: "Comptabilité", icon: Calendar },
 ];
 
 const STATUT_BAIL = {
@@ -501,6 +503,7 @@ export default function AdminSuiviDetail() {
           {activeTab === "documents" && <DocumentsTab dossier={dossier} onUpdate={load} />}
           {activeTab === "incidents" && <IncidentsTab dossier={dossier} onUpdate={load} />}
           {activeTab === "historique" && <HistoriqueTab dossier={dossier} onUpdate={load} />}
+          {activeTab === "comptabilite" && <HistoriquePaiements dossierId={dossier.id} dossierType="location" onPaymentUpdate={load} />}
         </div>
       </div>
     </div>

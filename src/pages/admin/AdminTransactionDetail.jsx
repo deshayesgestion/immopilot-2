@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft, Loader2, CheckCircle2, ChevronRight, Calendar, FileText, Sparkles, Plus, Euro, X } from "lucide-react";
+import HistoriquePaiements from "../../components/admin/comptabilite/HistoriquePaiements";
 
 const STEPS = [
   { id: 1, key: "prospection", label: "Prospection" },
@@ -657,6 +658,12 @@ export default function AdminTransactionDetail() {
       {activeStep === 4 && <StepCompromis tx={tx} onUpdate={load} />}
       {activeStep === 5 && <StepNotaire tx={tx} onUpdate={load} />}
       {activeStep === 6 && <StepVenteFinal tx={tx} onUpdate={load} />}
+
+      {/* Suivi financier comptabilité */}
+      <div className="bg-white rounded-2xl border border-border/50 shadow-sm p-5 space-y-3">
+        <p className="text-sm font-semibold flex items-center gap-2"><Euro className="w-4 h-4 text-primary" /> Suivi financier (Comptabilité)</p>
+        <HistoriquePaiements dossierId={tx.id} dossierType="vente" />
+      </div>
 
       {/* Historique & notes */}
       <div className="bg-white rounded-2xl border border-border/50 shadow-sm p-5 space-y-4">
