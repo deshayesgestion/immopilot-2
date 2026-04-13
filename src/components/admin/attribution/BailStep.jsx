@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useAgency } from "../../../hooks/useAgency";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -9,6 +10,7 @@ import {
 } from "lucide-react";
 
 export default function BailStep({ dossier, onUpdate }) {
+  const { agency } = useAgency();
   const [bail, setBail] = useState(dossier.contrat_bail || null);
   const [generating, setGenerating] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -26,34 +28,45 @@ export default function BailStep({ dossier, onUpdate }) {
     const result = await base44.integrations.Core.InvokeLLM({
       prompt: `Génère un bail de location résidentiel professionnel et complet en français.
 
-Informations du bien:
+BAILLEUR (Agence):
+- Raison sociale: ${agency?.name || dossier.agent_name || "L'Agence"}
+- Adresse: ${agency?.address ? `${agency.address}, ${agency.postal_code || ""} ${agency.city || ""}` : "N/A"}
+- Téléphone: ${agency?.phone || "N/A"}
+- Email: ${agency?.email || "N/A"}
+- Agent en charge: ${dossier.agent_name || dossier.agent_email || "N/A"}
+
+PROPRIÉTAIRE DU BIEN:
+- Nom: ${dossier.owner_name || agency?.name || "Le Bailleur"}
+
+INFORMATIONS DU BIEN:
 - Titre: ${dossier.property_title || "N/A"}
 - Adresse: ${dossier.property_address || "N/A"}
 - Loyer: ${dossier.loyer || 0}€/mois
 - Charges: ${dossier.charges || 0}€/mois
 - Dépôt de garantie: ${dossier.depot_garantie || 0}€
-- Propriétaire/Bailleur: ${dossier.owner_name || "Le Bailleur"}
 
-Informations du locataire:
-- Nom: ${locataire?.nom || "N/A"}
+LOCATAIRE:
+- Nom complet: ${locataire?.nom || "N/A"}
 - Email: ${locataire?.email || "N/A"}
+- Téléphone: ${locataire?.telephone || "N/A"}
 
-Date d'entrée: à compléter
-Durée: bail à usage d'habitation principale - 1 an renouvelable
+Date d'entrée: ${dossier.date_entree || "à définir"}
+Durée: bail à usage d'habitation principale - 1 an renouvelable (loi Alur)
 
 Génère un bail complet avec:
-1. Désignation des parties
-2. Désignation du logement
+1. Désignation des parties (bailleur + locataire)
+2. Désignation et description du logement
 3. Durée du bail
-4. Loyer et charges
+4. Loyer, charges et modalités de paiement
 5. Dépôt de garantie
 6. Obligations du bailleur
 7. Obligations du locataire
-8. Résiliation
-9. Clauses particulières
-10. Signatures
+8. Entretien et réparations
+9. Résiliation
+10. Clauses particulières
+11. Signatures (bailleur + locataire + date)
 
-Format professionnel, juridiquement cohérent avec la loi française (loi Alur). Utilise des tirets et sections claires. Ne mets pas de balises markdown, uniquement du texte structuré.`,
+Format professionnel, juridiquement cohérent avec la loi française (loi Alur et loi du 6 juillet 1989). Sections numérotées, texte clair. Pas de balises markdown.`,
     });
     const newBail = result;
     setBail(newBail);
@@ -94,14 +107,77 @@ Format professionnel, juridiquement cohérent avec la loi française (loi Alur).
     onUpdate();
   };
 
-  const downloadBail = () => {
-    const blob = new Blob([bail], { type: "text/plain;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `bail-${dossier.reference || "location"}.txt`;
-    a.click();
-    URL.revokeObjectURL(url);
+  const downloadBail = async () => {
+    const { jsPDF } = await import("jspdf");
+    const doc = new jsPDF({ unit: "mm", format: "a4" });
+    const pageW = doc.internal.pageSize.getWidth();
+    const margin = 20;
+    const contentW = pageW - margin * 2;
+
+    // Header band
+    doc.setFillColor(79, 70, 229);
+    doc.rect(0, 0, pageW, 28, "F");
+
+    // Agency name
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(14);
+    doc.setFont("helvetica", "bold");
+    doc.text(agency?.name || "Agence Immobilière", margin, 13);
+
+    doc.setFontSize(8);
+    doc.setFont("helvetica", "normal");
+    const agencyInfo = [agency?.address, agency?.phone, agency?.email].filter(Boolean).join("  ·  ");
+    if (agencyInfo) doc.text(agencyInfo, margin, 21);
+
+    // Title
+    doc.setTextColor(30, 30, 30);
+    doc.setFontSize(16);
+    doc.setFont("helvetica", "bold");
+    doc.text("BAIL DE LOCATION", pageW / 2, 42, { align: "center" });
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(100, 100, 100);
+    doc.text(`Référence : ${dossier.reference || "—"}  ·  Bien : ${dossier.property_title || "—"}`, pageW / 2, 49, { align: "center" });
+
+    // Divider
+    doc.setDrawColor(200, 200, 200);
+    doc.line(margin, 53, pageW - margin, 53);
+
+    // Body text
+    doc.setTextColor(30, 30, 30);
+    doc.setFontSize(9.5);
+    doc.setFont("helvetica", "normal");
+    const lines = doc.splitTextToSize(bail, contentW);
+    let y = 60;
+    const lineH = 5.2;
+    const pageH = doc.internal.pageSize.getHeight();
+    const footerH = 18;
+
+    lines.forEach((line) => {
+      if (y + lineH > pageH - footerH) {
+        // Footer on current page
+        doc.setFontSize(7.5);
+        doc.setTextColor(150, 150, 150);
+        doc.line(margin, pageH - 14, pageW - margin, pageH - 14);
+        doc.text(`${agency?.name || ""} — Document généré le ${new Date().toLocaleDateString("fr-FR")}`, margin, pageH - 9);
+        doc.text(`Page ${doc.internal.getCurrentPageInfo().pageNumber}`, pageW - margin, pageH - 9, { align: "right" });
+        doc.addPage();
+        y = 20;
+        doc.setFontSize(9.5);
+        doc.setTextColor(30, 30, 30);
+      }
+      doc.text(line, margin, y);
+      y += lineH;
+    });
+
+    // Footer last page
+    doc.setFontSize(7.5);
+    doc.setTextColor(150, 150, 150);
+    doc.line(margin, pageH - 14, pageW - margin, pageH - 14);
+    doc.text(`${agency?.name || ""} — Document généré le ${new Date().toLocaleDateString("fr-FR")}`, margin, pageH - 9);
+    doc.text(`Page ${doc.internal.getCurrentPageInfo().pageNumber}`, pageW - margin, pageH - 9, { align: "right" });
+
+    doc.save(`bail-${dossier.reference || "location"}.pdf`);
   };
 
   if (!isReady) {
