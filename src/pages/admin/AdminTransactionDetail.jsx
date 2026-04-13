@@ -107,6 +107,9 @@ function StepProspection({ tx, onUpdate }) {
   const [showAdd, setShowAdd] = useState(false);
   const [selectedId, setSelectedId] = useState("");
   const [adding, setAdding] = useState(false);
+  const [showCreate, setShowCreate] = useState(false);
+  const [newAcq, setNewAcq] = useState({ nom: "", email: "", telephone: "", budget_max: "" });
+  const [creating, setCreating] = useState(false);
 
   useEffect(() => {
     base44.entities.Acquereur.list("-created_date", 100).then(setAcquereurs);
@@ -132,6 +135,24 @@ function StepProspection({ tx, onUpdate }) {
     onUpdate();
   };
 
+  const creerEtAjouter = async () => {
+    if (!newAcq.nom) return;
+    setCreating(true);
+    const created = await base44.entities.Acquereur.create({
+      nom: newAcq.nom,
+      email: newAcq.email,
+      telephone: newAcq.telephone,
+      budget_max: Number(newAcq.budget_max) || undefined,
+      statut: "actif",
+    });
+    const updated = [...prospection, { id: created.id, nom: created.nom, email: created.email, telephone: created.telephone || "", visites: [], added_at: new Date().toISOString() }];
+    await base44.entities.TransactionVente.update(tx.id, { acquereurs_prospection: updated });
+    setAcquereurs((prev) => [...prev, created]);
+    setNewAcq({ nom: "", email: "", telephone: "", budget_max: "" });
+    setShowCreate(false); setCreating(false);
+    onUpdate();
+  };
+
   return (
     <div className="space-y-4">
       {/* Infos bien */}
@@ -153,10 +174,45 @@ function StepProspection({ tx, onUpdate }) {
             <p className="text-sm font-semibold">Acquéreurs en prospection</p>
             <p className="text-xs text-muted-foreground mt-0.5">{prospection.length} acquéreur{prospection.length > 1 ? "s" : ""} · gérez les visites par acquéreur</p>
           </div>
-          <Button size="sm" variant="outline" className="rounded-full h-8 text-xs gap-1" onClick={() => setShowAdd(!showAdd)}>
-            <Plus className="w-3 h-3" /> Ajouter
-          </Button>
+          <div className="flex gap-2">
+            <Button size="sm" variant="outline" className="rounded-full h-8 text-xs gap-1" onClick={() => { setShowAdd(!showAdd); setShowCreate(false); }}>
+              <Plus className="w-3 h-3" /> Existant
+            </Button>
+            <Button size="sm" className="rounded-full h-8 text-xs gap-1" onClick={() => { setShowCreate(!showCreate); setShowAdd(false); }}>
+              <Plus className="w-3 h-3" /> Nouveau
+            </Button>
+          </div>
         </div>
+
+        {showCreate && (
+          <div className="bg-primary/5 border border-primary/15 rounded-xl p-4 space-y-3">
+            <p className="text-xs font-semibold text-primary">Créer un nouvel acquéreur</p>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="col-span-2">
+                <label className="text-xs text-muted-foreground mb-1 block">Nom *</label>
+                <Input value={newAcq.nom} onChange={(e) => setNewAcq((p) => ({ ...p, nom: e.target.value }))} className="h-8 text-sm" placeholder="Nom complet" />
+              </div>
+              <div>
+                <label className="text-xs text-muted-foreground mb-1 block">Email</label>
+                <Input value={newAcq.email} onChange={(e) => setNewAcq((p) => ({ ...p, email: e.target.value }))} className="h-8 text-sm" placeholder="email@exemple.fr" />
+              </div>
+              <div>
+                <label className="text-xs text-muted-foreground mb-1 block">Téléphone</label>
+                <Input value={newAcq.telephone} onChange={(e) => setNewAcq((p) => ({ ...p, telephone: e.target.value }))} className="h-8 text-sm" placeholder="06..."/>
+              </div>
+              <div>
+                <label className="text-xs text-muted-foreground mb-1 block">Budget max (€)</label>
+                <Input type="number" value={newAcq.budget_max} onChange={(e) => setNewAcq((p) => ({ ...p, budget_max: e.target.value }))} className="h-8 text-sm" />
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <Button size="sm" className="rounded-full h-8 text-xs" onClick={creerEtAjouter} disabled={creating || !newAcq.nom}>
+                {creating ? <Loader2 className="w-3 h-3 animate-spin" /> : "Créer & ajouter"}
+              </Button>
+              <Button size="sm" variant="outline" className="rounded-full h-8 text-xs" onClick={() => setShowCreate(false)}>Annuler</Button>
+            </div>
+          </div>
+        )}
 
         {showAdd && (
           <div className="flex gap-2 items-center bg-secondary/30 rounded-xl p-3">
