@@ -30,9 +30,14 @@ const navItems = [
     ],
   },
 
-  { label: "Utilisateurs & rôles", path: "/admin/equipe", icon: Users },
-
-  { label: "Paramètres", path: "/admin/parametres", icon: Settings },
+  {
+    label: "Paramètres",
+    icon: Settings,
+    children: [
+      { label: "Utilisateurs & rôles", path: "/admin/equipe", icon: Users },
+      { label: "Agence", path: "/admin/parametres", icon: Settings },
+    ],
+  },
 ];
 
 export default function AdminSidebar({ agency }) {
