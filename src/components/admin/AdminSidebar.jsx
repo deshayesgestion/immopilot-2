@@ -33,6 +33,7 @@ const navItems = [
     label: "Vente",
     icon: TrendingUp,
     children: [
+      { label: "Mandats & Estimations", path: "/admin/vente/mandats", icon: FileSignature },
       { label: "Biens", path: "/admin/vente/biens", icon: Home },
       { label: "Acquéreurs", path: "/admin/vente/acquereurs", icon: UserCheck },
       { label: "Transactions", path: "/admin/vente/transactions", icon: FileSignature },

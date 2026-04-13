@@ -34,6 +34,7 @@ import AdminAcquereurs from './pages/admin/AdminAcquereurs';
 import AdminTransactions from './pages/admin/AdminTransactions';
 import AdminTransactionDetail from './pages/admin/AdminTransactionDetail';
 import AdminVenteCloture from './pages/admin/AdminVenteCloture';
+import AdminMandats from './pages/admin/AdminMandats';
 import AdminSuiviDetail from './pages/admin/AdminSuiviDetail';
 
 const AuthenticatedApp = () => {
@@ -85,6 +86,7 @@ const AuthenticatedApp = () => {
         <Route path="/admin/sortie" element={<AdminSortie />} />
         <Route path="/admin/sortie/:id" element={<AdminSortieDetail />} />
         <Route path="/admin/parametres" element={<AdminSettings />} />
+        <Route path="/admin/vente/mandats" element={<AdminMandats />} />
         <Route path="/admin/vente/biens" element={<AdminVenteBiens />} />
         <Route path="/admin/vente/acquereurs" element={<AdminAcquereurs />} />
         <Route path="/admin/vente/transactions" element={<AdminTransactions />} />

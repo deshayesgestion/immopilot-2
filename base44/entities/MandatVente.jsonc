@@ -1,0 +1,174 @@
+{
+  "name": "MandatVente",
+  "type": "object",
+  "properties": {
+    "agency_id": {
+      "type": "string"
+    },
+    "reference": {
+      "type": "string"
+    },
+    "statut": {
+      "type": "string",
+      "enum": [
+        "contact",
+        "estimation",
+        "visite",
+        "diagnostics",
+        "mandat_signe",
+        "en_vente",
+        "abandonne"
+      ],
+      "default": "contact"
+    },
+    "vendeur_nom": {
+      "type": "string"
+    },
+    "vendeur_email": {
+      "type": "string"
+    },
+    "vendeur_telephone": {
+      "type": "string"
+    },
+    "vendeur_source": {
+      "type": "string",
+      "enum": [
+        "site_web",
+        "telephone",
+        "recommandation",
+        "portail",
+        "autre"
+      ]
+    },
+    "agent_email": {
+      "type": "string"
+    },
+    "agent_nom": {
+      "type": "string"
+    },
+    "bien_type": {
+      "type": "string"
+    },
+    "bien_adresse": {
+      "type": "string"
+    },
+    "bien_ville": {
+      "type": "string"
+    },
+    "bien_code_postal": {
+      "type": "string"
+    },
+    "bien_surface": {
+      "type": "number"
+    },
+    "bien_pieces": {
+      "type": "number"
+    },
+    "bien_annee": {
+      "type": "number"
+    },
+    "bien_description_vendeur": {
+      "type": "string"
+    },
+    "date_prise_contact": {
+      "type": "string"
+    },
+    "date_visite_estimation": {
+      "type": "string"
+    },
+    "compte_rendu_visite": {
+      "type": "string"
+    },
+    "points_forts": {
+      "type": "string"
+    },
+    "points_faibles": {
+      "type": "string"
+    },
+    "travaux_necessaires": {
+      "type": "string"
+    },
+    "prix_vendeur": {
+      "type": "number"
+    },
+    "estimation_min": {
+      "type": "number"
+    },
+    "estimation_max": {
+      "type": "number"
+    },
+    "estimation_ia": {
+      "type": "number"
+    },
+    "estimation_notes": {
+      "type": "string"
+    },
+    "prix_mandat": {
+      "type": "number"
+    },
+    "dpe_classe": {
+      "type": "string"
+    },
+    "ges_classe": {
+      "type": "string"
+    },
+    "diagnostics_realises": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "diagnostics_notes": {
+      "type": "string"
+    },
+    "mandat_type": {
+      "type": "string",
+      "enum": [
+        "simple",
+        "exclusif",
+        "semi_exclusif"
+      ],
+      "default": "exclusif"
+    },
+    "mandat_date_signature": {
+      "type": "string"
+    },
+    "mandat_duree_mois": {
+      "type": "number",
+      "default": 3
+    },
+    "mandat_date_expiration": {
+      "type": "string"
+    },
+    "honoraires_taux": {
+      "type": "number"
+    },
+    "honoraires_montant": {
+      "type": "number"
+    },
+    "honoraires_a_charge": {
+      "type": "string",
+      "enum": [
+        "vendeur",
+        "acquereur"
+      ],
+      "default": "acquereur"
+    },
+    "property_id": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "historique": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    }
+  },
+  "required": [
+    "vendeur_nom",
+    "vendeur_telephone"
+  ]
+}
