@@ -9,6 +9,7 @@ import {
   AlertTriangle, MessageSquare, Plus, CheckCircle2, Clock, X, Mail
 } from "lucide-react";
 import IncidentsTab from "../../components/admin/suivi/IncidentsTab";
+import RevisionIRL from "../../components/admin/suivi/RevisionIRL";
 
 const TABS = [
   { id: "loyer", label: "Loyer", icon: Euro },
@@ -121,31 +122,11 @@ function LoyerTab({ dossier, onUpdate }) {
         ))}
       </div>
 
-      {/* Alerts retard */}
-      {retards.length > 0 && (
-        <div className="bg-red-50 border border-red-200 rounded-xl p-4 space-y-2">
-          <p className="text-sm font-semibold text-red-700 flex items-center gap-2">
-            <AlertTriangle className="w-4 h-4" /> {retards.length} paiement{retards.length > 1 ? "s" : ""} en retard
-          </p>
-          {retards.map((p) => (
-            <div key={p.id} className="flex items-center justify-between gap-4">
-              <p className="text-sm text-red-700">{p.mois} — {formatEuro(p.total || p.montant)}</p>
-              <div className="flex items-center gap-2">
-                {p.relance_envoyee && (
-                  <span className="text-xs text-muted-foreground">Relance envoyée ✓</span>
-                )}
-                <Button size="sm" variant="outline" className="rounded-full h-7 text-xs gap-1.5 border-red-200 text-red-600 hover:bg-red-50"
-                  onClick={() => sendRelance(p)} disabled={relancing === p.id}>
-                  {relancing === p.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Mail className="w-3 h-3" />}
-                  Relancer
-                </Button>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+      {/* Révision IRL */}
+      <RevisionIRL dossier={dossier} onUpdate={onUpdate} />
 
-      {/* Add button */}
+      {/* Alerts retard */}
+
       <div className="flex items-center justify-between">
         <p className="text-sm font-semibold">Historique des paiements</p>
         <Button size="sm" variant="outline" className="rounded-full gap-1.5 text-xs h-8" onClick={() => setAdding(true)}>
