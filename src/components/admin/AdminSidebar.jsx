@@ -14,6 +14,7 @@ import {
   FileText,
   ClipboardList,
   Eye,
+  LogOut,
 } from "lucide-react";
 
 const navItems = [
@@ -25,6 +26,7 @@ const navItems = [
       { label: "Biens", path: "/admin/location", icon: Home },
       { label: "Attribution", path: "/admin/attribution", icon: ClipboardList },
       { label: "Suivi", path: "/admin/suivi", icon: Eye },
+      { label: "Sortie", path: "/admin/sortie", icon: LogOut },
     ],
   },
   { label: "Dossier locatif", path: "/admin/dossier-locatif", icon: BookOpen },

@@ -1,11 +1,14 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader2, LogOut, Globe, CheckCircle2, AlertTriangle, Calendar } from "lucide-react";
 
 export default function PreavisBanner({ dossier, onUpdate }) {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [cloturing, setCloturing] = useState(false);
   const [confirming, setConfirming] = useState(false);
   const [dateSortie, setDateSortie] = useState(dossier.preavis_date_sortie || "");
   const [publishing, setPublishing] = useState(false);
@@ -33,6 +36,36 @@ export default function PreavisBanner({ dossier, onUpdate }) {
     setLoading(false);
     setConfirming(false);
     onUpdate();
+  };
+
+  const cloturerPreavis = async () => {
+    setCloturing(true);
+    // Archiver le dossier suivi
+    await base44.entities.DossierLocatif.update(dossier.id, {
+      statut_bail: "termine",
+      statut: "archive",
+      date_sortie: dateSortie || new Date().toISOString(),
+    });
+    // Créer dossier de sortie
+    const ds = await base44.entities.DossierSortie.create({
+      dossier_suivi_id: dossier.id,
+      property_id: dossier.property_id,
+      property_title: dossier.property_title,
+      property_address: dossier.property_address,
+      locataire: dossier.locataire_selectionne,
+      agent_email: dossier.agent_email,
+      agent_name: dossier.agent_name,
+      loyer: dossier.loyer,
+      charges: dossier.charges,
+      depot_garantie: dossier.depot_garantie,
+      date_entree: dossier.date_entree,
+      date_sortie_prevue: dateSortie || dossier.preavis_date_sortie || null,
+      statut: "ouvert",
+      reference: `SORTIE-${Date.now()}`,
+      historique: [{ id: Date.now(), content: "Dossier créé automatiquement depuis le suivi locataire.", date: new Date().toISOString() }],
+    });
+    setCloturing(false);
+    navigate(`/admin/sortie/${ds.id}`);
   };
 
   const remettreEnLocation = async () => {
@@ -122,6 +155,15 @@ export default function PreavisBanner({ dossier, onUpdate }) {
                 </div>
               </div>
             </div>
+          </div>
+
+          {/* Clôturer préavis */}
+          <div className="flex items-center gap-3">
+            <Button size="sm" className="rounded-full h-9 text-xs gap-1.5 bg-gray-700 hover:bg-gray-800" onClick={cloturerPreavis} disabled={cloturing}>
+              {cloturing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle2 className="w-3.5 h-3.5" />}
+              Clôturer le préavis
+            </Button>
+            <span className="text-xs text-muted-foreground">Crée automatiquement un dossier de sortie</span>
           </div>
 
           {/* Section remise en location */}

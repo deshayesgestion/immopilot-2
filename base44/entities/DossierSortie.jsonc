@@ -1,0 +1,94 @@
+{
+  "name": "DossierSortie",
+  "type": "object",
+  "properties": {
+    "agency_id": {
+      "type": "string"
+    },
+    "reference": {
+      "type": "string"
+    },
+    "dossier_suivi_id": {
+      "type": "string",
+      "description": "ID du dossier locatif (suivi) source"
+    },
+    "property_id": {
+      "type": "string"
+    },
+    "property_title": {
+      "type": "string"
+    },
+    "property_address": {
+      "type": "string"
+    },
+    "locataire": {
+      "type": "object",
+      "description": "Donn\u00e9es locataire copi\u00e9es"
+    },
+    "agent_email": {
+      "type": "string"
+    },
+    "agent_name": {
+      "type": "string"
+    },
+    "loyer": {
+      "type": "number"
+    },
+    "charges": {
+      "type": "number"
+    },
+    "depot_garantie": {
+      "type": "number"
+    },
+    "date_entree": {
+      "type": "string"
+    },
+    "date_sortie_prevue": {
+      "type": "string"
+    },
+    "date_sortie_effective": {
+      "type": "string"
+    },
+    "statut": {
+      "type": "string",
+      "enum": [
+        "ouvert",
+        "edl_planifie",
+        "edl_realise",
+        "restitution_caution",
+        "cloture"
+      ],
+      "default": "ouvert"
+    },
+    "edl_sortie": {
+      "type": "object",
+      "description": "\u00c9tat des lieux de sortie"
+    },
+    "retenues": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "description": "Retenues sur caution"
+    },
+    "restitution_montant": {
+      "type": "number"
+    },
+    "restitution_date": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "historique": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    }
+  },
+  "required": [
+    "property_title",
+    "locataire"
+  ]
+}

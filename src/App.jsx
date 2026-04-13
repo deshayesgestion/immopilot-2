@@ -27,6 +27,8 @@ import DossierLocatifDetail from './pages/admin/DossierLocatifDetail';
 import AdminAttribution from './pages/admin/AdminAttribution';
 import AdminAttributionDetail from './pages/admin/AdminAttributionDetail';
 import AdminSuivi from './pages/admin/AdminSuivi';
+import AdminSortie from './pages/admin/AdminSortie';
+import AdminSortieDetail from './pages/admin/AdminSortieDetail';
 import AdminSuiviDetail from './pages/admin/AdminSuiviDetail';
 
 const AuthenticatedApp = () => {
@@ -79,6 +81,8 @@ const AuthenticatedApp = () => {
         <Route path="/admin/attribution/:id" element={<AdminAttributionDetail />} />
         <Route path="/admin/suivi" element={<AdminSuivi />} />
         <Route path="/admin/suivi/:id" element={<AdminSuiviDetail />} />
+        <Route path="/admin/sortie" element={<AdminSortie />} />
+        <Route path="/admin/sortie/:id" element={<AdminSortieDetail />} />
         <Route path="/admin/parametres" element={<AdminSettings />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
