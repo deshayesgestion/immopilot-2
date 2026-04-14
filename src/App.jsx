@@ -44,7 +44,6 @@ import AdminSecurite from './pages/admin/AdminSecurite';
 import HubCommunication from './pages/admin/HubCommunication';
 import AdminTaches from './pages/admin/AdminTaches';
 import AdminAgenda from './pages/admin/AdminAgenda';
-import AdminAPI from './pages/admin/AdminAPI';
 import ClientLayout from './components/client/ClientLayout';
 import EspaceRouter from './pages/client/EspaceRouter';
 import LocataireDashboard from './pages/client/LocataireDashboard';
@@ -128,7 +127,6 @@ const AuthenticatedApp = () => {
         <Route path="/admin/communications" element={<HubCommunication />} />
         <Route path="/admin/taches" element={<AdminTaches />} />
         <Route path="/admin/agenda" element={<AdminAgenda />} />
-        <Route path="/admin/api" element={<AdminAPI />} />
       </Route>
 
       {/* ── ESPACES CLIENTS ── */}
