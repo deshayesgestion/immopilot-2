@@ -3,8 +3,8 @@ import { base44 } from "@/api/base44Client";
 import { useAgency } from "../../hooks/useAgency";
 import { Home, Users, TrendingUp, MessageSquare, ArrowUpRight, Brain, Clock } from "lucide-react";
 import { Link } from "react-router-dom";
-import OnboardingChecklist from "../../components/onboarding/OnboardingChecklist.jsx";
-import OnboardingAssistant from "../../components/onboarding/OnboardingAssistant.jsx";
+import OnboardingChecklist from "../../components/onboarding/OnboardingChecklist";
+import OnboardingAssistant from "../../components/onboarding/OnboardingAssistant";
 
 export default function Dashboard() {
   const { agency } = useAgency();
