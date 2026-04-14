@@ -57,21 +57,46 @@ export default function TabRapports() {
     const doc = new jsPDF();
     const color = agency?.primary_color || "#4F46E5";
     const r = parseInt(color.slice(1,3),16), g = parseInt(color.slice(3,5),16), b = parseInt(color.slice(5,7),16);
-    doc.setFillColor(r,g,b); doc.rect(0,0,210,28,"F");
-    doc.setTextColor(255,255,255); doc.setFontSize(16); doc.setFont("helvetica","bold");
+
+    // En-tête avec branding
+    doc.setFillColor(r, g, b);
+    doc.rect(0, 0, 210, 35, "F");
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(14);
+    doc.setFont("helvetica", "bold");
     doc.text(agency?.name || "Rapport comptable", 14, 12);
-    doc.setFontSize(10); doc.setFont("helvetica","normal");
-    doc.text(`Rapport financier ${year}`, 14, 20);
-    doc.setTextColor(30,30,30); let y = 40;
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "normal");
+    if (agency?.address) doc.text(agency.address, 14, 19);
+    doc.text(`${agency?.postal_code || ""} ${agency?.city || ""}`, 14, 24);
+    doc.text(`${agency?.email || ""} | ${agency?.phone || ""}`, 14, 29);
+
+    // Titre
+    doc.setTextColor(30, 30, 30);
+    doc.setFontSize(13);
+    doc.setFont("helvetica", "bold");
+    doc.text(`Rapport financier ${year}`, 14, 50);
+
+    let y = 58;
     const section = (title) => {
-      doc.setFillColor(240,242,255); doc.rect(10, y-4, 190, 8, "F");
-      doc.setFontSize(9); doc.setFont("helvetica","bold"); doc.setTextColor(r,g,b);
-      doc.text(title, 14, y+1); doc.setTextColor(30,30,30); doc.setFont("helvetica","normal"); y += 12;
+      doc.setFillColor(r, g, b);
+      doc.rect(10, y - 4, 190, 8, "F");
+      doc.setFontSize(9);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(255, 255, 255);
+      doc.text(title, 14, y + 1);
+      doc.setTextColor(30, 30, 30);
+      doc.setFont("helvetica", "normal");
+      y += 12;
     };
     const row = (label, value, bold = false) => {
-      doc.setFontSize(9); doc.setFont("helvetica", bold ? "bold" : "normal");
-      doc.text(label, 14, y); doc.text(value, 150, y, { align: "right" }); y += 7;
+      doc.setFontSize(9);
+      doc.setFont("helvetica", bold ? "bold" : "normal");
+      doc.text(label, 14, y);
+      doc.text(value, 150, y, { align: "right" });
+      y += 7;
     };
+
     section("PRODUITS");
     row("Loyers perçus", fmt(data.loyers));
     row("Commissions vente", fmt(data.commissions));
@@ -79,18 +104,37 @@ export default function TabRapports() {
     row("Autres entrées", fmt(data.autresEntrees));
     row("TOTAL PRODUITS", fmt(data.totalEntrees), true);
     y += 4;
+
     section("CHARGES");
     row("Total dépenses", fmt(data.totalDepenses), true);
     y += 4;
+
     section("RÉSULTAT");
     row("RÉSULTAT NET", fmt(data.resultatNet), true);
-    row("Impayés en cours", fmt(data.impayes));
+    if (data.impayes > 0) row("Impayés en cours", fmt(data.impayes));
+
     if (aiReport) {
-      y += 8; section("ANALYSE IA");
+      y += 8;
+      section("ANALYSE IA");
       const lines = doc.splitTextToSize(aiReport, 180);
       doc.setFontSize(8);
-      lines.forEach(l => { doc.text(l, 14, y); y += 5; if (y > 270) { doc.addPage(); y = 20; } });
+      lines.forEach(l => {
+        doc.text(l, 14, y);
+        y += 5;
+        if (y > 270) {
+          doc.addPage();
+          y = 20;
+        }
+      });
     }
+
+    // Pied de page
+    doc.setTextColor(100, 100, 100);
+    doc.setFontSize(8);
+    doc.setFont("helvetica", "normal");
+    doc.text(`Document généré le ${new Date().toLocaleDateString("fr-FR")} à ${new Date().toLocaleTimeString("fr-FR")}`, 14, 285);
+    doc.text(`${agency?.name || "Agence"}`, 160, 285, { align: "right" });
+
     doc.save(`Rapport_${year}.pdf`);
   };
 

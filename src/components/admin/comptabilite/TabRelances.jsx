@@ -65,18 +65,23 @@ Rédige uniquement le corps de l'email (sans objet ni signature), 3-4 phrases ma
   };
 
   const envoyerRelance = async (r) => {
-    if (!r.tiers_email) { alert("Email du destinataire manquant."); return; }
+    if (!r.tiers_email) {
+      alert("❌ Email du destinataire manquant.");
+      return;
+    }
     try {
       await base44.integrations.Core.SendEmail({
         to: r.tiers_email,
         subject: `${NIVEAU_LABELS[r.niveau]} — Loyer impayé (${fmt(r.montant)})`,
-        body: `${r.contenu}\n\nCordialement,\nL'agence`,
+        body: `Bonjour ${r.tiers_nom},\n\n${r.contenu}\n\nCordialement,\nL'agence immobilière`,
       });
-    } catch {
-      alert(`Email non envoyé (destinataire non enregistré dans l'app). Relance marquée comme envoyée.`);
+      await base44.entities.Relance.update(r.id, { statut: "envoyee", date_envoi: new Date().toISOString() });
+      alert(`✓ Relance envoyée avec succès à ${r.tiers_email}`);
+      load();
+    } catch (e) {
+      console.error("Erreur envoi relance:", e);
+      alert(`⚠ Erreur : ${e.message || "Email non envoyé (destinataire non enregistré dans l'app)"}`);
     }
-    await base44.entities.Relance.update(r.id, { statut: "envoyee", date_envoi: new Date().toISOString() });
-    load();
   };
 
   const resoudre = async (r) => {

@@ -113,31 +113,116 @@ export default function TabFacturation() {
   const load = async () => { setLoading(true); const d = await base44.entities.Facture.list("-date_emission", 100); setFactures(d); setLoading(false); };
   useEffect(() => { load(); }, []);
 
-  const exportPDF = (f) => {
+  const [agency, setAgency] = useState(null);
+
+  useEffect(() => {
+    base44.entities.Agency.list("-created_date", 1).then(a => setAgency(a[0] || null));
+  }, []);
+
+  const exportPDF = async (f) => {
     const doc = new jsPDF();
-    doc.setFontSize(18); doc.setFont("helvetica", "bold");
-    doc.text("FACTURE", 105, 20, { align: "center" });
-    doc.setFontSize(11); doc.setFont("helvetica", "normal");
-    doc.text(`N° ${f.numero || "—"}`, 14, 35);
-    doc.text(`Date : ${fmtDate(f.date_emission)}`, 14, 42);
-    doc.text(`Échéance : ${fmtDate(f.date_echeance)}`, 14, 49);
-    doc.text(`Client : ${f.client_nom}`, 14, 62);
-    if (f.client_email) doc.text(`Email : ${f.client_email}`, 14, 69);
-    doc.setDrawColor(200, 200, 200); doc.line(14, 80, 196, 80);
-    doc.setFontSize(10); doc.setFont("helvetica", "bold");
-    doc.text("Description", 14, 88); doc.text("Montant", 170, 88);
-    doc.setFont("helvetica", "normal");
-    doc.text(f.bien_titre || f.type, 14, 96);
-    doc.text(`HT : ${fmt(f.montant_ht)}`, 150, 96);
-    if (f.tva_taux) doc.text(`TVA ${f.tva_taux}% : ${fmt((f.montant_ht || 0) * (f.tva_taux / 100))}`, 150, 103);
+    const primaryColor = agency?.primary_color || "#4F46E5";
+    const r = parseInt(primaryColor.slice(1,3), 16);
+    const g = parseInt(primaryColor.slice(3,5), 16);
+    const b = parseInt(primaryColor.slice(5,7), 16);
+
+    // En-tête avec identité du cabinet
+    doc.setFillColor(r, g, b);
+    doc.rect(0, 0, 210, 30, "F");
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(14);
     doc.setFont("helvetica", "bold");
-    doc.text(`TOTAL TTC : ${fmt(f.montant_ttc)}`, 140, 115);
+    doc.text(agency?.name || "Facture", 14, 12);
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "normal");
+    doc.text(agency?.address || "", 14, 20);
+    doc.text(`${agency?.postal_code || ""} ${agency?.city || ""}`, 14, 25);
+
+    // Titre facture
+    doc.setTextColor(30, 30, 30);
+    doc.setFontSize(16);
+    doc.setFont("helvetica", "bold");
+    doc.text("FACTURE", 105, 45, { align: "center" });
+
+    // Infos facturation
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "normal");
+    doc.text(`N° : ${f.numero || "—"}`, 14, 55);
+    doc.text(`Émise : ${fmtDate(f.date_emission)}`, 14, 61);
+    doc.text(`Échéance : ${fmtDate(f.date_echeance)}`, 14, 67);
+
+    // Client
+    doc.setFont("helvetica", "bold");
+    doc.text("FACTURATION À :", 14, 80);
+    doc.setFont("helvetica", "normal");
+    doc.text(f.client_nom, 14, 87);
+    if (f.client_email) doc.text(f.client_email, 14, 93);
+
+    // Ligne séparatrice avec couleur primaire
+    doc.setDrawColor(r, g, b);
+    doc.setLineWidth(0.8);
+    doc.line(14, 105, 196, 105);
+
+    // Détail facture
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "bold");
+    doc.text("Description", 14, 115);
+    doc.text("Montant", 160, 115);
+
+    doc.setFont("helvetica", "normal");
+    doc.text(f.bien_titre || f.type, 14, 125);
+    doc.text(`${fmt(f.montant_ht)}`, 160, 125, { align: "right" });
+
+    let y = 135;
+    if (f.tva_taux) {
+      doc.text(`TVA ${f.tva_taux}%`, 14, y);
+      doc.text(`${fmt((f.montant_ht || 0) * (f.tva_taux / 100))}`, 160, y, { align: "right" });
+      y += 8;
+    }
+
+    // Sous-total HT
+    doc.setFont("helvetica", "bold");
+    doc.text("Montant HT :", 14, y + 5);
+    doc.text(`${fmt(f.montant_ht)}`, 160, y + 5, { align: "right" });
+
+    // Total TTC avec fond coloré
+    doc.setFillColor(r, g, b);
+    doc.rect(10, y + 12, 190, 10, "F");
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(11);
+    doc.text(`TOTAL TTC : ${fmt(f.montant_ttc)}`, 160, y + 18, { align: "right" });
+
+    // Pied de page
+    doc.setTextColor(100, 100, 100);
+    doc.setFontSize(8);
+    doc.setFont("helvetica", "normal");
+    const footerText = `${agency?.email || "contact@agency.fr"} | ${agency?.phone || ""}`;
+    doc.text(footerText, 14, 285);
+    doc.text(`Généré le ${new Date().toLocaleDateString("fr-FR")}`, 160, 285, { align: "right" });
+
     doc.save(`Facture_${f.numero || f.id}.pdf`);
   };
 
   const marquerPayee = async (f) => {
     await base44.entities.Facture.update(f.id, { statut: "payee", date_paiement: new Date().toISOString().substring(0, 10) });
     load();
+  };
+
+  const envoyerFacturePDF = async (f) => {
+    if (!f.client_email) {
+      alert("Email client manquant");
+      return;
+    }
+    try {
+      await base44.integrations.Core.SendEmail({
+        to: f.client_email,
+        subject: `Facture ${f.numero} — ${agency?.name || "Votre agence"}`,
+        body: `Bonjour ${f.client_nom},\n\nVeuillez trouver en pièce jointe la facture ${f.numero} pour un montant de ${fmt(f.montant_ttc)}.\n\nÉchéance : ${fmtDate(f.date_echeance)}\n\nCordialement,\n${agency?.name || "L'agence"}`,
+      });
+      alert("✓ Facture envoyée avec succès");
+    } catch (e) {
+      alert(`⚠ Erreur lors de l'envoi : ${e.message}`);
+    }
   };
 
   if (loading) return <div className="flex justify-center py-12"><Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /></div>;
@@ -171,6 +256,11 @@ export default function TabFacturation() {
                   <Button size="sm" variant="outline" className="h-7 text-xs rounded-full gap-1" onClick={() => exportPDF(f)}>
                     <FileText className="w-3 h-3" /> PDF
                   </Button>
+                  {f.client_email && (
+                    <Button size="sm" variant="outline" className="h-7 text-xs rounded-full gap-1" onClick={() => envoyerFacturePDF(f)}>
+                      📧 Envoyer
+                    </Button>
+                  )}
                   {f.statut === "emise" && (
                     <Button size="sm" className="h-7 text-xs rounded-full bg-green-600 hover:bg-green-700" onClick={() => marquerPayee(f)}>Payée</Button>
                   )}
