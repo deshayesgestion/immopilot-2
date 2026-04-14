@@ -5,7 +5,7 @@ import { useAgency } from "../../hooks/useAgency";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2, Save, CheckCircle, Building2, Bot, ArrowRight } from "lucide-react";
+import { Loader2, Save, CheckCircle, Building2, Bot, ArrowRight, Mail } from "lucide-react";
 
 export default function AdminSettings() {
   const { agency, refetch } = useAgency();
@@ -151,6 +151,24 @@ export default function AdminSettings() {
             <Input type="number" value={form.founded_year} onChange={(e) => set("founded_year", e.target.value)} placeholder="1995" className="rounded-xl" />
           </div>
         </Section>
+
+        {/* Gestion Emails IA */}
+        <div className="bg-gradient-to-r from-blue-50 to-blue-50/50 border border-blue-200/50 rounded-2xl p-5 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center flex-shrink-0">
+              <Mail className="w-5 h-5 text-blue-600" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold">Gestion emails IA</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Lecture, analyse, classification et réponse automatique aux emails entrants</p>
+            </div>
+          </div>
+          <Link to="/admin/parametres/emails">
+            <Button variant="outline" className="rounded-full gap-2 h-9 text-sm flex-shrink-0 border-blue-300 text-blue-600 hover:bg-blue-600 hover:text-white">
+              Accéder <ArrowRight className="w-3.5 h-3.5" />
+            </Button>
+          </Link>
+        </div>
 
         {/* Accueil IA */}
         <div className="bg-gradient-to-r from-primary/5 to-primary/10 border border-primary/20 rounded-2xl p-5 flex items-center justify-between gap-4">

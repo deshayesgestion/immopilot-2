@@ -1,0 +1,126 @@
+{
+  "name": "EmailEntrant",
+  "type": "object",
+  "properties": {
+    "agency_id": {
+      "type": "string"
+    },
+    "message_id": {
+      "type": "string",
+      "description": "ID unique email (\u00e9vite doublons)"
+    },
+    "de": {
+      "type": "string"
+    },
+    "de_nom": {
+      "type": "string"
+    },
+    "objet": {
+      "type": "string"
+    },
+    "corps": {
+      "type": "string"
+    },
+    "date_reception": {
+      "type": "string"
+    },
+    "statut": {
+      "type": "string",
+      "enum": [
+        "non_lu",
+        "lu",
+        "en_cours",
+        "traite",
+        "archive"
+      ],
+      "default": "non_lu"
+    },
+    "priorite": {
+      "type": "string",
+      "enum": [
+        "urgent",
+        "normal",
+        "faible"
+      ],
+      "default": "normal"
+    },
+    "module": {
+      "type": "string",
+      "enum": [
+        "location",
+        "vente",
+        "comptabilite",
+        "general"
+      ]
+    },
+    "intention": {
+      "type": "string",
+      "enum": [
+        "incident_logement",
+        "demande_visite",
+        "question_administrative",
+        "paiement_facture",
+        "demande_information",
+        "lead",
+        "autre"
+      ]
+    },
+    "resume_ia": {
+      "type": "string"
+    },
+    "reponse_ia": {
+      "type": "string",
+      "description": "Brouillon de r\u00e9ponse g\u00e9n\u00e9r\u00e9 par l'IA"
+    },
+    "reponse_envoyee": {
+      "type": "boolean",
+      "default": false
+    },
+    "reponse_envoyee_le": {
+      "type": "string"
+    },
+    "ticket_id": {
+      "type": "string",
+      "description": "TicketIA li\u00e9"
+    },
+    "dossier_id": {
+      "type": "string"
+    },
+    "bien_id": {
+      "type": "string"
+    },
+    "bien_titre": {
+      "type": "string"
+    },
+    "contact_identifie": {
+      "type": "boolean",
+      "default": false
+    },
+    "contact_type": {
+      "type": "string",
+      "enum": [
+        "locataire",
+        "proprietaire",
+        "acquereur",
+        "prospect",
+        "inconnu"
+      ]
+    },
+    "agent_assigne": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "de",
+    "objet"
+  ]
+}

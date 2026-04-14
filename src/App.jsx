@@ -38,6 +38,7 @@ import AdminMandats from './pages/admin/AdminMandats';
 import AdminComptabilite from './pages/admin/AdminComptabilite';
 import AdminSuiviDetail from './pages/admin/AdminSuiviDetail';
 import AccueilIA from './pages/admin/AccueilIA';
+import GestionEmails from './pages/admin/GestionEmails';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -96,6 +97,7 @@ const AuthenticatedApp = () => {
         <Route path="/admin/vente/cloture" element={<AdminVenteCloture />} />
         <Route path="/admin/comptabilite" element={<AdminComptabilite />} />
         <Route path="/admin/parametres/accueil-ia" element={<AccueilIA />} />
+        <Route path="/admin/parametres/emails" element={<GestionEmails />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>
