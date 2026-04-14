@@ -3,6 +3,8 @@ import { base44 } from "@/api/base44Client";
 import { useAgency } from "../../hooks/useAgency";
 import { Home, Users, TrendingUp, MessageSquare, ArrowUpRight, Brain, Clock } from "lucide-react";
 import { Link } from "react-router-dom";
+import OnboardingChecklist from "../../components/onboarding/OnboardingChecklist";
+import OnboardingAssistant from "../../components/onboarding/OnboardingAssistant";
 
 export default function Dashboard() {
   const { agency } = useAgency();
@@ -10,6 +12,12 @@ export default function Dashboard() {
   const [recentLeads, setRecentLeads] = useState([]);
   const [recentProperties, setRecentProperties] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(null);
+  const [assistantOpen, setAssistantOpen] = useState(false);
+
+  useEffect(() => {
+    base44.auth.me().then(setUser).catch(() => {});
+  }, []);
 
   useEffect(() => {
     const load = async () => {
@@ -51,6 +59,9 @@ export default function Dashboard() {
         </h1>
         <p className="text-muted-foreground mt-1">Voici le résumé de votre activité.</p>
       </div>
+
+      <OnboardingChecklist user={user} onOpen={() => setAssistantOpen(true)} />
+      <OnboardingAssistant open={assistantOpen} onClose={() => setAssistantOpen(false)} />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {statCards.map((s, i) => (
