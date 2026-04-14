@@ -44,6 +44,21 @@ import AdminSecurite from './pages/admin/AdminSecurite';
 import HubCommunication from './pages/admin/HubCommunication';
 import AdminTaches from './pages/admin/AdminTaches';
 import AdminAgenda from './pages/admin/AdminAgenda';
+import ClientLayout from './components/client/ClientLayout';
+import EspaceRouter from './pages/client/EspaceRouter';
+import LocataireDashboard from './pages/client/LocataireDashboard';
+import LocataireDocuments from './pages/client/LocataireDocuments';
+import LocatairePaiements from './pages/client/LocatairePaiements';
+import LocataireIncidents from './pages/client/LocataireIncidents';
+import ClientMessages from './pages/client/ClientMessages';
+import ProprietaireDashboard from './pages/client/ProprietaireDashboard';
+import ProprietaireBiens from './pages/client/ProprietaireBiens';
+import ProprietaireRevenus from './pages/client/ProprietaireRevenus';
+import ProprietaireDocuments from './pages/client/ProprietaireDocuments';
+import AcquereurDashboard from './pages/client/AcquereurDashboard';
+import AcquereurVisites from './pages/client/AcquereurVisites';
+import AcquereurDocuments from './pages/client/AcquereurDocuments';
+import AcquereurRecherche from './pages/client/AcquereurRecherche';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -108,8 +123,31 @@ const AuthenticatedApp = () => {
         <Route path="/admin/communications" element={<HubCommunication />} />
         <Route path="/admin/taches" element={<AdminTaches />} />
         <Route path="/admin/agenda" element={<AdminAgenda />} />
-        <Route path="/admin/agenda" element={<AdminAgenda />} />
       </Route>
+
+      {/* ── ESPACES CLIENTS ── */}
+      <Route path="/espace" element={<EspaceRouter />} />
+      <Route element={<ClientLayout />}>
+        {/* Locataire */}
+        <Route path="/espace/locataire" element={<LocataireDashboard />} />
+        <Route path="/espace/locataire/documents" element={<LocataireDocuments />} />
+        <Route path="/espace/locataire/paiements" element={<LocatairePaiements />} />
+        <Route path="/espace/locataire/incidents" element={<LocataireIncidents />} />
+        <Route path="/espace/locataire/messages" element={<ClientMessages />} />
+        {/* Propriétaire */}
+        <Route path="/espace/proprietaire" element={<ProprietaireDashboard />} />
+        <Route path="/espace/proprietaire/biens" element={<ProprietaireBiens />} />
+        <Route path="/espace/proprietaire/revenus" element={<ProprietaireRevenus />} />
+        <Route path="/espace/proprietaire/documents" element={<ProprietaireDocuments />} />
+        <Route path="/espace/proprietaire/messages" element={<ClientMessages />} />
+        {/* Acquéreur */}
+        <Route path="/espace/acquereur" element={<AcquereurDashboard />} />
+        <Route path="/espace/acquereur/visites" element={<AcquereurVisites />} />
+        <Route path="/espace/acquereur/documents" element={<AcquereurDocuments />} />
+        <Route path="/espace/acquereur/recherche" element={<AcquereurRecherche />} />
+        <Route path="/espace/acquereur/messages" element={<ClientMessages />} />
+      </Route>
+
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
