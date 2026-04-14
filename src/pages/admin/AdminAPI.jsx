@@ -1,6 +1,7 @@
-import { useState } from 'react';
-import { Copy, Check, Code2, ExternalLink } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Copy, Check, Code2, ExternalLink, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { base44 } from '@/api/base44Client';
 
 const endpoints = [
   {
@@ -215,6 +216,28 @@ function EndpointCard({ endpoint }) {
 }
 
 export default function AdminAPI() {
+  const [pairingCodes, setPairingCodes] = useState([]);
+  const [connections, setConnections] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const [codes, conns] = await Promise.all([
+          base44.entities.AdminPairingCode.list('-created_date', 50),
+          base44.entities.AdminConnection.list('-created_date', 50),
+        ]);
+        setPairingCodes(codes);
+        setConnections(conns);
+      } catch (err) {
+        console.error('Erreur chargement données:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadData();
+  }, []);
+
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Header */}
@@ -238,6 +261,107 @@ export default function AdminAPI() {
         {endpoints.map((endpoint) => (
           <EndpointCard key={endpoint.name} endpoint={endpoint} />
         ))}
+      </div>
+
+      {/* Données en direct */}
+      <div className="space-y-4">
+        {/* Pairing Codes */}
+        <div className="bg-white rounded-2xl border border-border/50 p-6">
+          <h2 className="text-lg font-bold mb-4">Codes de Pairing Actifs</h2>
+          {loading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+            </div>
+          ) : pairingCodes.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Aucun code de pairing généré</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="border-b border-border/30">
+                    <th className="text-left py-2 px-3 font-semibold">Code</th>
+                    <th className="text-left py-2 px-3 font-semibold">Client</th>
+                    <th className="text-left py-2 px-3 font-semibold">Plan</th>
+                    <th className="text-left py-2 px-3 font-semibold">Statut</th>
+                    <th className="text-left py-2 px-3 font-semibold">Expiration</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {pairingCodes.map(pc => (
+                    <tr key={pc.id} className="border-b border-border/20 hover:bg-secondary/30">
+                      <td className="py-2 px-3 font-mono text-slate-600">{pc.code}</td>
+                      <td className="py-2 px-3">{pc.client_name}</td>
+                      <td className="py-2 px-3">
+                        <span className="bg-primary/10 text-primary px-2 py-0.5 rounded text-[10px] font-semibold">
+                          {pc.plan}
+                        </span>
+                      </td>
+                      <td className="py-2 px-3">
+                        <span className={`px-2 py-0.5 rounded text-[10px] font-semibold ${
+                          pc.status === 'connected' ? 'bg-green-100 text-green-700' :
+                          pc.status === 'pending' ? 'bg-amber-100 text-amber-700' :
+                          'bg-red-100 text-red-700'
+                        }`}>
+                          {pc.status}
+                        </span>
+                      </td>
+                      <td className="py-2 px-3 text-muted-foreground">
+                        {pc.expires_at ? new Date(pc.expires_at).toLocaleDateString('fr-FR') : '—'}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+
+        {/* Connections */}
+        <div className="bg-white rounded-2xl border border-border/50 p-6">
+          <h2 className="text-lg font-bold mb-4">Connexions Clients</h2>
+          {connections.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Aucune connexion établie</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="border-b border-border/30">
+                    <th className="text-left py-2 px-3 font-semibold">Code</th>
+                    <th className="text-left py-2 px-3 font-semibold">Tenant ID</th>
+                    <th className="text-left py-2 px-3 font-semibold">URL Client</th>
+                    <th className="text-left py-2 px-3 font-semibold">Statut</th>
+                    <th className="text-left py-2 px-3 font-semibold">Connecté le</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {connections.map(conn => (
+                    <tr key={conn.id} className="border-b border-border/20 hover:bg-secondary/30">
+                      <td className="py-2 px-3 font-mono text-slate-600">{conn.pairing_code}</td>
+                      <td className="py-2 px-3 font-mono text-xs text-slate-600">{conn.tenant_id?.slice(0, 8)}...</td>
+                      <td className="py-2 px-3 text-blue-600 hover:underline">
+                        <a href={conn.client_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1">
+                          {conn.client_url?.replace('https://', '')} <ExternalLink className="w-3 h-3" />
+                        </a>
+                      </td>
+                      <td className="py-2 px-3">
+                        <span className={`px-2 py-0.5 rounded text-[10px] font-semibold ${
+                          conn.status === 'connected' ? 'bg-green-100 text-green-700' :
+                          conn.status === 'pending' ? 'bg-amber-100 text-amber-700' :
+                          'bg-red-100 text-red-700'
+                        }`}>
+                          {conn.status}
+                        </span>
+                      </td>
+                      <td className="py-2 px-3 text-muted-foreground">
+                        {conn.connected_at ? new Date(conn.connected_at).toLocaleDateString('fr-FR') : '—'}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Flux */}
