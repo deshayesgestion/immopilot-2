@@ -44,7 +44,6 @@ import AdminSecurite from './pages/admin/AdminSecurite';
 import HubCommunication from './pages/admin/HubCommunication';
 import AdminTaches from './pages/admin/AdminTaches';
 import AdminAgenda from './pages/admin/AdminAgenda';
-import AdminAgenda from './pages/admin/AdminAgenda';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
