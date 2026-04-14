@@ -4,6 +4,8 @@
  * Garantit une cohérence visuelle complète
  */
 
+import { jsPDF } from 'jspdf';
+
 const DEFAULT_MARGINS = { top: 14, right: 14, bottom: 20, left: 14 };
 
 /**
@@ -11,7 +13,6 @@ const DEFAULT_MARGINS = { top: 14, right: 14, bottom: 20, left: 14 };
  */
 export class PDFTemplate {
   constructor(agency = null, options = {}) {
-    const { jsPDF } = require('jspdf');
     this.doc = new jsPDF();
     this.agency = agency || {};
     this.margins = { ...DEFAULT_MARGINS, ...options.margins };
