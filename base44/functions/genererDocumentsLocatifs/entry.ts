@@ -1,7 +1,24 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
+// ── RBAC inline ──────────────────────────────────────────────────────────────
+const INTERNAL_ROLES = ["admin","responsable_location","responsable_vente","agent","gestionnaire","comptable"];
+const MODULE_PERMS = { admin:{location:"full"}, responsable_location:{location:"write"}, responsable_vente:{location:"read"}, agent:{location:"write"}, gestionnaire:{location:"write"}, comptable:{location:"read"} };
+function accessDenied(msg) { return Response.json({ error: msg, code: "ACCESS_DENIED", timestamp: new Date().toISOString() }, { status: 403 }); }
+async function checkRole(base44) {
+  let user; try { user = await base44.auth.me(); } catch { return null; } // scheduled: pas d'user → on autorise
+  if (!user) return null; // appelé par automation planifiée sans user
+  if (!INTERNAL_ROLES.includes(user.role)) return accessDenied(`Accès back-office refusé pour le rôle "${user.role}"`);
+  const level = MODULE_PERMS[user.role]?.location ?? "none";
+  if (level === "none" || level === "read") return accessDenied(`Permission refusée : "${user.role}" ne peut pas générer des documents`);
+  return null;
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
 Deno.serve(async (req) => {
   const base44 = createClientFromRequest(req);
+
+  const denied = await checkRole(base44);
+  if (denied) return denied;
 
   // Accept both manual (with dossier_id) and scheduled (all active dossiers)
   const body = await req.json().catch(() => ({}));

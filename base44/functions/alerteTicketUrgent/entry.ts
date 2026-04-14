@@ -1,10 +1,21 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
+/**
+ * alerteTicketUrgent — Automation entity (TicketIA create/update)
+ * Appelé par le système interne uniquement — pas d'user authentifié.
+ * Sécurité : valide que le payload provient bien d'une automation Base44
+ * (présence du champ "event.type" et "data" structuré).
+ */
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     const body = await req.json().catch(() => ({}));
     const { event, data } = body;
+
+    // Validation du payload automation — rejette les appels malformés
+    if (!event?.type || !data || typeof data !== "object") {
+      return Response.json({ error: "Payload automation invalide", code: "ACCESS_DENIED" }, { status: 403 });
+    }
 
     if (!data || data.priorite !== 'urgent') {
       return Response.json({ skipped: true });

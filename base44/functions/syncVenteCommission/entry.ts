@@ -1,13 +1,22 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
-// Crée automatiquement une transaction de commission lors de la finalisation d'une vente
-// Appelé via automation entity sur TransactionVente (event: update, statut → vendu)
+/**
+ * syncVenteCommission — Automation entity (TransactionVente update → vendu)
+ * Appelé par le système interne uniquement — pas d'user authentifié.
+ * Sécurité : valide que le payload provient bien d'une automation Base44
+ * (présence du champ "event.type" et "data" structuré).
+ */
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     const body = await req.json();
 
     const { event, data } = body;
+
+    // Validation du payload automation — rejette les appels malformés
+    if (!event?.type || !data || typeof data !== "object") {
+      return Response.json({ error: "Payload automation invalide", code: "ACCESS_DENIED" }, { status: 403 });
+    }
 
     // Vérifier que c'est bien une mise à jour vers "vendu"
     if (event?.type !== 'update') return Response.json({ skipped: 'not an update' });

@@ -1,12 +1,26 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
+// ── RBAC inline ──────────────────────────────────────────────────────────────
+const INTERNAL_ROLES = ["admin","responsable_location","responsable_vente","agent","gestionnaire","comptable"];
+const MODULE_PERMS = { admin:{comptabilite:"full"}, responsable_location:{comptabilite:"none"}, responsable_vente:{comptabilite:"none"}, agent:{comptabilite:"none"}, gestionnaire:{comptabilite:"write"}, comptable:{comptabilite:"full"} };
+function accessDenied(msg) { return Response.json({ error: msg, code: "ACCESS_DENIED", timestamp: new Date().toISOString() }, { status: 403 }); }
+async function checkRole(base44) {
+  let user; try { user = await base44.auth.me(); } catch { return Response.json({ error:"Authentification requise", code:"UNAUTHENTICATED" }, { status:401 }); }
+  if (!user?.email) return Response.json({ error:"Authentification requise", code:"UNAUTHENTICATED" }, { status:401 });
+  if (!INTERNAL_ROLES.includes(user.role)) return accessDenied(`Accès back-office refusé pour le rôle "${user.role}"`);
+  const level = MODULE_PERMS[user.role]?.comptabilite ?? "none";
+  if (level === "none") return accessDenied(`Permission refusée : "${user.role}" ne peut pas accéder à la comptabilité`);
+  return null;
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
 // Génère les transactions de loyer mensuelles pour tous les baux actifs
 // et détecte les retards automatiquement
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
-    if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    const denied = await checkRole(base44);
+    if (denied) return denied;
 
     const now = new Date();
     const thisMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;

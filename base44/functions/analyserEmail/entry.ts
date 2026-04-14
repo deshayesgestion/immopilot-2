@@ -3,12 +3,28 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 /**
  * analyserEmail — Analyse un email entrant avec l'IA et crée un ticket si nécessaire
  * Payload: { email_id } ou { de, de_nom, objet, corps, date_reception }
+ * Accès requis : rôle interne + accès IA generate
  */
+
+// ── RBAC inline ──────────────────────────────────────────────────────────────
+const INTERNAL_ROLES = ["admin","responsable_location","responsable_vente","agent","gestionnaire","comptable"];
+const IA_PERMS = { admin:{generate:true}, responsable_location:{generate:false}, responsable_vente:{generate:false}, agent:{generate:true}, gestionnaire:{generate:false}, comptable:{generate:false} };
+function accessDenied(msg) { return Response.json({ error: msg, code: "ACCESS_DENIED", timestamp: new Date().toISOString() }, { status: 403 }); }
+async function checkRole(base44, requiredRoles, requiredIa) {
+  let user; try { user = await base44.auth.me(); } catch { return Response.json({ error:"Authentification requise", code:"UNAUTHENTICATED" }, { status:401 }); }
+  if (!user?.email) return Response.json({ error:"Authentification requise", code:"UNAUTHENTICATED" }, { status:401 });
+  if (!INTERNAL_ROLES.includes(user.role)) return accessDenied(`Accès back-office refusé pour le rôle "${user.role}"`);
+  if (requiredIa && !IA_PERMS[user.role]?.[requiredIa]) return accessDenied(`Accès IA refusé : "${user.role}" ne peut pas utiliser "${requiredIa}"`);
+  return null;
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
-    if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+
+    const denied = await checkRole(base44, INTERNAL_ROLES, "generate");
+    if (denied) return denied;
 
     const body = await req.json().catch(() => ({}));
 
