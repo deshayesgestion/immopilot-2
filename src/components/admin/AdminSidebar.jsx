@@ -19,6 +19,7 @@ import {
   BarChart2,
   Bell,
   Upload,
+  Shield,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -55,6 +56,7 @@ const navItems = [
       { label: "Accueil IA", path: "/admin/parametres/accueil-ia", icon: Bell },
       { label: "Emails IA", path: "/admin/parametres/emails", icon: ArrowLeftRight },
       { label: "Import données", path: "/admin/import", icon: Upload },
+      { label: "Sécurité & Logs", path: "/admin/securite", icon: Shield },
     ],
   },
 ];

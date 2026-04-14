@@ -1,0 +1,56 @@
+{
+  "name": "AuditLog",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string"
+    },
+    "user_name": {
+      "type": "string"
+    },
+    "user_role": {
+      "type": "string"
+    },
+    "action": {
+      "type": "string",
+      "enum": [
+        "create",
+        "update",
+        "delete",
+        "login",
+        "export",
+        "import",
+        "rgpd_delete",
+        "access_denied"
+      ]
+    },
+    "entity": {
+      "type": "string",
+      "description": "Entit\u00e9 concern\u00e9e (Property, Lead, etc.)"
+    },
+    "entity_id": {
+      "type": "string"
+    },
+    "entity_label": {
+      "type": "string",
+      "description": "Libell\u00e9 lisible de l'enregistrement"
+    },
+    "changes": {
+      "type": "object",
+      "description": "Diff avant/apr\u00e8s pour les updates"
+    },
+    "ip": {
+      "type": "string"
+    },
+    "module": {
+      "type": "string"
+    },
+    "details": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "user_email",
+    "action"
+  ]
+}

@@ -40,6 +40,7 @@ import AdminSuiviDetail from './pages/admin/AdminSuiviDetail';
 import AccueilIA from './pages/admin/AccueilIA';
 import GestionEmails from './pages/admin/GestionEmails';
 import AdminImport from './pages/admin/AdminImport';
+import AdminSecurite from './pages/admin/AdminSecurite';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -100,6 +101,7 @@ const AuthenticatedApp = () => {
         <Route path="/admin/parametres/accueil-ia" element={<AccueilIA />} />
         <Route path="/admin/parametres/emails" element={<GestionEmails />} />
         <Route path="/admin/import" element={<AdminImport />} />
+        <Route path="/admin/securite" element={<AdminSecurite />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>
