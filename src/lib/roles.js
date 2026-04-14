@@ -39,72 +39,94 @@ export const ROLE_DESCRIPTIONS = {
   comptable: "Accès comptabilité, factures et transactions",
 };
 
-// Définition des permissions par rôle
-// modules: location, vente, comptabilite, parametres, equipe
-// actions: voir, creer, modifier, supprimer
+// Permission levels: none | read | write | full
+// - none  : aucun accès
+// - read  : consultation uniquement
+// - write : consultation + création + modification
+// - full  : write + suppression
+
 export const ROLE_PERMISSIONS = {
   admin: {
-    location: { voir: true, creer: true, modifier: true, supprimer: true },
-    vente: { voir: true, creer: true, modifier: true, supprimer: true },
-    comptabilite: { voir: true, creer: true, modifier: true, supprimer: true },
-    parametres: { voir: true, creer: true, modifier: true, supprimer: true },
-    equipe: { voir: true, creer: true, modifier: true, supprimer: true },
-    ia: { voir: true, creer: true, modifier: true, supprimer: true },
-  },
-  agent: {
-    location: { voir: true, creer: true, modifier: true, supprimer: false },
-    vente: { voir: true, creer: true, modifier: true, supprimer: false },
-    comptabilite: { voir: false, creer: false, modifier: false, supprimer: false },
-    parametres: { voir: false, creer: false, modifier: false, supprimer: false },
-    equipe: { voir: true, creer: false, modifier: false, supprimer: false },
-    ia: { voir: true, creer: true, modifier: false, supprimer: false },
-  },
-  gestionnaire: {
-    location: { voir: true, creer: true, modifier: true, supprimer: false },
-    vente: { voir: true, creer: false, modifier: false, supprimer: false },
-    comptabilite: { voir: true, creer: true, modifier: true, supprimer: false },
-    parametres: { voir: false, creer: false, modifier: false, supprimer: false },
-    equipe: { voir: true, creer: false, modifier: false, supprimer: false },
-    ia: { voir: true, creer: false, modifier: false, supprimer: false },
+    location:     "full",
+    vente:        "full",
+    comptabilite: "full",
+    parametres:   "full",
+    equipe:       "full",
+    ia:           "full",
   },
   responsable_location: {
-    location: { voir: true, creer: true, modifier: true, supprimer: false },
-    vente: { voir: true, creer: false, modifier: false, supprimer: false },
-    comptabilite: { voir: false, creer: false, modifier: false, supprimer: false },
-    parametres: { voir: false, creer: false, modifier: false, supprimer: false },
-    equipe: { voir: true, creer: false, modifier: false, supprimer: false },
-    ia: { voir: true, creer: false, modifier: false, supprimer: false },
+    location:     "write",
+    vente:        "read",
+    comptabilite: "none",
+    parametres:   "none",
+    equipe:       "read",
+    ia:           "read",
   },
   responsable_vente: {
-    location: { voir: true, creer: false, modifier: false, supprimer: false },
-    vente: { voir: true, creer: true, modifier: true, supprimer: false },
-    comptabilite: { voir: false, creer: false, modifier: false, supprimer: false },
-    parametres: { voir: false, creer: false, modifier: false, supprimer: false },
-    equipe: { voir: true, creer: false, modifier: false, supprimer: false },
-    ia: { voir: true, creer: false, modifier: false, supprimer: false },
+    location:     "read",
+    vente:        "write",
+    comptabilite: "none",
+    parametres:   "none",
+    equipe:       "read",
+    ia:           "read",
+  },
+  agent: {
+    location:     "write",
+    vente:        "write",
+    comptabilite: "none",
+    parametres:   "none",
+    equipe:       "read",
+    ia:           "write",
+  },
+  gestionnaire: {
+    location:     "write",
+    vente:        "read",
+    comptabilite: "write",
+    parametres:   "none",
+    equipe:       "read",
+    ia:           "read",
   },
   comptable: {
-    location: { voir: true, creer: false, modifier: false, supprimer: false },
-    vente: { voir: true, creer: false, modifier: false, supprimer: false },
-    comptabilite: { voir: true, creer: true, modifier: true, supprimer: true },
-    parametres: { voir: false, creer: false, modifier: false, supprimer: false },
-    equipe: { voir: false, creer: false, modifier: false, supprimer: false },
-    ia: { voir: false, creer: false, modifier: false, supprimer: false },
+    location:     "read",
+    vente:        "read",
+    comptabilite: "full",
+    parametres:   "none",
+    equipe:       "none",
+    ia:           "none",
   },
 };
 
-export function getPermissions(user) {
-  const base = ROLE_PERMISSIONS[user?.role] || ROLE_PERMISSIONS.agent;
-  if (!user?.permissions) return base;
-  // Merge custom permissions (override)
-  const merged = {};
-  for (const mod of Object.keys(base)) {
-    merged[mod] = { ...base[mod], ...(user.permissions[mod] || {}) };
-  }
-  return merged;
+// Helper: get permission level for a user on a module
+export function getPermission(user, module) {
+  const perms = ROLE_PERMISSIONS[user?.role] || ROLE_PERMISSIONS.agent;
+  return perms[module] || "none";
 }
 
+// Helper: check if a user can perform an action on a module
+// Actions: "voir" | "creer" | "modifier" | "supprimer"
 export function can(user, module, action) {
-  const perms = getPermissions(user);
-  return perms[module]?.[action] === true;
+  const level = getPermission(user, module);
+  switch (action) {
+    case "voir":      return level !== "none";
+    case "creer":     return level === "write" || level === "full";
+    case "modifier":  return level === "write" || level === "full";
+    case "supprimer": return level === "full";
+    default:          return false;
+  }
+}
+
+// Legacy helper kept for backward compatibility
+export function getPermissions(user) {
+  const modules = ["location", "vente", "comptabilite", "parametres", "equipe", "ia"];
+  const result = {};
+  for (const mod of modules) {
+    const level = getPermission(user, mod);
+    result[mod] = {
+      voir:      level !== "none",
+      creer:     level === "write" || level === "full",
+      modifier:  level === "write" || level === "full",
+      supprimer: level === "full",
+    };
+  }
+  return result;
 }
