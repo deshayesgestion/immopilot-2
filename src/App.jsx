@@ -60,7 +60,6 @@ import AcquereurVisites from './pages/client/AcquereurVisites';
 import AcquereurDocuments from './pages/client/AcquereurDocuments';
 import AcquereurRecherche from './pages/client/AcquereurRecherche';
 import ConnectAdmin from './pages/ConnectAdmin';
-import AdminClientLinks from './pages/admin/AdminClientLinks';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -106,7 +105,6 @@ const AuthenticatedApp = () => {
 
 
         <Route path="/admin/utilisateurs" element={<AdminUsers />} />
-        <Route path="/admin/liaisons-clients" element={<AdminClientLinks />} />
         <Route path="/admin/location" element={<AdminLocation />} />
         <Route path="/admin/attribution" element={<AdminAttribution />} />
         <Route path="/admin/attribution/:id" element={<AdminAttributionDetail />} />
