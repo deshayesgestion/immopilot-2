@@ -1,14 +1,20 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Bot, X } from "lucide-react";
-import OnboardingAssistant from "./OnboardingAssistant";
+import { base44 } from "@/api/base44Client";
+import OnboardingAssistant from "./OnboardingAssistant.jsx";
 
 export default function OnboardingFAB() {
   const [open, setOpen] = useState(false);
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    base44.auth.me().then(setUser).catch(() => {});
+  }, []);
 
   return (
     <>
-      <OnboardingAssistant open={open} onClose={() => setOpen(false)} />
+      <OnboardingAssistant open={open} onClose={() => setOpen(false)} user={user} />
 
       <motion.button
         onClick={() => setOpen(!open)}
