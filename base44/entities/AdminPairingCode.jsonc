@@ -1,0 +1,84 @@
+{
+  "name": "AdminPairingCode",
+  "type": "object",
+  "properties": {
+    "code": {
+      "type": "string",
+      "description": "Code de pairing unique (PAIR-XXXXXXXX)"
+    },
+    "tenant_id": {
+      "type": "string",
+      "description": "ID du tenant li\u00e9"
+    },
+    "client_name": {
+      "type": "string",
+      "description": "Nom du client SaaS"
+    },
+    "agency_id": {
+      "type": "string",
+      "description": "ID agence du client"
+    },
+    "plan": {
+      "type": "string",
+      "enum": [
+        "starter",
+        "professional",
+        "enterprise"
+      ],
+      "default": "professional",
+      "description": "Plan tarifaire assign\u00e9"
+    },
+    "modules": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Liste des modules activ\u00e9s",
+      "default": [
+        "location",
+        "vente",
+        "comptabilite"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "connected",
+        "suspended",
+        "blocked"
+      ],
+      "default": "pending",
+      "description": "Statut de la liaison"
+    },
+    "api_key": {
+      "type": "string",
+      "description": "API key g\u00e9n\u00e9r\u00e9e apr\u00e8s validation"
+    },
+    "api_key_hash": {
+      "type": "string",
+      "description": "Hash HMAC de l'API key (pour validation s\u00e9curis\u00e9e)"
+    },
+    "client_url": {
+      "type": "string",
+      "description": "URL du SaaS CLIENT"
+    },
+    "connected_at": {
+      "type": "string",
+      "description": "ISO datetime de connexion r\u00e9ussie"
+    },
+    "expires_at": {
+      "type": "string",
+      "description": "ISO datetime d'expiration du code (optionnel)"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Notes internes"
+    }
+  },
+  "required": [
+    "code",
+    "tenant_id",
+    "client_name"
+  ]
+}

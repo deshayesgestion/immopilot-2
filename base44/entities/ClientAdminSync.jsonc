@@ -1,0 +1,68 @@
+{
+  "name": "ClientAdminSync",
+  "type": "object",
+  "properties": {
+    "tenant_id": {
+      "type": "string",
+      "description": "ID du tenant partag\u00e9"
+    },
+    "api_key": {
+      "type": "string",
+      "description": "API key de synchronisation"
+    },
+    "admin_url": {
+      "type": "string",
+      "description": "URL du SaaS ADMIN"
+    },
+    "plan": {
+      "type": "string",
+      "enum": [
+        "starter",
+        "professional",
+        "enterprise"
+      ],
+      "default": "professional",
+      "description": "Plan actuel"
+    },
+    "modules": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Modules activ\u00e9s",
+      "default": [
+        "location",
+        "vente",
+        "comptabilite"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "suspended",
+        "blocked"
+      ],
+      "default": "active",
+      "description": "Statut d'acc\u00e8s"
+    },
+    "config": {
+      "type": "object",
+      "description": "Configuration appliqu\u00e9e par l'ADMIN"
+    },
+    "last_sync": {
+      "type": "string",
+      "description": "ISO datetime du dernier sync"
+    },
+    "sync_interval_hours": {
+      "type": "number",
+      "default": 24,
+      "description": "Intervalle de sync en heures"
+    }
+  },
+  "required": [
+    "tenant_id",
+    "api_key",
+    "admin_url"
+  ]
+}

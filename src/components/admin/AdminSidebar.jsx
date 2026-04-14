@@ -23,6 +23,7 @@ import {
   MessageSquare,
   ListTodo,
   CalendarDays,
+  Link2,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -58,6 +59,7 @@ const navItems = [
     icon: Settings,
     children: [
       { label: "Utilisateurs & rôles", path: "/admin/utilisateurs", icon: Users },
+      { label: "Liaisons Clients", path: "/admin/liaisons-clients", icon: Link2 },
       { label: "Agence", path: "/admin/parametres", icon: Settings },
       { label: "Accueil IA", path: "/admin/parametres/accueil-ia", icon: Bell },
       { label: "Emails IA", path: "/admin/parametres/emails", icon: ArrowLeftRight },
