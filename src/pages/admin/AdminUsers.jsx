@@ -153,7 +153,7 @@ export default function AdminUsers() {
           <p className="text-red-700 mb-4">
             Seul les membres de l'équipe interne peuvent accéder à cette page.
           </p>
-          <p className="text-sm text-red-600">Votre rôle actuel: <span className="font-semibold">{ROLE_LABELS[currentUser?.role]}</span></p>
+          <p className="text-sm text-red-600">Votre rôle actuel: <span className="font-semibold">{ROLE_LABELS[currentUser?.role] || currentUser?.role || "Inconnu"}</span></p>
         </div>
       </div>
     );
