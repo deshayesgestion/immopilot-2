@@ -52,6 +52,7 @@ const navItems = [
       { label: "Utilisateurs & rôles", path: "/admin/equipe", icon: Users },
       { label: "Agence", path: "/admin/parametres", icon: Settings },
       { label: "Accueil IA", path: "/admin/parametres/accueil-ia", icon: Bell },
+      { label: "Emails IA", path: "/admin/parametres/emails", icon: ArrowLeftRight },
     ],
   },
 ];
