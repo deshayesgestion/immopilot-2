@@ -23,7 +23,6 @@ import {
   MessageSquare,
   ListTodo,
   CalendarDays,
-  Code2,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -54,7 +53,6 @@ const navItems = [
     ],
   },
   { label: "Comptabilité", path: "/admin/comptabilite", icon: Calculator },
-  { label: "API", path: "/admin/api", icon: Code2 },
   {
     label: "Paramètres",
     icon: Settings,
