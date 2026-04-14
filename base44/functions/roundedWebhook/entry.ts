@@ -158,13 +158,16 @@ Fournis:
         });
       }
 
-      // Alerte email si urgent
-      if (prioriteIA === 'urgent' && agency?.email) {
-        await base44.asServiceRole.integrations.Core.SendEmail({
-          to: agency.email,
-          subject: `🚨 Appel urgent — ${appelantNom || from_phone_number}`,
-          body: `Un appel urgent a été traité par l'agent Rounded.\n\nAppelant: ${appelantNom || from_phone_number}\nDurée: ${duration_seconds || 0}s\nModule: ${moduleIA}\n\nRésumé:\n${resumeIA}\n\nTicket: ${finalTicket.numero}\n\n—\n${agency?.name || 'ImmoPilot'}`,
-        });
+      // Alerte email si urgent — envoi à l'admin de l'app uniquement
+      if (prioriteIA === 'urgent') {
+        const admins = await base44.asServiceRole.entities.User.filter({ role: 'admin' });
+        for (const admin of admins) {
+          await base44.asServiceRole.integrations.Core.SendEmail({
+            to: admin.email,
+            subject: `🚨 Appel urgent — ${appelantNom || from_phone_number}`,
+            body: `Un appel urgent a été traité par l'agent Rounded.\n\nAppelant: ${appelantNom || from_phone_number}\nDurée: ${duration_seconds || 0}s\nModule: ${moduleIA}\n\nRésumé:\n${resumeIA}\n\nTicket: ${finalTicket.numero}\n\n—\n${agency?.name || 'ImmoPilot'}`,
+          });
+        }
       }
 
       // Créer un lead si inconnu
