@@ -14,7 +14,7 @@ import Contact from './pages/Contact';
 import About from './pages/About';
 import PropertyDetail from './pages/PropertyDetail';
 import AdminLayout from './components/admin/AdminLayout';
-import Dashboard from './pages/admin/Dashboard';
+import Dashboard from './pages/admin/Dashboard.jsx';
 
 import AdminCRM from './pages/admin/AdminCRM';
 import AdminAI from './pages/admin/AdminAI';
