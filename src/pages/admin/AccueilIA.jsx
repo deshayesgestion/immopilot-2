@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Bot, Phone, TicketIcon, AlertTriangle, Clock, CheckCircle2,
   ArrowUpRight, MessageSquare, Mic, PhoneIncoming, Users,
-  Home, TrendingUp, CreditCard, Loader2, Plus, X, Send, Zap, Eye
+  Home, TrendingUp, CreditCard, Loader2, Plus, X, Send, Zap, Eye, Settings
 } from "lucide-react";
 
 const fmt = (d) => d ? new Date(d).toLocaleDateString("fr-FR") : "—";
@@ -504,24 +504,62 @@ export default function AccueilIA() {
       {/* ── CONFIG ── */}
       {activeTab === "config" && (
         <div className="space-y-4">
-          <div className="bg-white rounded-2xl border border-border/50 p-5 space-y-4">
-            <p className="text-sm font-semibold">Intégration téléphonie (à venir)</p>
-            <div className="grid grid-cols-1 gap-3">
-              {[
-                { label: "Twilio", desc: "Intégration appels SIP/PSTN via Twilio Voice", available: false },
-                { label: "Vonage", desc: "API Voice Vonage pour appels entrants", available: false },
-                { label: "WhatsApp Business", desc: "Conversations WhatsApp avec l'agent IA", available: true },
-              ].map(item => (
-                <div key={item.label} className="flex items-center justify-between p-4 border border-border/50 rounded-xl">
-                  <div>
-                    <p className="text-sm font-medium">{item.label}</p>
-                    <p className="text-xs text-muted-foreground">{item.desc}</p>
+
+          {/* Rounded — intégration active */}
+          <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-2xl p-5 space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-green-100 flex items-center justify-center flex-shrink-0">
+                  <Phone className="w-5 h-5 text-green-600" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold flex items-center gap-2">
+                    Rounded — Agent vocal IA
+                    <span className="text-[10px] bg-green-500 text-white px-2 py-0.5 rounded-full font-bold">CONNECTÉ</span>
+                  </p>
+                  <p className="text-xs text-muted-foreground">callrounded.com · Clé API configurée</p>
+                </div>
+              </div>
+              <a href="https://app.callrounded.com" target="_blank" rel="noreferrer">
+                <ArrowUpRight className="w-4 h-4 text-green-600" />
+              </a>
+            </div>
+
+            <div className="bg-white/70 rounded-xl p-4 space-y-3">
+              <p className="text-xs font-semibold text-green-800">⚙️ Configuration du webhook Rounded</p>
+              <p className="text-xs text-muted-foreground">Dans votre dashboard Rounded → Settings → Webhooks, ajoutez cette URL :</p>
+              <div className="bg-gray-900 text-green-400 text-xs font-mono rounded-lg px-4 py-3 flex items-center justify-between gap-2">
+                <span className="break-all">…/functions/roundedWebhook</span>
+                <button
+                  onClick={() => navigator.clipboard.writeText(window.location.origin + '/functions/roundedWebhook')}
+                  className="text-gray-400 hover:text-white flex-shrink-0 text-[10px] border border-gray-600 rounded px-1.5 py-0.5">
+                  Copier
+                </button>
+              </div>
+              <div className="space-y-1.5">
+                <p className="text-xs font-semibold text-green-800">Événements à activer :</p>
+                {["event_call_status_updated", "event_transcript", "event_post_call"].map(ev => (
+                  <div key={ev} className="flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 rounded-full bg-green-500 flex-shrink-0" />
+                    <code className="text-[11px] text-green-800 font-mono">{ev}</code>
                   </div>
-                  {item.available ? (
-                    <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-medium">Disponible</span>
-                  ) : (
-                    <span className="text-xs bg-gray-100 text-gray-500 px-2 py-1 rounded-full">Bientôt</span>
-                  )}
+                ))}
+              </div>
+            </div>
+
+            <div className="bg-white/70 rounded-xl p-4 space-y-2">
+              <p className="text-xs font-semibold text-green-800">🔄 Flux de traitement automatique</p>
+              {[
+                { step: "1", text: "Appel entrant → Rounded répond avec l'agent vocal IA" },
+                { step: "2", text: "Transcription temps réel envoyée via webhook" },
+                { step: "3", text: "En fin d'appel : analyse IA de la transcription" },
+                { step: "4", text: "Ticket créé automatiquement dans le bon module (Location / Vente / Compta)" },
+                { step: "5", text: "Alerte email si priorité urgente" },
+                { step: "6", text: "Lead créé si appelant non identifié" },
+              ].map(s => (
+                <div key={s.step} className="flex items-start gap-2.5">
+                  <span className="w-5 h-5 rounded-full bg-green-200 text-green-800 text-[10px] font-bold flex items-center justify-center flex-shrink-0 mt-0.5">{s.step}</span>
+                  <p className="text-xs text-muted-foreground">{s.text}</p>
                 </div>
               ))}
             </div>
