@@ -2,12 +2,13 @@ import { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { AlertCircle, Loader2 } from 'lucide-react';
+import { AlertCircle, Loader2, CheckCircle2 } from 'lucide-react';
 
 export default function ConnectAdmin() {
   const [pairingCode, setPairingCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
 
   const handleConnect = async (e) => {
     e.preventDefault();
@@ -21,9 +22,11 @@ export default function ConnectAdmin() {
         clientUrl: window.location.origin,
       });
 
-      // Code accepté - redirection ou fermeture
-      alert('Code reçu. L\'activation se fera depuis le SaaS ADMIN.');
-      window.location.href = '/';
+      // Code accepté - afficher message de succès
+      setSuccess(true);
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 3000);
     } catch (err) {
       setError(err.message || 'Erreur de connexion');
     } finally {
@@ -42,6 +45,16 @@ export default function ConnectAdmin() {
         </div>
 
         <form onSubmit={handleConnect} className="p-6 space-y-4">
+          {success && (
+            <div className="flex gap-2 bg-green-50 border border-green-200 rounded-lg p-3">
+              <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
+              <div className="text-xs text-green-700">
+                <p className="font-semibold">Connexion réussie !</p>
+                <p className="mt-1">Vous serez redirigé vers l'accueil dans quelques secondes...</p>
+              </div>
+            </div>
+          )}
+
           {error && (
             <div className="flex gap-2 bg-destructive/10 border border-destructive/30 rounded-lg p-3">
               <AlertCircle className="w-4 h-4 text-destructive flex-shrink-0 mt-0.5" />
@@ -67,11 +80,16 @@ export default function ConnectAdmin() {
 
           <Button
             type="submit"
-            disabled={!pairingCode || loading}
+            disabled={!pairingCode || loading || success}
             className="w-full rounded-lg h-9"
           >
             {loading ? (
               <Loader2 className="w-4 h-4 animate-spin" />
+            ) : success ? (
+              <>
+                <CheckCircle2 className="w-4 h-4" />
+                Connecté
+              </>
             ) : (
               'Confirmer'
             )}
