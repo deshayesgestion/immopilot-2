@@ -1,0 +1,47 @@
+{
+  "name": "AdminConnection",
+  "type": "object",
+  "properties": {
+    "pairing_code": {
+      "type": "string",
+      "description": "Code de pairing fourni par l'admin SaaS"
+    },
+    "admin_url": {
+      "type": "string",
+      "description": "URL du SaaS ADMIN"
+    },
+    "client_url": {
+      "type": "string",
+      "description": "URL du SaaS CLIENT"
+    },
+    "tenant_id": {
+      "type": "string",
+      "description": "ID du tenant assign\u00e9 par le SaaS ADMIN"
+    },
+    "api_key": {
+      "type": "string",
+      "description": "Cl\u00e9 API g\u00e9n\u00e9r\u00e9e apr\u00e8s validation"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "connected",
+        "failed"
+      ],
+      "default": "pending",
+      "description": "Statut de la connexion"
+    },
+    "error_message": {
+      "type": "string",
+      "description": "Message d'erreur si \u00e9chec"
+    },
+    "connected_at": {
+      "type": "string",
+      "description": "ISO datetime de connexion r\u00e9ussie"
+    }
+  },
+  "required": [
+    "pairing_code"
+  ]
+}

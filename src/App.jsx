@@ -59,6 +59,7 @@ import AcquereurDashboard from './pages/client/AcquereurDashboard';
 import AcquereurVisites from './pages/client/AcquereurVisites';
 import AcquereurDocuments from './pages/client/AcquereurDocuments';
 import AcquereurRecherche from './pages/client/AcquereurRecherche';
+import ConnectAdmin from './pages/ConnectAdmin';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -86,6 +87,9 @@ const AuthenticatedApp = () => {
   // Render the main app
   return (
     <Routes>
+      {/* Route cachée pour connexion SaaS */}
+      <Route path="/connect-admin" element={<ConnectAdmin />} />
+
       <Route element={<Layout />}>
         <Route path="/" element={<Home />} />
         <Route path="/vente" element={<PropertiesSale />} />
