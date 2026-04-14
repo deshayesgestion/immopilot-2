@@ -1,5 +1,5 @@
 // Rôles internes (accès back-office)
-export const INTERNAL_ROLES = ["directeur", "responsable", "agent", "gestionnaire", "comptable"];
+export const INTERNAL_ROLES = ["admin", "directeur", "responsable", "agent", "gestionnaire", "comptable"];
 
 // Rôles clients (pas d'accès back-office)
 export const CLIENT_ROLES = ["locataire", "proprietaire", "acquereur", "prestataire"];
