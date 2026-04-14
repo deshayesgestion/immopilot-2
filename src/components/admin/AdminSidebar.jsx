@@ -21,11 +21,13 @@ import {
   Upload,
   Shield,
   MessageSquare,
+  ListTodo,
 } from "lucide-react";
 import { useState } from "react";
 
 const navItems = [
   { label: "Dashboard", path: "/admin", icon: LayoutDashboard },
+  { label: "Tâches", path: "/admin/taches", icon: ListTodo },
   { label: "Communications", path: "/admin/communications", icon: MessageSquare },
   {
     label: "Location",

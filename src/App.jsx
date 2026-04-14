@@ -42,6 +42,7 @@ import GestionEmails from './pages/admin/GestionEmails';
 import AdminImport from './pages/admin/AdminImport';
 import AdminSecurite from './pages/admin/AdminSecurite';
 import HubCommunication from './pages/admin/HubCommunication';
+import AdminTaches from './pages/admin/AdminTaches';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -104,6 +105,7 @@ const AuthenticatedApp = () => {
         <Route path="/admin/import" element={<AdminImport />} />
         <Route path="/admin/securite" element={<AdminSecurite />} />
         <Route path="/admin/communications" element={<HubCommunication />} />
+        <Route path="/admin/taches" element={<AdminTaches />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>

@@ -1,0 +1,79 @@
+{
+  "name": "Tache",
+  "type": "object",
+  "properties": {
+    "titre": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "priorite": {
+      "type": "string",
+      "enum": [
+        "urgent",
+        "important",
+        "secondaire"
+      ],
+      "default": "important"
+    },
+    "statut": {
+      "type": "string",
+      "enum": [
+        "a_faire",
+        "en_cours",
+        "terminee",
+        "annulee"
+      ],
+      "default": "a_faire"
+    },
+    "categorie": {
+      "type": "string",
+      "enum": [
+        "location",
+        "vente",
+        "comptabilite",
+        "admin",
+        "client",
+        "autre"
+      ],
+      "default": "autre"
+    },
+    "assignee_email": {
+      "type": "string"
+    },
+    "assignee_nom": {
+      "type": "string"
+    },
+    "date_echeance": {
+      "type": "string",
+      "format": "date"
+    },
+    "entity_type": {
+      "type": "string"
+    },
+    "entity_id": {
+      "type": "string"
+    },
+    "entity_label": {
+      "type": "string"
+    },
+    "score_ia": {
+      "type": "number",
+      "description": "Score de priorit\u00e9 IA (0-100)"
+    },
+    "raison_ia": {
+      "type": "string",
+      "description": "Explication IA de la priorit\u00e9"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "titre"
+  ]
+}
