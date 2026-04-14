@@ -5,15 +5,14 @@
     "role": {
       "type": "string",
       "enum": [
-        "directeur",
-        "responsable_location",
-        "responsable_vente",
+        "admin",
         "agent",
+        "gestionnaire",
+        "comptable",
         "locataire",
         "proprietaire",
         "acquereur",
-        "prestataire",
-        "admin"
+        "prestataire"
       ],
       "default": "agent",
       "description": "R\u00f4le dans l'agence"
@@ -22,17 +21,8 @@
       "type": "string",
       "description": "ID de l'agence"
     },
-    "acces_location": {
-      "type": "boolean",
-      "default": false
-    },
-    "acces_vente": {
-      "type": "boolean",
-      "default": false
-    },
-    "acces_finances": {
-      "type": "boolean",
-      "default": false
+    "phone": {
+      "type": "string"
     },
     "statut": {
       "type": "string",
@@ -42,6 +32,25 @@
         "invite"
       ],
       "default": "actif"
+    },
+    "permissions": {
+      "type": "object",
+      "description": "Permissions personnalis\u00e9es (override du r\u00f4le)"
+    },
+    "biens_assignes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "IDs des biens assign\u00e9s"
+    },
+    "dossiers_assignes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "IDs des dossiers assign\u00e9s"
     }
-  }
+  },
+  "required": []
 }

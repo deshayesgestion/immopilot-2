@@ -19,7 +19,7 @@ import Dashboard from './pages/admin/Dashboard';
 import AdminCRM from './pages/admin/AdminCRM';
 import AdminAI from './pages/admin/AdminAI';
 import AdminSettings from './pages/admin/AdminSettings';
-import AdminAgents from './pages/admin/AdminAgents';
+import AdminAgents from './pages/admin/AdminAgents.jsx';
 import AdminDossiers from './pages/admin/AdminDossiers';
 import AdminLocation from './pages/admin/AdminLocation';
 import DossierLocatif from './pages/admin/DossierLocatif';
