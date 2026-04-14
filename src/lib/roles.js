@@ -1,11 +1,13 @@
 // Rôles internes (accès back-office)
-export const INTERNAL_ROLES = ["admin", "agent", "gestionnaire", "comptable"];
+export const INTERNAL_ROLES = ["admin", "responsable_location", "responsable_vente", "agent", "gestionnaire", "comptable"];
 
 // Rôles clients (pas d'accès back-office)
 export const CLIENT_ROLES = ["locataire", "proprietaire", "acquereur", "prestataire"];
 
 export const ROLE_LABELS = {
   admin: "Admin",
+  responsable_location: "Resp. Location",
+  responsable_vente: "Resp. Vente",
   agent: "Agent",
   gestionnaire: "Gestionnaire",
   comptable: "Comptable",
@@ -17,6 +19,8 @@ export const ROLE_LABELS = {
 
 export const ROLE_COLORS = {
   admin: "bg-purple-100 text-purple-700",
+  responsable_location: "bg-blue-100 text-blue-700",
+  responsable_vente: "bg-amber-100 text-amber-700",
   agent: "bg-sky-100 text-sky-700",
   gestionnaire: "bg-blue-100 text-blue-700",
   comptable: "bg-emerald-100 text-emerald-700",
@@ -28,6 +32,8 @@ export const ROLE_COLORS = {
 
 export const ROLE_DESCRIPTIONS = {
   admin: "Accès complet à tous les modules et paramètres",
+  responsable_location: "Gestion location complète, vente et équipe en lecture",
+  responsable_vente: "Gestion vente complète, location et équipe en lecture",
   agent: "Gestion des biens, dossiers location et vente",
   gestionnaire: "Gestion locative, suivi et sorties",
   comptable: "Accès comptabilité, factures et transactions",
@@ -57,6 +63,22 @@ export const ROLE_PERMISSIONS = {
     location: { voir: true, creer: true, modifier: true, supprimer: false },
     vente: { voir: true, creer: false, modifier: false, supprimer: false },
     comptabilite: { voir: true, creer: true, modifier: true, supprimer: false },
+    parametres: { voir: false, creer: false, modifier: false, supprimer: false },
+    equipe: { voir: true, creer: false, modifier: false, supprimer: false },
+    ia: { voir: true, creer: false, modifier: false, supprimer: false },
+  },
+  responsable_location: {
+    location: { voir: true, creer: true, modifier: true, supprimer: false },
+    vente: { voir: true, creer: false, modifier: false, supprimer: false },
+    comptabilite: { voir: false, creer: false, modifier: false, supprimer: false },
+    parametres: { voir: false, creer: false, modifier: false, supprimer: false },
+    equipe: { voir: true, creer: false, modifier: false, supprimer: false },
+    ia: { voir: true, creer: false, modifier: false, supprimer: false },
+  },
+  responsable_vente: {
+    location: { voir: true, creer: false, modifier: false, supprimer: false },
+    vente: { voir: true, creer: true, modifier: true, supprimer: false },
+    comptabilite: { voir: false, creer: false, modifier: false, supprimer: false },
     parametres: { voir: false, creer: false, modifier: false, supprimer: false },
     equipe: { voir: true, creer: false, modifier: false, supprimer: false },
     ia: { voir: true, creer: false, modifier: false, supprimer: false },

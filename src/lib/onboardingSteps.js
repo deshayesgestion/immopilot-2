@@ -136,6 +136,37 @@ export const ONBOARDING_STEPS = {
     },
   ],
 
+  responsable_vente: [
+    {
+      id: "create_mandate",
+      label: "Créer un mandat de vente",
+      description: "Enregistrez un mandat avec les informations du vendeur.",
+      icon: FileText, path: "/admin/vente/mandats", cta: "Créer un mandat",
+      color: "text-amber-600", bg: "bg-amber-50",
+    },
+    {
+      id: "add_acquereur",
+      label: "Ajouter un acquéreur",
+      description: "Enregistrez un acquéreur avec ses critères de recherche.",
+      icon: Users, path: "/admin/vente/acquereurs", cta: "Ajouter un acquéreur",
+      color: "text-purple-600", bg: "bg-purple-50",
+    },
+    {
+      id: "follow_pipeline",
+      label: "Suivre le pipeline vente",
+      description: "Visualisez et pilotez vos transactions en cours.",
+      icon: TrendingUp, path: "/admin/vente/transactions", cta: "Voir les transactions",
+      color: "text-green-600", bg: "bg-green-50",
+    },
+    {
+      id: "plan_visit",
+      label: "Planifier une visite",
+      description: "Organisez vos visites avec l'agenda intégré.",
+      icon: Calendar, path: "/admin/agenda", cta: "Ouvrir l'agenda",
+      color: "text-blue-600", bg: "bg-blue-50",
+    },
+  ],
+
   // Responsable location uses a mix of admin + gestionnaire
   responsable_location: [
     {
@@ -172,10 +203,11 @@ export const ONBOARDING_STEPS = {
 // Role labels for display
 export const ROLE_STEP_LABELS = {
   admin: "Directeur / Admin",
+  responsable_location: "Responsable location",
+  responsable_vente: "Responsable vente",
   agent: "Agent immobilier",
   gestionnaire: "Gestionnaire locatif",
   comptable: "Comptable",
-  responsable_location: "Responsable location",
 };
 
 // Get steps for a role (fallback to admin)
@@ -190,6 +222,7 @@ export const ROLE_AI_PROMPTS = {
   gestionnaire: `Tu aides un gestionnaire locatif. Priorités : créer et suivre des dossiers locatifs, gérer les loyers, traiter les incidents, gérer les préavis et sorties.`,
   comptable: `Tu aides un comptable. Priorités : connecter la banque, vérifier les transactions, suivre les loyers payés/en retard, générer des rapports. Ne pas mentionner la création de biens ou les visites.`,
   responsable_location: `Tu aides un responsable location. Priorités : créer des biens en location, lancer des attributions, créer des dossiers locatifs, comprendre le suivi locataire.`,
+  responsable_vente: `Tu aides un responsable vente. Priorités : créer des mandats, gérer les acquéreurs, piloter les transactions et le pipeline de vente, planifier les visites.`,
 };
 
 export const BASE_SYSTEM_PROMPT = `Tu es l'assistant d'onboarding d'ImmoPilot, un SaaS de gestion immobilière.
