@@ -1,0 +1,109 @@
+{
+  "name": "TenantConfig",
+  "type": "object",
+  "properties": {
+    "tenant_id": {
+      "type": "string",
+      "description": "ID du tenant assign\u00e9 par ADMIN"
+    },
+    "tenant_name": {
+      "type": "string",
+      "description": "Nom du tenant/agence"
+    },
+    "admin_url": {
+      "type": "string",
+      "description": "URL du SaaS ADMIN"
+    },
+    "modules": {
+      "type": "object",
+      "description": "Configuration des modules",
+      "properties": {
+        "crm": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": true
+            },
+            "features": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "devis": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": true
+            },
+            "features": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "facturation": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": true
+            },
+            "features": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "prospects": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": true
+            },
+            "features": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "max_users": {
+      "type": "number",
+      "description": "Nombre maximum d'utilisateurs"
+    },
+    "storage_gb": {
+      "type": "number",
+      "description": "Stockage allou\u00e9 en GB"
+    },
+    "last_synced": {
+      "type": "string",
+      "description": "Derni\u00e8re synchronisation avec ADMIN"
+    },
+    "sync_status": {
+      "type": "string",
+      "enum": [
+        "synced",
+        "pending",
+        "failed"
+      ],
+      "default": "pending"
+    }
+  },
+  "required": [
+    "tenant_id",
+    "tenant_name"
+  ]
+}
