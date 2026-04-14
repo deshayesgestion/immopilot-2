@@ -103,10 +103,17 @@ export const ROLE_PERMISSIONS = {
   },
 };
 
+// Ensemble des rôles valides — tout rôle non listé est traité comme "none"
+const ALL_ROLES = new Set([...INTERNAL_ROLES, ...CLIENT_ROLES]);
+
 // Helper: get permission level for a user on a module
+// SECURITY: no implicit fallback — unknown/missing role = "none" everywhere
 export function getPermission(user, module) {
-  const perms = ROLE_PERMISSIONS[user?.role] || ROLE_PERMISSIONS.agent;
-  return perms[module] || "none";
+  const role = user?.role;
+  if (!role || !ALL_ROLES.has(role)) return "none";
+  const perms = ROLE_PERMISSIONS[role];
+  if (!perms) return "none";
+  return perms[module] ?? "none";
 }
 
 // Helper: check if a user can perform an action on a module
@@ -124,10 +131,42 @@ export function can(user, module, action) {
 
 // Helper: check IA capabilities for a user
 // feature: "chat" | "generate" | "export_sensitive"
+// SECURITY: unknown role = no IA access
 export function canIA(user, feature) {
-  const perms = IA_PERMISSIONS[user?.role];
+  const role = user?.role;
+  if (!role || !ALL_ROLES.has(role)) return false;
+  const perms = IA_PERMISSIONS[role];
   if (!perms) return false;
   return perms[feature] === true;
+}
+
+// Guard: throws if user does not have required permission (for use in UI guards)
+// Usage: assertCan(user, "comptabilite", "supprimer") — throws if not allowed
+export function assertCan(user, module, action) {
+  if (!can(user, module, action)) {
+    throw new Error(`[RBAC] Accès refusé : rôle "${user?.role}" ne peut pas "${action}" sur "${module}"`);
+  }
+}
+
+// Guard: throws if user does not have required IA feature
+export function assertCanIA(user, feature) {
+  if (!canIA(user, feature)) {
+    throw new Error(`[RBAC] Accès IA refusé : rôle "${user?.role}" ne peut pas utiliser "${feature}"`);
+  }
+}
+
+// Guard: throws if user is not an internal role (blocks all CLIENT_ROLES from back-office)
+export function assertInternalRole(user) {
+  if (!user?.role || !INTERNAL_ROLES.includes(user.role)) {
+    throw new Error(`[RBAC] Accès back-office refusé pour le rôle "${user?.role}"`);
+  }
+}
+
+// Guard: throws if user is not admin
+export function assertAdmin(user) {
+  if (user?.role !== "admin") {
+    throw new Error(`[RBAC] Accès admin requis — rôle actuel : "${user?.role}"`);
+  }
 }
 
 // Legacy helper kept for backward compatibility
