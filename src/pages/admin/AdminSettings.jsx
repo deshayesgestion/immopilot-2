@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
+import { Link } from "react-router-dom";
 import { useAgency } from "../../hooks/useAgency";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2, Save, CheckCircle, Building2 } from "lucide-react";
+import { Loader2, Save, CheckCircle, Building2, Bot, ArrowRight } from "lucide-react";
 
 export default function AdminSettings() {
   const { agency, refetch } = useAgency();
@@ -150,6 +151,24 @@ export default function AdminSettings() {
             <Input type="number" value={form.founded_year} onChange={(e) => set("founded_year", e.target.value)} placeholder="1995" className="rounded-xl" />
           </div>
         </Section>
+
+        {/* Accueil IA */}
+        <div className="bg-gradient-to-r from-primary/5 to-primary/10 border border-primary/20 rounded-2xl p-5 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+              <Bot className="w-5 h-5 text-primary" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold">Accueil IA — Standardiste intelligent</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Gestion automatique des appels, création de tickets, intégration Location & Vente</p>
+            </div>
+          </div>
+          <Link to="/admin/parametres/accueil-ia">
+            <Button variant="outline" className="rounded-full gap-2 h-9 text-sm flex-shrink-0 border-primary/30 text-primary hover:bg-primary hover:text-white">
+              Configurer <ArrowRight className="w-3.5 h-3.5" />
+            </Button>
+          </Link>
+        </div>
 
         <Button type="submit" className="rounded-full gap-2 px-6" disabled={saving}>
           {saving ? (

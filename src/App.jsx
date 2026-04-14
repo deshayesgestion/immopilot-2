@@ -37,6 +37,7 @@ import AdminVenteCloture from './pages/admin/AdminVenteCloture';
 import AdminMandats from './pages/admin/AdminMandats';
 import AdminComptabilite from './pages/admin/AdminComptabilite';
 import AdminSuiviDetail from './pages/admin/AdminSuiviDetail';
+import AccueilIA from './pages/admin/AccueilIA';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -94,6 +95,7 @@ const AuthenticatedApp = () => {
         <Route path="/admin/vente/transactions/:id" element={<AdminTransactionDetail />} />
         <Route path="/admin/vente/cloture" element={<AdminVenteCloture />} />
         <Route path="/admin/comptabilite" element={<AdminComptabilite />} />
+        <Route path="/admin/parametres/accueil-ia" element={<AccueilIA />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>

@@ -1,0 +1,127 @@
+{
+  "name": "TicketIA",
+  "type": "object",
+  "properties": {
+    "agency_id": {
+      "type": "string"
+    },
+    "numero": {
+      "type": "string"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "appel",
+        "chat",
+        "email",
+        "manuel"
+      ],
+      "default": "appel"
+    },
+    "statut": {
+      "type": "string",
+      "enum": [
+        "nouveau",
+        "en_cours",
+        "resolu",
+        "escalade"
+      ],
+      "default": "nouveau"
+    },
+    "priorite": {
+      "type": "string",
+      "enum": [
+        "urgent",
+        "normal",
+        "faible"
+      ],
+      "default": "normal"
+    },
+    "module": {
+      "type": "string",
+      "enum": [
+        "location",
+        "vente",
+        "comptabilite",
+        "general"
+      ]
+    },
+    "type_demande": {
+      "type": "string",
+      "enum": [
+        "incident_logement",
+        "demande_visite",
+        "demande_information",
+        "probleme_paiement",
+        "question_administrative",
+        "autre"
+      ]
+    },
+    "appelant_nom": {
+      "type": "string"
+    },
+    "appelant_email": {
+      "type": "string"
+    },
+    "appelant_telephone": {
+      "type": "string"
+    },
+    "appelant_type": {
+      "type": "string",
+      "enum": [
+        "locataire",
+        "proprietaire",
+        "acquereur",
+        "prospect",
+        "inconnu"
+      ],
+      "default": "inconnu"
+    },
+    "bien_id": {
+      "type": "string"
+    },
+    "bien_titre": {
+      "type": "string"
+    },
+    "dossier_id": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "transcription": {
+      "type": "string"
+    },
+    "resume_ia": {
+      "type": "string"
+    },
+    "actions_ia": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "agent_assigne": {
+      "type": "string"
+    },
+    "date_appel": {
+      "type": "string"
+    },
+    "duree_secondes": {
+      "type": "number"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "historique": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    }
+  },
+  "required": [
+    "type_demande",
+    "source"
+  ]
+}
