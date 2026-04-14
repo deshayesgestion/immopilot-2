@@ -1,0 +1,96 @@
+{
+  "name": "Evenement",
+  "type": "object",
+  "properties": {
+    "titre": {
+      "type": "string"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "visite",
+        "appel",
+        "signature",
+        "tache",
+        "autre"
+      ],
+      "default": "visite"
+    },
+    "date_debut": {
+      "type": "string",
+      "description": "ISO datetime"
+    },
+    "date_fin": {
+      "type": "string",
+      "description": "ISO datetime"
+    },
+    "lieu": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "agent_email": {
+      "type": "string"
+    },
+    "agent_nom": {
+      "type": "string"
+    },
+    "contact_nom": {
+      "type": "string"
+    },
+    "contact_email": {
+      "type": "string"
+    },
+    "contact_telephone": {
+      "type": "string"
+    },
+    "bien_titre": {
+      "type": "string"
+    },
+    "bien_id": {
+      "type": "string"
+    },
+    "statut": {
+      "type": "string",
+      "enum": [
+        "planifie",
+        "confirme",
+        "annule",
+        "realise"
+      ],
+      "default": "planifie"
+    },
+    "rappel_24h": {
+      "type": "boolean",
+      "default": true
+    },
+    "rappel_1h": {
+      "type": "boolean",
+      "default": true
+    },
+    "gcal_event_id": {
+      "type": "string",
+      "description": "ID \u00e9v\u00e9nement Google Calendar"
+    },
+    "gcal_synced": {
+      "type": "boolean",
+      "default": false
+    },
+    "ics_uid": {
+      "type": "string",
+      "description": "UID pour export ICS"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "agency_id": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "titre",
+    "date_debut",
+    "type"
+  ]
+}
