@@ -45,6 +45,19 @@ export const ROLE_DESCRIPTIONS = {
 // - write : consultation + création + modification
 // - full  : write + suppression
 
+// IA permission flags per role:
+// - chat             : accès au chat IA
+// - generate         : génération de contenu IA (descriptions, relances…)
+// - export_sensitive : export de données sensibles via IA (admin uniquement)
+export const IA_PERMISSIONS = {
+  admin:                { chat: true,  generate: true,  export_sensitive: true  },
+  responsable_location: { chat: true,  generate: false, export_sensitive: false },
+  responsable_vente:    { chat: true,  generate: false, export_sensitive: false },
+  agent:                { chat: true,  generate: true,  export_sensitive: false },
+  gestionnaire:         { chat: true,  generate: false, export_sensitive: false },
+  comptable:            { chat: false, generate: false, export_sensitive: false },
+};
+
 export const ROLE_PERMISSIONS = {
   admin: {
     location:     "full",
@@ -52,7 +65,6 @@ export const ROLE_PERMISSIONS = {
     comptabilite: "full",
     parametres:   "full",
     equipe:       "full",
-    ia:           "full",
   },
   responsable_location: {
     location:     "write",
@@ -60,7 +72,6 @@ export const ROLE_PERMISSIONS = {
     comptabilite: "none",
     parametres:   "none",
     equipe:       "read",
-    ia:           "read",
   },
   responsable_vente: {
     location:     "read",
@@ -68,7 +79,6 @@ export const ROLE_PERMISSIONS = {
     comptabilite: "none",
     parametres:   "none",
     equipe:       "read",
-    ia:           "read",
   },
   agent: {
     location:     "write",
@@ -76,7 +86,6 @@ export const ROLE_PERMISSIONS = {
     comptabilite: "none",
     parametres:   "none",
     equipe:       "read",
-    ia:           "write",
   },
   gestionnaire: {
     location:     "write",
@@ -84,7 +93,6 @@ export const ROLE_PERMISSIONS = {
     comptabilite: "write",
     parametres:   "none",
     equipe:       "read",
-    ia:           "read",
   },
   comptable: {
     location:     "read",
@@ -92,7 +100,6 @@ export const ROLE_PERMISSIONS = {
     comptabilite: "full",
     parametres:   "none",
     equipe:       "none",
-    ia:           "none",
   },
 };
 
@@ -115,9 +122,17 @@ export function can(user, module, action) {
   }
 }
 
+// Helper: check IA capabilities for a user
+// feature: "chat" | "generate" | "export_sensitive"
+export function canIA(user, feature) {
+  const perms = IA_PERMISSIONS[user?.role];
+  if (!perms) return false;
+  return perms[feature] === true;
+}
+
 // Legacy helper kept for backward compatibility
 export function getPermissions(user) {
-  const modules = ["location", "vente", "comptabilite", "parametres", "equipe", "ia"];
+  const modules = ["location", "vente", "comptabilite", "parametres", "equipe"];
   const result = {};
   for (const mod of modules) {
     const level = getPermission(user, mod);
@@ -128,5 +143,7 @@ export function getPermissions(user) {
       supprimer: level === "full",
     };
   }
+  // IA permissions (granular)
+  result.ia = IA_PERMISSIONS[user?.role] || { chat: false, generate: false, export_sensitive: false };
   return result;
 }
