@@ -3,7 +3,7 @@ import AdminSidebar from "./AdminSidebar";
 import { useAgency } from "../../hooks/useAgency";
 import { Menu, X } from "lucide-react";
 import { useState } from "react";
-import OnboardingFAB from "../onboarding/OnboardingFAB";
+import OnboardingFAB from "../onboarding/OnboardingFAB.jsx";
 
 export default function AdminLayout() {
   const { agency } = useAgency();
