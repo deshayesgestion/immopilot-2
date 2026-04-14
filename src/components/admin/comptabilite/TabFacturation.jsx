@@ -3,10 +3,10 @@ import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Plus, Loader2, FileText, X, Sparkles } from "lucide-react";
-import { jsPDF } from "jspdf";
+import { PDFTemplate, PDFUtils } from "@/lib/pdfTemplate";
 
-const fmt = (n) => new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(n || 0);
-const fmtDate = (d) => d ? new Date(d).toLocaleDateString("fr-FR") : "—";
+const fmt = PDFUtils.formatEur;
+const fmtDate = PDFUtils.formatDate;
 const STATUT_COLORS = { brouillon: "bg-gray-100 text-gray-500", emise: "bg-blue-100 text-blue-700", payee: "bg-green-100 text-green-700", annulee: "bg-red-100 text-red-700" };
 const STATUT_LABELS = { brouillon: "Brouillon", emise: "Émise", payee: "Payée", annulee: "Annulée" };
 
@@ -119,88 +119,29 @@ export default function TabFacturation() {
     base44.entities.Agency.list("-created_date", 1).then(a => setAgency(a[0] || null));
   }, []);
 
-  const exportPDF = async (f) => {
-    const doc = new jsPDF();
-    const primaryColor = agency?.primary_color || "#4F46E5";
-    const r = parseInt(primaryColor.slice(1,3), 16);
-    const g = parseInt(primaryColor.slice(3,5), 16);
-    const b = parseInt(primaryColor.slice(5,7), 16);
+  const exportPDF = (f) => {
+    const pdf = new PDFTemplate(agency);
+    pdf.addHeader();
+    pdf.addTitle("FACTURE");
+    pdf.addSpace(5);
+    
+    pdf.addRow(`N° : ${f.numero || "—"}`, fmtDate(f.date_emission));
+    pdf.addRow("Échéance :", fmtDate(f.date_echeance));
+    pdf.addSpace(4);
 
-    // En-tête avec identité du cabinet
-    doc.setFillColor(r, g, b);
-    doc.rect(0, 0, 210, 30, "F");
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(14);
-    doc.setFont("helvetica", "bold");
-    doc.text(agency?.name || "Facture", 14, 12);
-    doc.setFontSize(9);
-    doc.setFont("helvetica", "normal");
-    doc.text(agency?.address || "", 14, 20);
-    doc.text(`${agency?.postal_code || ""} ${agency?.city || ""}`, 14, 25);
+    pdf.addSection("CLIENT");
+    pdf.addRow("Nom", f.client_nom);
+    if (f.client_email) pdf.addRow("Email", f.client_email);
+    pdf.addSpace(4);
 
-    // Titre facture
-    doc.setTextColor(30, 30, 30);
-    doc.setFontSize(16);
-    doc.setFont("helvetica", "bold");
-    doc.text("FACTURE", 105, 45, { align: "center" });
+    pdf.addSection("DÉTAIL FACTURE");
+    pdf.addRow("Désignation", f.bien_titre || f.type);
+    pdf.addRow("Montant HT", fmt(f.montant_ht));
+    if (f.tva_taux) pdf.addRow(`TVA ${f.tva_taux}%`, fmt((f.montant_ht || 0) * (f.tva_taux / 100)));
+    pdf.addSeparator(3);
+    pdf.addRow("TOTAL TTC", fmt(f.montant_ttc), true);
 
-    // Infos facturation
-    doc.setFontSize(9);
-    doc.setFont("helvetica", "normal");
-    doc.text(`N° : ${f.numero || "—"}`, 14, 55);
-    doc.text(`Émise : ${fmtDate(f.date_emission)}`, 14, 61);
-    doc.text(`Échéance : ${fmtDate(f.date_echeance)}`, 14, 67);
-
-    // Client
-    doc.setFont("helvetica", "bold");
-    doc.text("FACTURATION À :", 14, 80);
-    doc.setFont("helvetica", "normal");
-    doc.text(f.client_nom, 14, 87);
-    if (f.client_email) doc.text(f.client_email, 14, 93);
-
-    // Ligne séparatrice avec couleur primaire
-    doc.setDrawColor(r, g, b);
-    doc.setLineWidth(0.8);
-    doc.line(14, 105, 196, 105);
-
-    // Détail facture
-    doc.setFontSize(9);
-    doc.setFont("helvetica", "bold");
-    doc.text("Description", 14, 115);
-    doc.text("Montant", 160, 115);
-
-    doc.setFont("helvetica", "normal");
-    doc.text(f.bien_titre || f.type, 14, 125);
-    doc.text(`${fmt(f.montant_ht)}`, 160, 125, { align: "right" });
-
-    let y = 135;
-    if (f.tva_taux) {
-      doc.text(`TVA ${f.tva_taux}%`, 14, y);
-      doc.text(`${fmt((f.montant_ht || 0) * (f.tva_taux / 100))}`, 160, y, { align: "right" });
-      y += 8;
-    }
-
-    // Sous-total HT
-    doc.setFont("helvetica", "bold");
-    doc.text("Montant HT :", 14, y + 5);
-    doc.text(`${fmt(f.montant_ht)}`, 160, y + 5, { align: "right" });
-
-    // Total TTC avec fond coloré
-    doc.setFillColor(r, g, b);
-    doc.rect(10, y + 12, 190, 10, "F");
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(11);
-    doc.text(`TOTAL TTC : ${fmt(f.montant_ttc)}`, 160, y + 18, { align: "right" });
-
-    // Pied de page
-    doc.setTextColor(100, 100, 100);
-    doc.setFontSize(8);
-    doc.setFont("helvetica", "normal");
-    const footerText = `${agency?.email || "contact@agency.fr"} | ${agency?.phone || ""}`;
-    doc.text(footerText, 14, 285);
-    doc.text(`Généré le ${new Date().toLocaleDateString("fr-FR")}`, 160, 285, { align: "right" });
-
-    doc.save(`Facture_${f.numero || f.id}.pdf`);
+    pdf.save(`Facture_${f.numero || f.id}.pdf`);
   };
 
   const marquerPayee = async (f) => {

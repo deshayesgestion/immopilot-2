@@ -2,9 +2,9 @@ import { useState, useEffect, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Loader2, FileText, Download, Sparkles } from "lucide-react";
-import { jsPDF } from "jspdf";
+import { PDFTemplate, PDFUtils } from "@/lib/pdfTemplate";
 
-const fmt = (n) => new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(n || 0);
+const fmt = PDFUtils.formatEur;
 
 export default function TabRapports() {
   const [transactions, setTransactions] = useState([]);
@@ -54,88 +54,36 @@ export default function TabRapports() {
   const exportPDF = async () => {
     const agencies = await base44.entities.Agency.list("-created_date", 1);
     const agency = agencies[0] || null;
-    const doc = new jsPDF();
-    const color = agency?.primary_color || "#4F46E5";
-    const r = parseInt(color.slice(1,3),16), g = parseInt(color.slice(3,5),16), b = parseInt(color.slice(5,7),16);
+    const pdf = new PDFTemplate(agency);
 
-    // En-tête avec branding
-    doc.setFillColor(r, g, b);
-    doc.rect(0, 0, 210, 35, "F");
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(14);
-    doc.setFont("helvetica", "bold");
-    doc.text(agency?.name || "Rapport comptable", 14, 12);
-    doc.setFontSize(9);
-    doc.setFont("helvetica", "normal");
-    if (agency?.address) doc.text(agency.address, 14, 19);
-    doc.text(`${agency?.postal_code || ""} ${agency?.city || ""}`, 14, 24);
-    doc.text(`${agency?.email || ""} | ${agency?.phone || ""}`, 14, 29);
+    pdf.addHeader();
+    pdf.addTitle(`Rapport financier ${year}`);
+    pdf.addSpace(3);
 
-    // Titre
-    doc.setTextColor(30, 30, 30);
-    doc.setFontSize(13);
-    doc.setFont("helvetica", "bold");
-    doc.text(`Rapport financier ${year}`, 14, 50);
+    pdf.addSection("PRODUITS");
+    pdf.addRow("Loyers perçus", fmt(data.loyers));
+    pdf.addRow("Commissions vente", fmt(data.commissions));
+    pdf.addRow("Honoraires", fmt(data.honoraires));
+    pdf.addRow("Autres entrées", fmt(data.autresEntrees));
+    pdf.addSeparator(2);
+    pdf.addRow("TOTAL PRODUITS", fmt(data.totalEntrees), true);
+    pdf.addSpace(4);
 
-    let y = 58;
-    const section = (title) => {
-      doc.setFillColor(r, g, b);
-      doc.rect(10, y - 4, 190, 8, "F");
-      doc.setFontSize(9);
-      doc.setFont("helvetica", "bold");
-      doc.setTextColor(255, 255, 255);
-      doc.text(title, 14, y + 1);
-      doc.setTextColor(30, 30, 30);
-      doc.setFont("helvetica", "normal");
-      y += 12;
-    };
-    const row = (label, value, bold = false) => {
-      doc.setFontSize(9);
-      doc.setFont("helvetica", bold ? "bold" : "normal");
-      doc.text(label, 14, y);
-      doc.text(value, 150, y, { align: "right" });
-      y += 7;
-    };
+    pdf.addSection("CHARGES");
+    pdf.addRow("Total dépenses", fmt(data.totalDepenses), true);
+    pdf.addSpace(4);
 
-    section("PRODUITS");
-    row("Loyers perçus", fmt(data.loyers));
-    row("Commissions vente", fmt(data.commissions));
-    row("Honoraires", fmt(data.honoraires));
-    row("Autres entrées", fmt(data.autresEntrees));
-    row("TOTAL PRODUITS", fmt(data.totalEntrees), true);
-    y += 4;
-
-    section("CHARGES");
-    row("Total dépenses", fmt(data.totalDepenses), true);
-    y += 4;
-
-    section("RÉSULTAT");
-    row("RÉSULTAT NET", fmt(data.resultatNet), true);
-    if (data.impayes > 0) row("Impayés en cours", fmt(data.impayes));
+    pdf.addSection("RÉSULTAT");
+    pdf.addRow("RÉSULTAT NET", fmt(data.resultatNet), true);
+    if (data.impayes > 0) pdf.addRow("Impayés en cours", fmt(data.impayes));
 
     if (aiReport) {
-      y += 8;
-      section("ANALYSE IA");
-      const lines = doc.splitTextToSize(aiReport, 180);
-      doc.setFontSize(8);
-      lines.forEach(l => {
-        doc.text(l, 14, y);
-        y += 5;
-        if (y > 270) {
-          doc.addPage();
-          y = 20;
-        }
-      });
+      pdf.addSpace(6);
+      pdf.addSection("ANALYSE IA");
+      pdf.addParagraph(aiReport);
     }
 
-    // Pied de page
-    doc.setTextColor(100, 100, 100);
-    doc.setFontSize(8);
-    doc.setFont("helvetica", "normal");
-    doc.text(`Document généré le ${new Date().toLocaleDateString("fr-FR")} à ${new Date().toLocaleTimeString("fr-FR")}`, 14, 285);
-    doc.text(`${agency?.name || "Agence"}`, 160, 285, { align: "right" });
-
-    doc.save(`Rapport_${year}.pdf`);
+    pdf.save(`Rapport_${year}.pdf`);
   };
 
   const exportCSV = () => {
