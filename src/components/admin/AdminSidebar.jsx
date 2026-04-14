@@ -20,11 +20,13 @@ import {
   Bell,
   Upload,
   Shield,
+  MessageSquare,
 } from "lucide-react";
 import { useState } from "react";
 
 const navItems = [
   { label: "Dashboard", path: "/admin", icon: LayoutDashboard },
+  { label: "Communications", path: "/admin/communications", icon: MessageSquare },
   {
     label: "Location",
     icon: KeySquare,

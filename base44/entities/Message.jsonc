@@ -1,0 +1,56 @@
+{
+  "name": "Message",
+  "type": "object",
+  "properties": {
+    "canal": {
+      "type": "string",
+      "enum": [
+        "sms",
+        "note_interne",
+        "whatsapp"
+      ],
+      "default": "note_interne"
+    },
+    "direction": {
+      "type": "string",
+      "enum": [
+        "entrant",
+        "sortant"
+      ],
+      "default": "sortant"
+    },
+    "contact_email": {
+      "type": "string"
+    },
+    "contact_nom": {
+      "type": "string"
+    },
+    "contact_telephone": {
+      "type": "string"
+    },
+    "contenu": {
+      "type": "string"
+    },
+    "auteur_email": {
+      "type": "string"
+    },
+    "auteur_nom": {
+      "type": "string"
+    },
+    "lu": {
+      "type": "boolean",
+      "default": false
+    },
+    "entity_type": {
+      "type": "string",
+      "description": "Lead, Acquereur, DossierLocatif\u2026"
+    },
+    "entity_id": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "canal",
+    "contenu"
+  ]
+}
