@@ -19,7 +19,7 @@ import Dashboard from './pages/admin/Dashboard';
 import AdminCRM from './pages/admin/AdminCRM';
 import AdminAI from './pages/admin/AdminAI';
 import AdminSettings from './pages/admin/AdminSettings';
-import AdminAgents from './pages/admin/AdminAgents';
+import AdminUsers from './pages/admin/AdminUsers';
 import AdminDossiers from './pages/admin/AdminDossiers';
 import AdminLocation from './pages/admin/AdminLocation';
 import DossierLocatif from './pages/admin/DossierLocatif';
@@ -100,7 +100,7 @@ const AuthenticatedApp = () => {
         <Route path="/admin" element={<Dashboard />} />
 
 
-        <Route path="/admin/equipe" element={<AdminAgents />} />
+        <Route path="/admin/utilisateurs" element={<AdminUsers />} />
         <Route path="/admin/location" element={<AdminLocation />} />
         <Route path="/admin/attribution" element={<AdminAttribution />} />
         <Route path="/admin/attribution/:id" element={<AdminAttributionDetail />} />
