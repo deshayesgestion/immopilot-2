@@ -119,8 +119,9 @@ export default function AdminUsers() {
   const [editingUser, setEditingUser] = useState(null);
   const [accessDenied, setAccessDenied] = useState(false);
 
-  // Vérifier accès: seul Directeur + Responsable peuvent accéder à cette page
+  // Vérifier permissions: Directeur/Responsable peuvent tout faire, autres rôles internes ont accès limité
   const canManageUsers = USER_MANAGEMENT_ROLES.includes(currentUser?.role);
+  const isInternalRole = INTERNAL_ROLES.includes(currentUser?.role);
 
   // Charger les données
   const loadUsers = async () => {
@@ -139,23 +140,18 @@ export default function AdminUsers() {
   };
 
   useEffect(() => {
-    loadUsers().then(() => {
-      // Vérifier accès après avoir chargé l'utilisateur courant
-      if (!loading && currentUser && !canManageUsers) {
-        setAccessDenied(true);
-      }
-    });
+    loadUsers();
   }, []);
 
-  // Afficher message accès refusé
-  if (!loading && accessDenied) {
+  // Afficher message accès refusé si pas un rôle interne
+  if (!loading && currentUser && !isInternalRole) {
     return (
       <div className="max-w-4xl mx-auto py-12">
         <div className="bg-red-50 border border-red-200 rounded-2xl p-8 text-center">
           <AlertTriangle className="w-12 h-12 text-red-600 mx-auto mb-4" />
           <h1 className="text-xl font-bold text-red-900 mb-2">Accès refusé</h1>
           <p className="text-red-700 mb-4">
-            Seul les Directeurs et Responsables peuvent accéder à la gestion des utilisateurs.
+            Seul les membres de l'équipe interne peuvent accéder à cette page.
           </p>
           <p className="text-sm text-red-600">Votre rôle actuel: <span className="font-semibold">{ROLE_LABELS[currentUser?.role]}</span></p>
         </div>
@@ -180,6 +176,10 @@ export default function AdminUsers() {
   };
 
   const handleDelete = async (user) => {
+    if (!canManageUsers) {
+      alert("Vous n'avez pas la permission de supprimer des utilisateurs.");
+      return;
+    }
     if (window.confirm(`Êtes-vous sûr de vouloir supprimer ${user.full_name} ?`)) {
       try {
         // À implémenter selon votre API
