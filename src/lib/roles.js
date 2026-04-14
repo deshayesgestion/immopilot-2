@@ -1,13 +1,15 @@
 // Rôles internes (accès back-office)
-export const INTERNAL_ROLES = ["admin", "responsable_location", "responsable_vente", "agent", "gestionnaire", "comptable"];
+export const INTERNAL_ROLES = ["directeur", "responsable", "agent", "gestionnaire", "comptable"];
 
 // Rôles clients (pas d'accès back-office)
 export const CLIENT_ROLES = ["locataire", "proprietaire", "acquereur", "prestataire"];
 
+// Rôles avec accès complet à la gestion des utilisateurs internes
+export const USER_MANAGEMENT_ROLES = ["directeur", "responsable"];
+
 export const ROLE_LABELS = {
-  admin: "Admin",
-  responsable_location: "Resp. Location",
-  responsable_vente: "Resp. Vente",
+  directeur: "Directeur",
+  responsable: "Responsable",
   agent: "Agent",
   gestionnaire: "Gestionnaire",
   comptable: "Comptable",
@@ -18,11 +20,10 @@ export const ROLE_LABELS = {
 };
 
 export const ROLE_COLORS = {
-  admin: "bg-purple-100 text-purple-700",
-  responsable_location: "bg-blue-100 text-blue-700",
-  responsable_vente: "bg-amber-100 text-amber-700",
+  directeur: "bg-purple-100 text-purple-700",
+  responsable: "bg-blue-100 text-blue-700",
   agent: "bg-sky-100 text-sky-700",
-  gestionnaire: "bg-blue-100 text-blue-700",
+  gestionnaire: "bg-teal-100 text-teal-700",
   comptable: "bg-emerald-100 text-emerald-700",
   locataire: "bg-orange-100 text-orange-700",
   proprietaire: "bg-amber-100 text-amber-700",
@@ -31,11 +32,10 @@ export const ROLE_COLORS = {
 };
 
 export const ROLE_DESCRIPTIONS = {
-  admin: "Accès complet à tous les modules et paramètres",
-  responsable_location: "Gestion location complète, vente et équipe en lecture",
-  responsable_vente: "Gestion vente complète, location et équipe en lecture",
+  directeur: "Accès complet à tous les modules, gestion équipe complète",
+  responsable: "Gestion complète location/vente, gestion équipe complète",
   agent: "Gestion des biens, dossiers location et vente",
-  gestionnaire: "Gestion locative, suivi et sorties",
+  gestionnaire: "Gestion locative, suivi, sorties et comptabilité",
   comptable: "Accès comptabilité, factures et transactions",
 };
 
@@ -48,58 +48,50 @@ export const ROLE_DESCRIPTIONS = {
 // IA permission flags per role:
 // - chat             : accès au chat IA
 // - generate         : génération de contenu IA (descriptions, relances…)
-// - export_sensitive : export de données sensibles via IA (admin uniquement)
+// - export_sensitive : export de données sensibles via IA (directeur uniquement)
 export const IA_PERMISSIONS = {
-  admin:                { chat: true,  generate: true,  export_sensitive: true  },
-  responsable_location: { chat: true,  generate: false, export_sensitive: false },
-  responsable_vente:    { chat: true,  generate: false, export_sensitive: false },
-  agent:                { chat: true,  generate: true,  export_sensitive: false },
-  gestionnaire:         { chat: true,  generate: false, export_sensitive: false },
-  comptable:            { chat: false, generate: false, export_sensitive: false },
+  directeur:   { chat: true,  generate: true,  export_sensitive: true  },
+  responsable: { chat: true,  generate: true,  export_sensitive: false },
+  agent:       { chat: true,  generate: true,  export_sensitive: false },
+  gestionnaire:{ chat: true,  generate: false, export_sensitive: false },
+  comptable:   { chat: false, generate: false, export_sensitive: false },
 };
 
 export const ROLE_PERMISSIONS = {
-  admin: {
+  directeur: {
     location:     "full",
     vente:        "full",
     comptabilite: "full",
     parametres:   "full",
-    equipe:       "full",
+    utilisateurs: "full",
   },
-  responsable_location: {
+  responsable: {
     location:     "write",
-    vente:        "read",
-    comptabilite: "none",
-    parametres:   "none",
-    equipe:       "read",
-  },
-  responsable_vente: {
-    location:     "read",
     vente:        "write",
-    comptabilite: "none",
+    comptabilite: "read",
     parametres:   "none",
-    equipe:       "read",
+    utilisateurs: "full",
   },
   agent: {
     location:     "write",
     vente:        "write",
     comptabilite: "none",
     parametres:   "none",
-    equipe:       "read",
+    utilisateurs: "none",
   },
   gestionnaire: {
     location:     "write",
     vente:        "read",
     comptabilite: "write",
     parametres:   "none",
-    equipe:       "read",
+    utilisateurs: "none",
   },
   comptable: {
     location:     "read",
     vente:        "read",
     comptabilite: "full",
     parametres:   "none",
-    equipe:       "none",
+    utilisateurs: "none",
   },
 };
 
@@ -162,16 +154,23 @@ export function assertInternalRole(user) {
   }
 }
 
-// Guard: throws if user is not admin
-export function assertAdmin(user) {
-  if (user?.role !== "admin") {
-    throw new Error(`[RBAC] Accès admin requis — rôle actuel : "${user?.role}"`);
+// Guard: throws if user is not directeur or responsable (user management access)
+export function assertCanManageUsers(user) {
+  if (!USER_MANAGEMENT_ROLES.includes(user?.role)) {
+    throw new Error(`[RBAC] Accès gestion utilisateurs refusé — rôle actuel : "${user?.role}"`);
+  }
+}
+
+// Guard: throws if user is not directeur
+export function assertDirecteur(user) {
+  if (user?.role !== "directeur") {
+    throw new Error(`[RBAC] Accès directeur requis — rôle actuel : "${user?.role}"`);
   }
 }
 
 // Legacy helper kept for backward compatibility
 export function getPermissions(user) {
-  const modules = ["location", "vente", "comptabilite", "parametres", "equipe"];
+  const modules = ["location", "vente", "comptabilite", "parametres", "utilisateurs"];
   const result = {};
   for (const mod of modules) {
     const level = getPermission(user, mod);

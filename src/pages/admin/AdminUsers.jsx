@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search, UserPlus, Users, Shield, AlertTriangle, Loader2, Mail, Lock } from "lucide-react";
-import { INTERNAL_ROLES, CLIENT_ROLES, ROLE_LABELS, ROLE_COLORS } from "@/lib/roles";
+import { INTERNAL_ROLES, CLIENT_ROLES, ROLE_LABELS, ROLE_COLORS, USER_MANAGEMENT_ROLES } from "@/lib/roles";
 import UserEditModal from "../../components/admin/users/UserEditModal";
 import UserListItem from "../../components/admin/users/UserListItem";
 import RolesPermissionTab from "../../components/admin/users/RolesPermissionTab";
@@ -17,16 +17,13 @@ function InviteUserModal({ onClose, currentUser, onSent }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const allRoles = [...INTERNAL_ROLES, ...CLIENT_ROLES];
-  const isAdmin = currentUser?.role === "admin";
+  const canManageUsers = USER_MANAGEMENT_ROLES.includes(currentUser?.role);
+  // Directeur/Responsable peuvent inviter n'importe quel rôle interne
+  // Autres rôles ne peuvent inviter que les clients
+  const availableRoles = canManageUsers ? [...INTERNAL_ROLES, ...CLIENT_ROLES] : CLIENT_ROLES;
 
   const handleSend = async (e) => {
     e.preventDefault();
-    if (!isAdmin) {
-      setError("Seul un admin peut inviter des utilisateurs");
-      return;
-    }
-
     setLoading(true);
     try {
       await base44.users.inviteUser(form.email, form.role || "user");
@@ -79,11 +76,13 @@ function InviteUserModal({ onClose, currentUser, onSent }) {
               className="w-full h-9 px-3 rounded-lg border border-input bg-white text-sm"
             >
               <option value="">Choisir un rôle</option>
-              <optgroup label="Équipe interne">
-                {INTERNAL_ROLES.map(r => (
-                  <option key={r} value={r}>{ROLE_LABELS[r]}</option>
-                ))}
-              </optgroup>
+              {canManageUsers && (
+                <optgroup label="Équipe interne">
+                  {INTERNAL_ROLES.map(r => (
+                    <option key={r} value={r}>{ROLE_LABELS[r]}</option>
+                  ))}
+                </optgroup>
+              )}
               <optgroup label="Clients">
                 {CLIENT_ROLES.map(r => (
                   <option key={r} value={r}>{ROLE_LABELS[r]}</option>
@@ -118,9 +117,10 @@ export default function AdminUsers() {
   const [loading, setLoading] = useState(true);
   const [showInvite, setShowInvite] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
-  const [confirmDelete, setConfirmDelete] = useState(null);
+  const [accessDenied, setAccessDenied] = useState(false);
 
-  const isAdmin = currentUser?.role === "admin";
+  // Vérifier accès: seul Directeur + Responsable peuvent accéder à cette page
+  const canManageUsers = USER_MANAGEMENT_ROLES.includes(currentUser?.role);
 
   // Charger les données
   const loadUsers = async () => {
@@ -139,8 +139,29 @@ export default function AdminUsers() {
   };
 
   useEffect(() => {
-    loadUsers();
+    loadUsers().then(() => {
+      // Vérifier accès après avoir chargé l'utilisateur courant
+      if (!loading && currentUser && !canManageUsers) {
+        setAccessDenied(true);
+      }
+    });
   }, []);
+
+  // Afficher message accès refusé
+  if (!loading && accessDenied) {
+    return (
+      <div className="max-w-4xl mx-auto py-12">
+        <div className="bg-red-50 border border-red-200 rounded-2xl p-8 text-center">
+          <AlertTriangle className="w-12 h-12 text-red-600 mx-auto mb-4" />
+          <h1 className="text-xl font-bold text-red-900 mb-2">Accès refusé</h1>
+          <p className="text-red-700 mb-4">
+            Seul les Directeurs et Responsables peuvent accéder à la gestion des utilisateurs.
+          </p>
+          <p className="text-sm text-red-600">Votre rôle actuel: <span className="font-semibold">{ROLE_LABELS[currentUser?.role]}</span></p>
+        </div>
+      </div>
+    );
+  }
 
   // Filtrer les utilisateurs
   const allUsers = users;
@@ -211,7 +232,7 @@ export default function AdminUsers() {
             Gérez les comptes, rôles et permissions de votre équipe
           </p>
         </div>
-        {isAdmin && (
+        {canManageUsers && (
           <Button onClick={() => setShowInvite(true)} className="rounded-full gap-2 h-9 text-sm">
             <UserPlus className="w-4 h-4" /> Inviter
           </Button>
@@ -297,29 +318,29 @@ export default function AdminUsers() {
             </div>
           ) : (
             <div className="divide-y divide-border/30">
-              {/* Équipe interne */}
-              {filterList(internalUsers).length > 0 && (
-                <>
-                  <div className="px-5 py-3 bg-secondary/20">
-                    <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
-                      Équipe interne ({filterList(internalUsers).length})
-                    </p>
-                  </div>
-                  <div className="p-2">
-                    {filterList(internalUsers).map(u => (
-                      <UserListItem
-                        key={u.id}
-                        user={u}
-                        onEdit={() => setEditingUser(u)}
-                        onToggleStatus={handleToggleStatus}
-                        onDelete={handleDelete}
-                        currentUser={currentUser}
-                        showActions={isAdmin}
-                      />
-                    ))}
-                  </div>
-                </>
-              )}
+            {/* Équipe interne */}
+            {filterList(internalUsers).length > 0 && (
+              <>
+                <div className="px-5 py-3 bg-secondary/20">
+                  <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
+                    Équipe interne ({filterList(internalUsers).length})
+                  </p>
+                </div>
+                <div className="p-2">
+                  {filterList(internalUsers).map(u => (
+                    <UserListItem
+                      key={u.id}
+                      user={u}
+                      onEdit={() => setEditingUser(u)}
+                      onToggleStatus={handleToggleStatus}
+                      onDelete={handleDelete}
+                      currentUser={currentUser}
+                      showActions={canManageUsers}
+                    />
+                  ))}
+                </div>
+              </>
+            )}
 
               {/* Clients */}
               {filterList(clientUsers).length > 0 && (
@@ -338,7 +359,7 @@ export default function AdminUsers() {
                         onToggleStatus={handleToggleStatus}
                         onDelete={handleDelete}
                         currentUser={currentUser}
-                        showActions={isAdmin}
+                        showActions={canManageUsers}
                       />
                     ))}
                   </div>
