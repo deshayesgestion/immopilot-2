@@ -22,11 +22,13 @@ import {
   Shield,
   MessageSquare,
   ListTodo,
+  CalendarDays,
 } from "lucide-react";
 import { useState } from "react";
 
 const navItems = [
   { label: "Dashboard", path: "/admin", icon: LayoutDashboard },
+  { label: "Agenda", path: "/admin/agenda", icon: CalendarDays },
   { label: "Tâches", path: "/admin/taches", icon: ListTodo },
   { label: "Communications", path: "/admin/communications", icon: MessageSquare },
   {
