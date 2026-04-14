@@ -232,7 +232,7 @@ export default function AdminUsers() {
             Gérez les comptes, rôles et permissions de votre équipe
           </p>
         </div>
-        {canManageUsers && (
+        {isInternalRole && (
           <Button onClick={() => setShowInvite(true)} className="rounded-full gap-2 h-9 text-sm">
             <UserPlus className="w-4 h-4" /> Inviter
           </Button>
