@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { KeySquare, Home, Users, Euro, Search, Loader2, AlertCircle } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import ModuleLocationBiens from "@/components/modules/location/ModuleLocationBiens";
+import BiensList from "@/components/shared/BiensList";
 import ModuleLocationLocataires from "@/components/modules/location/ModuleLocationLocataires";
 import ModuleLocationPaiements from "@/components/modules/location/ModuleLocationPaiements";
 
@@ -106,7 +106,7 @@ export default function ModuleLocation() {
         <div className="flex justify-center py-16"><Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /></div>
       ) : (
         <>
-          {tab === "biens" && <ModuleLocationBiens biens={biens} contactMap={contactMap} search={search} />}
+          {tab === "biens" && <BiensList biens={biens} typeModule="location" onBiensChange={setBiens} search={search} />}
           {tab === "locataires" && <ModuleLocationLocataires locataires={locataires} biens={biens} search={search} />}
           {tab === "paiements" && <ModuleLocationPaiements paiements={paiements} contactMap={contactMap} bienMap={bienMap} search={search} />}
         </>

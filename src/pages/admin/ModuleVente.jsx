@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { TrendingUp, Home, Users, FileSignature, BarChart2, Loader2 } from "lucide-react";
 import VentePipeline from "@/components/crm/VentePipeline";
-import VenteBiensList from "@/components/crm/VenteBiensList";
+import BiensList from "@/components/shared/BiensList";
 import LeadFiche from "@/components/crm/LeadFiche";
 
 const TABS = [
@@ -146,10 +146,10 @@ export default function ModuleVente() {
             />
           )}
           {tab === "biens" && (
-            <VenteBiensList
+            <BiensList
               biens={biens}
               leads={leads}
-              contactMap={contactMap}
+              typeModule="vente"
               onBiensChange={setBiens}
             />
           )}
