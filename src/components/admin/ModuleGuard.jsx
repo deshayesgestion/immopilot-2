@@ -6,8 +6,13 @@ import { Lock } from 'lucide-react';
  * Affiche le contenu si le module est actif, sinon un message d'indisponibilité.
  * @param {"vente"|"location"|"compta"} moduleName
  */
+// 🛠️ DEBUG MODE — bypass module restrictions (restore when SaaS config is stable)
+const DEBUG_BYPASS_MODULES = true;
+
 export default function ModuleGuard({ moduleName, children }) {
   const { organizationConfig, loading } = useOrganization();
+
+  if (DEBUG_BYPASS_MODULES) return children;
 
   if (loading) return null;
 
