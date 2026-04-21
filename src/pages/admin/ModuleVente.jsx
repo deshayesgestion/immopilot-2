@@ -139,6 +139,8 @@ export default function ModuleVente() {
           {tab === "pipeline" && (
             <VentePipeline
               leads={leads}
+              contacts={contacts}
+              biens={biens}
               contactMap={contactMap}
               bienMap={bienMap}
               onLeadClick={setSelectedLead}

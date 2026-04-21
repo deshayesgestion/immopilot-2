@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { base44 } from "@/api/base44Client";
-import { User, Home, Star, Phone, Plus } from "lucide-react";
+import { User, Home, Star, Phone, Plus, X, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 const COLUMNS = [
   { id: "nouveau", label: "Nouveau", color: "bg-blue-500", light: "bg-blue-50 border-blue-200" },
@@ -69,9 +71,69 @@ function LeadCard({ lead, contact, bien, onLeadClick, onDragStart }) {
   );
 }
 
-export default function VentePipeline({ leads, contactMap, bienMap, onLeadClick, onLeadsChange }) {
+// Mini-formulaire inline pour créer un lead rapidement dans une colonne
+function QuickAddLead({ colId, contacts, biens, onAdd, onCancel }) {
+  const [contactId, setContactId] = useState("");
+  const [bienId, setBienId] = useState("");
+  const [source, setSource] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  const handleSave = async () => {
+    if (!contactId) return;
+    setSaving(true);
+    const created = await base44.entities.Lead.create({
+      contact_id: contactId,
+      bien_id: bienId || null,
+      source: source || null,
+      statut: colId,
+      score: null,
+    });
+    onAdd(created);
+    setSaving(false);
+  };
+
+  return (
+    <div className="bg-white rounded-xl border-2 border-primary/30 p-3 shadow-sm space-y-2">
+      <p className="text-xs font-semibold text-primary">Nouveau lead</p>
+      <select
+        value={contactId}
+        onChange={e => setContactId(e.target.value)}
+        className="w-full text-xs border border-input rounded-lg px-2 py-1.5 bg-white"
+        autoFocus
+      >
+        <option value="">-- Contact --</option>
+        {contacts.map(c => <option key={c.id} value={c.id}>{c.nom}</option>)}
+      </select>
+      <select
+        value={bienId}
+        onChange={e => setBienId(e.target.value)}
+        className="w-full text-xs border border-input rounded-lg px-2 py-1.5 bg-white"
+      >
+        <option value="">-- Bien (optionnel) --</option>
+        {biens.map(b => <option key={b.id} value={b.id}>{b.titre}</option>)}
+      </select>
+      <Input
+        value={source}
+        onChange={e => setSource(e.target.value)}
+        placeholder="Source (site, appel…)"
+        className="text-xs h-7 rounded-lg"
+      />
+      <div className="flex gap-1.5">
+        <Button size="sm" className="flex-1 text-xs h-7 rounded-lg" onClick={handleSave} disabled={!contactId || saving}>
+          {saving ? <Loader2 className="w-3 h-3 animate-spin" /> : "Créer"}
+        </Button>
+        <button onClick={onCancel} className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground">
+          <X className="w-3.5 h-3.5" />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+export default function VentePipeline({ leads, contacts = [], biens = [], contactMap, bienMap, onLeadClick, onLeadsChange }) {
   const [dragging, setDragging] = useState(null);
   const [dragOverCol, setDragOverCol] = useState(null);
+  const [addingInCol, setAddingInCol] = useState(null);
 
   const handleDragStart = (e, lead) => {
     setDragging(lead);
@@ -86,6 +148,11 @@ export default function VentePipeline({ leads, contactMap, bienMap, onLeadClick,
     await base44.entities.Lead.update(dragging.id, { statut: colId });
     setDragging(null);
     setDragOverCol(null);
+  };
+
+  const handleLeadAdded = (created) => {
+    onLeadsChange(prev => [created, ...prev]);
+    setAddingInCol(null);
   };
 
   return (
@@ -108,13 +175,31 @@ export default function VentePipeline({ leads, contactMap, bienMap, onLeadClick,
                 <div className={`w-2.5 h-2.5 rounded-full ${col.color}`} />
                 <span className="text-xs font-bold uppercase tracking-wide text-foreground">{col.label}</span>
               </div>
-              <span className="text-xs bg-white border border-border/50 rounded-full px-2 py-0.5 font-semibold">
-                {colLeads.length}
-              </span>
+              <div className="flex items-center gap-1">
+                <span className="text-xs bg-white border border-border/50 rounded-full px-2 py-0.5 font-semibold">
+                  {colLeads.length}
+                </span>
+                <button
+                  onClick={() => setAddingInCol(col.id)}
+                  className="p-1 rounded-lg hover:bg-white text-muted-foreground transition-colors"
+                  title="Ajouter un lead"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                </button>
+              </div>
             </div>
 
             {/* Cards */}
             <div className="space-y-2">
+              {addingInCol === col.id && (
+                <QuickAddLead
+                  colId={col.id}
+                  contacts={contacts}
+                  biens={biens}
+                  onAdd={handleLeadAdded}
+                  onCancel={() => setAddingInCol(null)}
+                />
+              )}
               {colLeads.map(lead => (
                 <LeadCard
                   key={lead.id}
@@ -125,7 +210,7 @@ export default function VentePipeline({ leads, contactMap, bienMap, onLeadClick,
                   onDragStart={handleDragStart}
                 />
               ))}
-              {colLeads.length === 0 && (
+              {colLeads.length === 0 && addingInCol !== col.id && (
                 <div className="py-8 text-center text-muted-foreground/40 text-xs">
                   Déposer un lead ici
                 </div>

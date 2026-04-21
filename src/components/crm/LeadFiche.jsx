@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { base44 } from "@/api/base44Client";
-import { X, Phone, Mail, Home, Star, MessageSquare, Calendar, ChevronDown, CheckCircle, Clock } from "lucide-react";
+import { X, Phone, Mail, Home, Star, MessageSquare, Calendar, CheckCircle, Clock, Link2, CalendarClock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const STATUTS = [
@@ -24,20 +24,28 @@ function HistoriqueItem({ entry }) {
   );
 }
 
-export default function LeadFiche({ lead, contact, bien, biens, contacts, onClose, onUpdate }) {
+export default function LeadFiche({ lead, contact, bien, biens = [], contacts = [], onClose, onUpdate }) {
   const [note, setNote] = useState("");
   const [saving, setSaving] = useState(false);
-  const [historique, setHistorique] = useState(
-    lead.notes ? [{ texte: lead.notes, date: "Note existante" }] : []
-  );
+  const [showAssocier, setShowAssocier] = useState(false);
+  const [selectedBienId, setSelectedBienId] = useState(lead.bien_id || "");
+  const [showVisiteForm, setShowVisiteForm] = useState(false);
+  const [visiteDate, setVisiteDate] = useState("");
+  const [historique, setHistorique] = useState(() => {
+    const h = [];
+    if (lead.notes) h.push({ texte: lead.notes, date: "Note existante" });
+    return h;
+  });
 
   const currentStatut = STATUTS.find(s => s.id === lead.statut) || STATUTS[0];
+  const now = () => new Date().toLocaleDateString("fr-FR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
 
   const changeStatut = async (newStatut) => {
+    if (lead.statut === newStatut) return;
     setSaving(true);
-    const updated = await base44.entities.Lead.update(lead.id, { statut: newStatut });
+    await base44.entities.Lead.update(lead.id, { statut: newStatut });
     onUpdate({ ...lead, statut: newStatut });
-    setHistorique(prev => [{ texte: `Statut changé → ${newStatut}`, date: new Date().toLocaleDateString("fr-FR") }, ...prev]);
+    setHistorique(prev => [{ texte: `Statut changé → ${newStatut}`, date: now() }, ...prev]);
     setSaving(false);
   };
 
@@ -47,10 +55,36 @@ export default function LeadFiche({ lead, contact, bien, biens, contacts, onClos
     const newNotes = lead.notes ? lead.notes + "\n" + note : note;
     await base44.entities.Lead.update(lead.id, { notes: newNotes });
     onUpdate({ ...lead, notes: newNotes });
-    setHistorique(prev => [{ texte: note, date: new Date().toLocaleDateString("fr-FR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) }, ...prev]);
+    setHistorique(prev => [{ texte: `📝 ${note}`, date: now() }, ...prev]);
     setNote("");
     setSaving(false);
   };
+
+  const associerBien = async () => {
+    if (!selectedBienId) return;
+    setSaving(true);
+    await base44.entities.Lead.update(lead.id, { bien_id: selectedBienId });
+    onUpdate({ ...lead, bien_id: selectedBienId });
+    const bienNom = biens.find(b => b.id === selectedBienId)?.titre || selectedBienId;
+    setHistorique(prev => [{ texte: `🏠 Bien associé : ${bienNom}`, date: now() }, ...prev]);
+    setShowAssocier(false);
+    setSaving(false);
+  };
+
+  const planifierVisite = async () => {
+    if (!visiteDate) return;
+    setSaving(true);
+    const note = `📅 Visite planifiée le ${new Date(visiteDate).toLocaleDateString("fr-FR")}`;
+    const newNotes = lead.notes ? lead.notes + "\n" + note : note;
+    await base44.entities.Lead.update(lead.id, { notes: newNotes });
+    onUpdate({ ...lead, notes: newNotes });
+    setHistorique(prev => [{ texte: note, date: now() }, ...prev]);
+    setVisiteDate("");
+    setShowVisiteForm(false);
+    setSaving(false);
+  };
+
+  const bienCourant = bien || biens.find(b => b.id === lead.bien_id);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-end bg-black/30 backdrop-blur-sm" onClick={onClose}>
@@ -77,6 +111,7 @@ export default function LeadFiche({ lead, contact, bien, biens, contacts, onClos
         </div>
 
         <div className="flex-1 overflow-y-auto">
+
           {/* Contact info */}
           <div className="px-5 py-4 border-b border-border/30">
             <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-3">Contact</p>
@@ -94,25 +129,52 @@ export default function LeadFiche({ lead, contact, bien, biens, contacts, onClos
                   <span className="text-sm text-blue-700 truncate">{contact.email}</span>
                 </a>
               )}
+              {!contact?.telephone && !contact?.email && (
+                <p className="text-xs text-muted-foreground">Aucune coordonnée enregistrée</p>
+              )}
             </div>
           </div>
 
           {/* Bien associé */}
-          {bien && (
-            <div className="px-5 py-4 border-b border-border/30">
-              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-3">Bien associé</p>
+          <div className="px-5 py-4 border-b border-border/30">
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Bien associé</p>
+              <button
+                onClick={() => setShowAssocier(v => !v)}
+                className="text-[11px] text-primary hover:underline flex items-center gap-1"
+              >
+                <Link2 className="w-3 h-3" />
+                {bienCourant ? "Changer" : "Associer"}
+              </button>
+            </div>
+            {bienCourant ? (
               <div className="flex items-center gap-3 p-3 bg-secondary/40 rounded-xl">
                 <div className="p-2 bg-white rounded-lg">
                   <Home className="w-4 h-4 text-blue-500" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium">{bien.titre}</p>
-                  {bien.adresse && <p className="text-xs text-muted-foreground">{bien.adresse}</p>}
-                  {bien.prix && <p className="text-xs font-bold text-foreground mt-0.5">{bien.prix.toLocaleString("fr-FR")} €</p>}
+                  <p className="text-sm font-medium">{bienCourant.titre}</p>
+                  {bienCourant.adresse && <p className="text-xs text-muted-foreground">{bienCourant.adresse}</p>}
+                  {bienCourant.prix && <p className="text-xs font-bold text-foreground mt-0.5">{bienCourant.prix.toLocaleString("fr-FR")} €</p>}
                 </div>
               </div>
-            </div>
-          )}
+            ) : (
+              <p className="text-xs text-muted-foreground">Aucun bien associé</p>
+            )}
+            {showAssocier && (
+              <div className="mt-2 flex gap-2">
+                <select
+                  value={selectedBienId}
+                  onChange={e => setSelectedBienId(e.target.value)}
+                  className="flex-1 text-xs border border-input rounded-lg px-2 py-1.5 bg-white"
+                >
+                  <option value="">-- Choisir un bien --</option>
+                  {biens.map(b => <option key={b.id} value={b.id}>{b.titre} {b.prix ? `– ${b.prix.toLocaleString("fr-FR")} €` : ""}</option>)}
+                </select>
+                <Button size="sm" className="text-xs h-8 rounded-lg" onClick={associerBien} disabled={!selectedBienId || saving}>OK</Button>
+              </div>
+            )}
+          </div>
 
           {/* Score IA */}
           <div className="px-5 py-4 border-b border-border/30">
@@ -130,10 +192,45 @@ export default function LeadFiche({ lead, contact, bien, biens, contacts, onClos
                 <span className="text-xs text-muted-foreground">/100</span>
               </div>
             </div>
-            {!lead.score && <p className="text-[11px] text-muted-foreground mt-2">Score non calculé (IA en préparation)</p>}
+            {!lead.score && <p className="text-[11px] text-muted-foreground mt-2">Score non calculé — IA en préparation</p>}
           </div>
 
-          {/* Actions rapides — changer statut */}
+          {/* Actions rapides */}
+          <div className="px-5 py-4 border-b border-border/30">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-3">Actions rapides</p>
+            <div className="flex gap-2 flex-wrap">
+              {contact?.telephone && (
+                <a href={`tel:${contact.telephone}`}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-green-50 hover:bg-green-100 text-green-700 text-xs font-medium transition-colors">
+                  <Phone className="w-3.5 h-3.5" /> Appeler
+                </a>
+              )}
+              <button
+                onClick={() => setShowVisiteForm(v => !v)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-medium transition-colors"
+              >
+                <CalendarClock className="w-3.5 h-3.5" /> Planifier visite
+              </button>
+            </div>
+            {showVisiteForm && (
+              <div className="mt-3 flex gap-2 items-center">
+                <input
+                  type="date"
+                  value={visiteDate}
+                  onChange={e => setVisiteDate(e.target.value)}
+                  className="flex-1 text-xs border border-input rounded-lg px-2 py-1.5 bg-white"
+                />
+                <Button size="sm" className="text-xs h-8 rounded-lg" onClick={planifierVisite} disabled={!visiteDate || saving}>
+                  Confirmer
+                </Button>
+                <button onClick={() => setShowVisiteForm(false)} className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground">
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Changer statut */}
           <div className="px-5 py-4 border-b border-border/30">
             <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-3">Changer le statut</p>
             <div className="grid grid-cols-2 gap-2">
