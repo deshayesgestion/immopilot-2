@@ -10,7 +10,6 @@ import {
   TrendingUp,
   Calculator,
   ArrowLeftRight,
-  BarChart2,
   Bell,
   Upload,
   Shield,
@@ -28,8 +27,7 @@ const navItems = [
   { label: "Tâches", path: "/admin/taches", icon: ListTodo },
   { label: "Communications", path: "/admin/communications", icon: MessageSquare },
   // ── Modules principaux (toujours visibles) ──
-  { label: "CRM Vente", path: "/admin/crm/vente", icon: TrendingUp },
-  { label: "Vente", path: "/admin/modules/vente", icon: BarChart2 },
+  { label: "Vente", path: "/admin/modules/vente", icon: TrendingUp },
   { label: "Location", path: "/admin/modules/location", icon: KeySquare },
   { label: "Comptabilité", path: "/admin/modules/comptabilite", icon: Calculator },
   {
