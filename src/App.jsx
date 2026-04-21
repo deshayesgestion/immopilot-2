@@ -61,6 +61,7 @@ import AcquereurVisites from './pages/client/AcquereurVisites';
 import AcquereurDocuments from './pages/client/AcquereurDocuments';
 import AcquereurRecherche from './pages/client/AcquereurRecherche';
 import ConnectAdmin from './pages/ConnectAdmin';
+import ModuleGuard from './components/admin/ModuleGuard';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -106,21 +107,21 @@ const AuthenticatedApp = () => {
 
 
         <Route path="/admin/utilisateurs" element={<AdminUsers />} />
-        <Route path="/admin/location" element={<AdminLocation />} />
-        <Route path="/admin/attribution" element={<AdminAttribution />} />
-        <Route path="/admin/attribution/:id" element={<AdminAttributionDetail />} />
-        <Route path="/admin/suivi" element={<AdminSuivi />} />
-        <Route path="/admin/suivi/:id" element={<AdminSuiviDetail />} />
-        <Route path="/admin/sortie" element={<AdminSortie />} />
-        <Route path="/admin/sortie/:id" element={<AdminSortieDetail />} />
+        <Route path="/admin/location" element={<ModuleGuard moduleName="location"><AdminLocation /></ModuleGuard>} />
+        <Route path="/admin/attribution" element={<ModuleGuard moduleName="location"><AdminAttribution /></ModuleGuard>} />
+        <Route path="/admin/attribution/:id" element={<ModuleGuard moduleName="location"><AdminAttributionDetail /></ModuleGuard>} />
+        <Route path="/admin/suivi" element={<ModuleGuard moduleName="location"><AdminSuivi /></ModuleGuard>} />
+        <Route path="/admin/suivi/:id" element={<ModuleGuard moduleName="location"><AdminSuiviDetail /></ModuleGuard>} />
+        <Route path="/admin/sortie" element={<ModuleGuard moduleName="location"><AdminSortie /></ModuleGuard>} />
+        <Route path="/admin/sortie/:id" element={<ModuleGuard moduleName="location"><AdminSortieDetail /></ModuleGuard>} />
         <Route path="/admin/parametres" element={<AdminSettings />} />
-        <Route path="/admin/vente/mandats" element={<AdminMandats />} />
-        <Route path="/admin/vente/biens" element={<AdminVenteBiens />} />
-        <Route path="/admin/vente/acquereurs" element={<AdminAcquereurs />} />
-        <Route path="/admin/vente/transactions" element={<AdminTransactions />} />
-        <Route path="/admin/vente/transactions/:id" element={<AdminTransactionDetail />} />
-        <Route path="/admin/vente/cloture" element={<AdminVenteCloture />} />
-        <Route path="/admin/comptabilite" element={<AdminComptabilite />} />
+        <Route path="/admin/vente/mandats" element={<ModuleGuard moduleName="vente"><AdminMandats /></ModuleGuard>} />
+        <Route path="/admin/vente/biens" element={<ModuleGuard moduleName="vente"><AdminVenteBiens /></ModuleGuard>} />
+        <Route path="/admin/vente/acquereurs" element={<ModuleGuard moduleName="vente"><AdminAcquereurs /></ModuleGuard>} />
+        <Route path="/admin/vente/transactions" element={<ModuleGuard moduleName="vente"><AdminTransactions /></ModuleGuard>} />
+        <Route path="/admin/vente/transactions/:id" element={<ModuleGuard moduleName="vente"><AdminTransactionDetail /></ModuleGuard>} />
+        <Route path="/admin/vente/cloture" element={<ModuleGuard moduleName="vente"><AdminVenteCloture /></ModuleGuard>} />
+        <Route path="/admin/comptabilite" element={<ModuleGuard moduleName="compta"><AdminComptabilite /></ModuleGuard>} />
         <Route path="/admin/parametres/accueil-ia" element={<AccueilIA />} />
         <Route path="/admin/parametres/emails" element={<GestionEmails />} />
         <Route path="/admin/import" element={<AdminImport />} />

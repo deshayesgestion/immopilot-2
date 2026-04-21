@@ -25,7 +25,10 @@ import {
   CalendarDays,
 } from "lucide-react";
 import { useState } from "react";
+import { useOrganization } from "@/lib/OrganizationContext";
+import { canAccessModule } from "@/lib/organizationAccess";
 
+// module: clé de canAccessModule — undefined = toujours visible
 const navItems = [
   { label: "Dashboard", path: "/admin", icon: LayoutDashboard },
   { label: "Agenda", path: "/admin/agenda", icon: CalendarDays },
@@ -33,6 +36,7 @@ const navItems = [
   { label: "Communications", path: "/admin/communications", icon: MessageSquare },
   {
     label: "Location",
+    module: "location",
     icon: KeySquare,
     children: [
       { label: "Biens", path: "/admin/location", icon: Home },
@@ -43,6 +47,7 @@ const navItems = [
   },
   {
     label: "Vente",
+    module: "vente",
     icon: TrendingUp,
     children: [
       { label: "Mandats & Estimations", path: "/admin/vente/mandats", icon: FileSignature },
@@ -52,7 +57,7 @@ const navItems = [
       { label: "Clôtures", path: "/admin/vente/cloture", icon: CheckSquare },
     ],
   },
-  { label: "Comptabilité", path: "/admin/comptabilite", icon: Calculator },
+  { label: "Comptabilité", module: "compta", path: "/admin/comptabilite", icon: Calculator },
   {
     label: "Paramètres",
     icon: Settings,
@@ -70,10 +75,16 @@ const navItems = [
 export default function AdminSidebar({ agency, collapsed, onToggle }) {
   const location = useLocation();
   const [openGroups, setOpenGroups] = useState({ Location: true, "Paramètres": false });
+  const { organizationConfig } = useOrganization();
 
   const toggleGroup = (label) => {
     setOpenGroups((prev) => ({ ...prev, [label]: !prev[label] }));
   };
+
+  // Filtrer les items selon les modules actifs
+  const visibleItems = navItems.filter(
+    (item) => !item.module || canAccessModule(organizationConfig, item.module)
+  );
 
   return (
     <div className={`${collapsed ? "w-14" : "w-52"} h-screen bg-white border-r border-border/50 flex flex-col py-4 transition-all duration-200`}>
@@ -95,7 +106,7 @@ export default function AdminSidebar({ agency, collapsed, onToggle }) {
 
       {/* Nav */}
       <nav className="flex-1 space-y-0.5 px-2 overflow-y-auto">
-        {navItems.map((item) => {
+        {visibleItems.map((item) => {
           if (item.children) {
             const isGroupActive = item.children.some((c) => location.pathname === c.path);
             const Icon = item.icon;
