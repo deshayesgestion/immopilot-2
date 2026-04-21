@@ -17,27 +17,30 @@ export default function ModuleLocation() {
   const [biens, setBiens] = useState([]);
   const [locataires, setLocataires] = useState([]);
   const [paiements, setPaiements] = useState([]);
-  const [contacts, setContacts] = useState([]);
+  const [contacts, setContacts] = useState([]); // tous les contacts (pour contactMap)
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
 
   useEffect(() => {
     const load = async () => {
       setLoading(true);
-      const [b, p, c] = await Promise.all([
+      const [b, p, allContacts] = await Promise.all([
         base44.entities.Bien.filter({ type: "location" }),
         base44.entities.Paiement.filter({ type: "loyer" }),
-        base44.entities.Contact.filter({ type: "locataire" }),
+        base44.entities.Contact.list("-created_date", 500),
       ]);
       setBiens(b);
       setPaiements(p);
-      setLocataires(c);
-      setContacts(c);
+      // Locataires = contacts avec type "locataire", sinon tous les contacts liés à des paiements
+      const locatairesList = allContacts.filter(c => c.type === "locataire");
+      setLocataires(locatairesList.length > 0 ? locatairesList : allContacts);
+      setContacts(allContacts);
       setLoading(false);
     };
     load();
   }, []);
 
+  // contactMap couvre TOUS les contacts pour résoudre les noms dans les paiements
   const contactMap = Object.fromEntries(contacts.map(c => [c.id, c]));
   const bienMap = Object.fromEntries(biens.map(b => [b.id, b]));
 
@@ -93,6 +96,21 @@ export default function ModuleLocation() {
               }`}
             >
               <Icon className="w-4 h-4" /> {t.label}
+              {t.id === "paiements" && loyersEnRetard.length > 0 && (
+                <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-semibold ${tab === t.id ? "bg-white/20 text-white" : "bg-red-100 text-red-600"}`}>
+                  {loyersEnRetard.length}
+                </span>
+              )}
+              {t.id === "biens" && biens.length > 0 && (
+                <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-semibold ${tab === t.id ? "bg-white/20 text-white" : "bg-secondary text-muted-foreground"}`}>
+                  {biens.length}
+                </span>
+              )}
+              {t.id === "locataires" && locataires.length > 0 && (
+                <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-semibold ${tab === t.id ? "bg-white/20 text-white" : "bg-secondary text-muted-foreground"}`}>
+                  {locataires.length}
+                </span>
+              )}
             </button>
           );
         })}
