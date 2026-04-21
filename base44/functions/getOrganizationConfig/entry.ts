@@ -51,7 +51,7 @@ Deno.serve(async (req) => {
       },
       features: {
         ia: true,
-        automation: true,
+        automation: false,
       },
     };
 
