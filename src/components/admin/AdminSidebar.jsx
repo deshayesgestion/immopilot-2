@@ -28,36 +28,15 @@ import { useState } from "react";
 import { useOrganization } from "@/lib/OrganizationContext";
 import { canAccessModule } from "@/lib/organizationAccess";
 
-// module: clé de canAccessModule — undefined = toujours visible
 const navItems = [
   { label: "Dashboard", path: "/admin", icon: LayoutDashboard },
   { label: "Agenda", path: "/admin/agenda", icon: CalendarDays },
   { label: "Tâches", path: "/admin/taches", icon: ListTodo },
   { label: "Communications", path: "/admin/communications", icon: MessageSquare },
-  {
-    label: "Location",
-    module: "location",
-    icon: KeySquare,
-    children: [
-      { label: "Biens", path: "/admin/location", icon: Home },
-      { label: "Attribution", path: "/admin/attribution", icon: ClipboardList },
-      { label: "Suivi", path: "/admin/suivi", icon: Eye },
-      { label: "Sortie", path: "/admin/sortie", icon: LogOut },
-    ],
-  },
-  {
-    label: "Vente",
-    module: "vente",
-    icon: TrendingUp,
-    children: [
-      { label: "Mandats & Estimations", path: "/admin/vente/mandats", icon: FileSignature },
-      { label: "Biens", path: "/admin/vente/biens", icon: Home },
-      { label: "Acquéreurs", path: "/admin/vente/acquereurs", icon: UserCheck },
-      { label: "Transactions", path: "/admin/vente/transactions", icon: FileSignature },
-      { label: "Clôtures", path: "/admin/vente/cloture", icon: CheckSquare },
-    ],
-  },
-  { label: "Comptabilité", module: "compta", path: "/admin/comptabilite", icon: Calculator },
+  // ── Modules principaux (toujours visibles) ──
+  { label: "Vente", path: "/admin/modules/vente", icon: TrendingUp },
+  { label: "Location", path: "/admin/modules/location", icon: KeySquare },
+  { label: "Comptabilité", path: "/admin/modules/comptabilite", icon: Calculator },
   {
     label: "Paramètres",
     icon: Settings,
@@ -81,10 +60,8 @@ export default function AdminSidebar({ agency, collapsed, onToggle }) {
     setOpenGroups((prev) => ({ ...prev, [label]: !prev[label] }));
   };
 
-  // Filtrer les items selon les modules actifs
-  const visibleItems = navItems.filter(
-    (item) => !item.module || canAccessModule(organizationConfig, item.module)
-  );
+  // Tous les items sont visibles (pas de filtre module pour l'instant)
+  const visibleItems = navItems;
 
   return (
     <div className={`${collapsed ? "w-14" : "w-52"} h-screen bg-white border-r border-border/50 flex flex-col py-4 transition-all duration-200`}>
