@@ -62,6 +62,9 @@ import AcquereurDocuments from './pages/client/AcquereurDocuments';
 import AcquereurRecherche from './pages/client/AcquereurRecherche';
 import ConnectAdmin from './pages/ConnectAdmin';
 import ModuleGuard from './components/admin/ModuleGuard';
+import ModuleVente from './pages/admin/ModuleVente';
+import ModuleLocation from './pages/admin/ModuleLocation';
+import ModuleComptabilite from './pages/admin/ModuleComptabilite';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -122,6 +125,9 @@ const AuthenticatedApp = () => {
         <Route path="/admin/vente/transactions/:id" element={<ModuleGuard moduleName="vente"><AdminTransactionDetail /></ModuleGuard>} />
         <Route path="/admin/vente/cloture" element={<ModuleGuard moduleName="vente"><AdminVenteCloture /></ModuleGuard>} />
         <Route path="/admin/comptabilite" element={<ModuleGuard moduleName="compta"><AdminComptabilite /></ModuleGuard>} />
+        <Route path="/admin/modules/vente" element={<ModuleGuard moduleName="vente"><ModuleVente /></ModuleGuard>} />
+        <Route path="/admin/modules/location" element={<ModuleGuard moduleName="location"><ModuleLocation /></ModuleGuard>} />
+        <Route path="/admin/modules/comptabilite" element={<ModuleGuard moduleName="compta"><ModuleComptabilite /></ModuleGuard>} />
         <Route path="/admin/parametres/accueil-ia" element={<AccueilIA />} />
         <Route path="/admin/parametres/emails" element={<GestionEmails />} />
         <Route path="/admin/import" element={<AdminImport />} />
