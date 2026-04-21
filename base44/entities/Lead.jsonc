@@ -2,99 +2,45 @@
   "name": "Lead",
   "type": "object",
   "properties": {
-    "agency_id": {
+    "contact_id": {
       "type": "string",
-      "description": "ID agence (multi-tenant)"
+      "description": "ID du contact (relation vers Contact)"
     },
-    "name": {
+    "bien_id": {
       "type": "string",
-      "description": "Nom du prospect"
-    },
-    "email": {
-      "type": "string",
-      "description": "Email"
-    },
-    "phone": {
-      "type": "string",
-      "description": "T\u00e9l\u00e9phone"
+      "description": "ID du bien concern\u00e9 (relation vers Bien)"
     },
     "source": {
       "type": "string",
-      "enum": [
-        "site_web",
-        "telephone",
-        "email",
-        "recommandation",
-        "portail",
-        "autre"
-      ],
-      "description": "Source du lead"
+      "description": "Origine du lead (site, portail, recommandation\u2026)"
     },
-    "type": {
-      "type": "string",
-      "enum": [
-        "acheteur",
-        "vendeur",
-        "locataire",
-        "bailleur"
-      ],
-      "description": "Type de prospect"
-    },
-    "budget_min": {
-      "type": "number"
-    },
-    "budget_max": {
-      "type": "number"
-    },
-    "surface_min": {
-      "type": "number"
-    },
-    "property_types": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      },
-      "description": "Types de biens recherch\u00e9s"
-    },
-    "cities": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      },
-      "description": "Villes cibl\u00e9es"
-    },
-    "notes": {
-      "type": "string",
-      "description": "Notes internes"
-    },
-    "status": {
+    "statut": {
       "type": "string",
       "enum": [
         "nouveau",
         "contacte",
         "qualifie",
-        "en_cours",
-        "gagne",
         "perdu"
       ],
-      "default": "nouveau"
+      "default": "nouveau",
+      "description": "Statut du lead"
     },
     "score": {
       "type": "number",
-      "description": "Score IA (0-100)"
+      "description": "Score IA de qualification (0-100)",
+      "minimum": 0,
+      "maximum": 100
     },
-    "property_id": {
+    "notes": {
       "type": "string",
-      "description": "Bien concern\u00e9 (optionnel)"
+      "description": "Notes internes"
     },
-    "last_contact_date": {
+    "agency_id": {
       "type": "string",
-      "description": "Date dernier contact"
+      "description": "ID agence (multi-tenant)"
     }
   },
   "required": [
-    "name",
-    "email",
-    "type"
+    "contact_id"
   ]
 }

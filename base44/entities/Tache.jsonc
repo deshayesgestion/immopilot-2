@@ -3,74 +3,61 @@
   "type": "object",
   "properties": {
     "titre": {
-      "type": "string"
-    },
-    "description": {
-      "type": "string"
+      "type": "string",
+      "description": "Titre de la t\u00e2che"
     },
     "priorite": {
       "type": "string",
       "enum": [
-        "urgent",
-        "important",
-        "secondaire"
+        "basse",
+        "moyenne",
+        "haute"
       ],
-      "default": "important"
+      "default": "moyenne",
+      "description": "Niveau de priorit\u00e9"
     },
     "statut": {
       "type": "string",
       "enum": [
         "a_faire",
         "en_cours",
-        "terminee",
-        "annulee"
+        "termine"
       ],
-      "default": "a_faire"
+      "default": "a_faire",
+      "description": "Avancement"
     },
-    "categorie": {
+    "date": {
       "type": "string",
-      "enum": [
-        "location",
-        "vente",
-        "comptabilite",
-        "admin",
-        "client",
-        "autre"
-      ],
-      "default": "autre"
+      "format": "date",
+      "description": "Date d'\u00e9ch\u00e9ance"
+    },
+    "contact_id": {
+      "type": "string",
+      "description": "Contact li\u00e9 (relation vers Contact, optionnel)"
+    },
+    "bien_id": {
+      "type": "string",
+      "description": "Bien li\u00e9 (relation vers Bien, optionnel)"
+    },
+    "lead_id": {
+      "type": "string",
+      "description": "Lead li\u00e9 (relation vers Lead, optionnel)"
+    },
+    "transaction_id": {
+      "type": "string",
+      "description": "Transaction li\u00e9e (relation vers Transaction, optionnel)"
     },
     "assignee_email": {
-      "type": "string"
-    },
-    "assignee_nom": {
-      "type": "string"
-    },
-    "date_echeance": {
       "type": "string",
-      "format": "date"
+      "description": "Email de l'agent assign\u00e9"
     },
-    "entity_type": {
-      "type": "string"
-    },
-    "entity_id": {
-      "type": "string"
-    },
-    "entity_label": {
-      "type": "string"
-    },
-    "score_ia": {
-      "type": "number",
-      "description": "Score de priorit\u00e9 IA (0-100)"
-    },
-    "raison_ia": {
+    "description": {
       "type": "string",
-      "description": "Explication IA de la priorit\u00e9"
+      "description": "D\u00e9tail de la t\u00e2che"
     },
-    "tags": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      }
+    "agency_id": {
+      "type": "string",
+      "description": "ID agence (multi-tenant)"
     }
   },
   "required": [

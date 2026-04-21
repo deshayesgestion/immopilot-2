@@ -1,0 +1,46 @@
+{
+  "name": "Contact",
+  "type": "object",
+  "properties": {
+    "nom": {
+      "type": "string",
+      "description": "Nom complet du contact"
+    },
+    "email": {
+      "type": "string",
+      "description": "Adresse email"
+    },
+    "telephone": {
+      "type": "string",
+      "description": "Num\u00e9ro de t\u00e9l\u00e9phone"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "acheteur",
+        "vendeur",
+        "locataire",
+        "proprietaire"
+      ],
+      "description": "R\u00f4le principal du contact"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "\u00c9tiquettes libres"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Notes internes"
+    },
+    "agency_id": {
+      "type": "string",
+      "description": "ID agence (multi-tenant)"
+    }
+  },
+  "required": [
+    "nom"
+  ]
+}

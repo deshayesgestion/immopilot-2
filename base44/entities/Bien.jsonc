@@ -1,0 +1,49 @@
+{
+  "name": "Bien",
+  "type": "object",
+  "properties": {
+    "titre": {
+      "type": "string",
+      "description": "Titre du bien"
+    },
+    "adresse": {
+      "type": "string",
+      "description": "Adresse compl\u00e8te"
+    },
+    "prix": {
+      "type": "number",
+      "description": "Prix en euros"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "vente",
+        "location"
+      ],
+      "description": "Type de transaction"
+    },
+    "statut": {
+      "type": "string",
+      "enum": [
+        "disponible",
+        "en_cours",
+        "vendu",
+        "loue"
+      ],
+      "default": "disponible",
+      "description": "Statut du bien"
+    },
+    "owner_id": {
+      "type": "string",
+      "description": "ID du propri\u00e9taire (relation vers Contact)"
+    },
+    "agency_id": {
+      "type": "string",
+      "description": "ID agence (multi-tenant)"
+    }
+  },
+  "required": [
+    "titre",
+    "type"
+  ]
+}

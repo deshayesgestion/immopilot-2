@@ -2,76 +2,63 @@
   "name": "Transaction",
   "type": "object",
   "properties": {
-    "agency_id": {
-      "type": "string"
-    },
-    "reference": {
-      "type": "string"
-    },
-    "type": {
+    "bien_id": {
       "type": "string",
-      "enum": [
-        "loyer",
-        "commission_vente",
-        "honoraires",
-        "depense",
-        "remboursement",
-        "autre"
-      ]
+      "description": "ID du bien (relation vers Bien)"
+    },
+    "acheteur_id": {
+      "type": "string",
+      "description": "ID de l'acheteur ou locataire (relation vers Contact)"
+    },
+    "vendeur_id": {
+      "type": "string",
+      "description": "ID du vendeur ou propri\u00e9taire (relation vers Contact)"
+    },
+    "prix": {
+      "type": "number",
+      "description": "Prix de la transaction en euros"
     },
     "statut": {
       "type": "string",
       "enum": [
-        "paye",
-        "en_attente",
-        "en_retard",
-        "annule"
+        "en_cours",
+        "signe",
+        "annule",
+        "cloture"
       ],
-      "default": "en_attente"
+      "default": "en_cours",
+      "description": "Statut de la transaction"
     },
-    "montant": {
-      "type": "number"
-    },
-    "date_echeance": {
-      "type": "string"
-    },
-    "date_paiement": {
-      "type": "string"
-    },
-    "tiers_nom": {
-      "type": "string"
-    },
-    "tiers_email": {
-      "type": "string"
-    },
-    "bien_titre": {
-      "type": "string"
-    },
-    "bien_id": {
-      "type": "string"
-    },
-    "dossier_id": {
-      "type": "string"
-    },
-    "dossier_type": {
+    "type": {
       "type": "string",
       "enum": [
-        "location",
-        "vente"
-      ]
+        "vente",
+        "location"
+      ],
+      "description": "Type de transaction (unifi\u00e9 vente/location)"
     },
-    "categorie": {
-      "type": "string"
+    "date_signature": {
+      "type": "string",
+      "description": "Date de signature (ISO)"
+    },
+    "commission": {
+      "type": "number",
+      "description": "Commission agence en euros"
     },
     "notes": {
-      "type": "string"
+      "type": "string",
+      "description": "Notes internes"
     },
-    "agent_email": {
-      "type": "string"
+    "agency_id": {
+      "type": "string",
+      "description": "ID agence (multi-tenant)"
     }
   },
   "required": [
-    "type",
-    "montant"
+    "bien_id",
+    "acheteur_id",
+    "vendeur_id",
+    "prix",
+    "type"
   ]
 }

@@ -1,0 +1,62 @@
+{
+  "name": "Paiement",
+  "type": "object",
+  "properties": {
+    "contact_id": {
+      "type": "string",
+      "description": "ID du contact payeur (relation vers Contact)"
+    },
+    "transaction_id": {
+      "type": "string",
+      "description": "ID de la transaction li\u00e9e (relation vers Transaction, optionnel)"
+    },
+    "bien_id": {
+      "type": "string",
+      "description": "ID du bien concern\u00e9 (relation vers Bien, optionnel)"
+    },
+    "montant": {
+      "type": "number",
+      "description": "Montant en euros"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "loyer",
+        "commission",
+        "frais"
+      ],
+      "description": "Nature du paiement"
+    },
+    "statut": {
+      "type": "string",
+      "enum": [
+        "en_attente",
+        "paye",
+        "en_retard"
+      ],
+      "default": "en_attente",
+      "description": "Statut du paiement"
+    },
+    "date_echeance": {
+      "type": "string",
+      "description": "Date d'\u00e9ch\u00e9ance (ISO)"
+    },
+    "date_paiement": {
+      "type": "string",
+      "description": "Date effective du paiement (ISO)"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Notes internes"
+    },
+    "agency_id": {
+      "type": "string",
+      "description": "ID agence (multi-tenant)"
+    }
+  },
+  "required": [
+    "contact_id",
+    "montant",
+    "type"
+  ]
+}
