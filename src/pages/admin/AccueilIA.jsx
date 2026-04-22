@@ -2,79 +2,64 @@ import { useState, useEffect, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import {
-  Bot, Phone, TicketIcon, AlertTriangle, Clock, CheckCircle2,
-  ArrowUpRight, MessageSquare, Mic, PhoneIncoming, Users,
-  Home, TrendingUp, CreditCard, Loader2, Plus, X, Send, Zap, Eye, Settings
+  Bot, Phone, TicketIcon, AlertTriangle, CheckCircle2,
+  PhoneIncoming, Home, TrendingUp, CreditCard, Loader2,
+  Plus, Send, Zap, Eye, Mail, ArrowUpRight
 } from "lucide-react";
+import HubIAFlux from "@/components/ia/HubIAFlux";
+import TicketCreateModal from "@/components/ia/TicketCreateModal";
+import TicketDetailModal from "@/components/ia/TicketDetailModal";
 
 const fmt = (d) => d ? new Date(d).toLocaleDateString("fr-FR") : "—";
-const fmtTime = (d) => d ? new Date(d).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }) : "—";
 
 const PRIORITE_CONFIG = {
   urgent: { label: "Urgent", color: "bg-red-100 text-red-700", dot: "bg-red-500" },
   normal: { label: "Normal", color: "bg-amber-100 text-amber-700", dot: "bg-amber-500" },
   faible: { label: "Faible", color: "bg-gray-100 text-gray-500", dot: "bg-gray-400" },
 };
-
 const STATUT_CONFIG = {
-  nouveau: { label: "Nouveau", color: "bg-blue-100 text-blue-700" },
-  en_cours: { label: "En cours", color: "bg-amber-100 text-amber-700" },
-  resolu: { label: "Résolu", color: "bg-green-100 text-green-700" },
-  escalade: { label: "Escalade", color: "bg-red-100 text-red-700" },
+  nouveau:   { label: "Nouveau",  color: "bg-blue-100 text-blue-700" },
+  en_cours:  { label: "En cours", color: "bg-amber-100 text-amber-700" },
+  resolu:    { label: "Résolu",   color: "bg-green-100 text-green-700" },
+  escalade:  { label: "Escalade", color: "bg-red-100 text-red-700" },
 };
-
+const SOURCE_CONFIG = {
+  appel:  { label: "Appel",  color: "bg-green-100 text-green-700", icon: Phone },
+  email:  { label: "Email",  color: "bg-blue-100 text-blue-700", icon: Mail },
+  chat:   { label: "Chat",   color: "bg-purple-100 text-purple-700", icon: Bot },
+  manuel: { label: "Manuel", color: "bg-gray-100 text-gray-500", icon: Zap },
+};
 const MODULE_ICONS = {
-  location: <Home className="w-3.5 h-3.5 text-blue-500" />,
-  vente: <TrendingUp className="w-3.5 h-3.5 text-purple-500" />,
+  location:    <Home className="w-3.5 h-3.5 text-blue-500" />,
+  vente:       <TrendingUp className="w-3.5 h-3.5 text-purple-500" />,
   comptabilite: <CreditCard className="w-3.5 h-3.5 text-green-500" />,
-  general: <MessageSquare className="w-3.5 h-3.5 text-gray-500" />,
+  general:     <Bot className="w-3.5 h-3.5 text-gray-400" />,
 };
 
-const TYPE_LABELS = {
-  incident_logement: "Incident logement",
-  demande_visite: "Demande de visite",
-  demande_information: "Demande d'info",
-  probleme_paiement: "Problème paiement",
-  question_administrative: "Question admin",
-  autre: "Autre",
-};
-
-// ── CHAT IA ──────────────────────────────────────────────────────────────
+// ── CHAT IA (Rounded / Agent) ─────────────────────────────────────────────
 function ChatIA({ onTicketCreated }) {
   const [conversation, setConversation] = useState(null);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [started, setStarted] = useState(false);
-  const messagesEndRef = useRef(null);
+  const endRef = useRef(null);
 
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  useEffect(() => { endRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
 
   const startConversation = async () => {
     setLoading(true);
     const conv = await base44.agents.createConversation({
       agent_name: "accueil_ia",
-      metadata: { name: `Appel ${new Date().toLocaleString("fr-FR")}` }
+      metadata: { name: `Session ${new Date().toLocaleString("fr-FR")}` }
     });
     setConversation(conv);
     setStarted(true);
-    setLoading(false);
-
-    // Subscribe to updates
-    base44.agents.subscribeToConversation(conv.id, (data) => {
-      setMessages(data.messages || []);
-    });
-
-    // Send initial greeting trigger
-    const updated = await base44.agents.addMessage(conv, {
-      role: "user",
-      content: "Bonjour"
-    });
+    base44.agents.subscribeToConversation(conv.id, (data) => setMessages(data.messages || []));
+    const updated = await base44.agents.addMessage(conv, { role: "user", content: "Bonjour" });
     setMessages(updated?.messages || []);
+    setLoading(false);
   };
 
   const sendMessage = async () => {
@@ -82,40 +67,32 @@ function ChatIA({ onTicketCreated }) {
     const msg = input.trim();
     setInput("");
     setLoading(true);
-    const updated = await base44.agents.addMessage(conversation, {
-      role: "user",
-      content: msg
-    });
+    const updated = await base44.agents.addMessage(conversation, { role: "user", content: msg });
     setMessages(updated?.messages || []);
     setLoading(false);
-
-    // Check if a TicketIA was created
     if (onTicketCreated) onTicketCreated();
   };
 
-  if (!started) {
-    return (
-      <div className="flex flex-col items-center justify-center py-16 gap-4">
-        <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center">
-          <Bot className="w-8 h-8 text-primary" />
-        </div>
-        <div className="text-center">
-          <p className="text-base font-semibold">Standardiste IA</p>
-          <p className="text-sm text-muted-foreground mt-1 max-w-xs">
-            Simulez un appel entrant pour tester l'agent IA. Il comprend les demandes et crée des tickets automatiquement.
-          </p>
-        </div>
-        <Button className="rounded-full gap-2" onClick={startConversation} disabled={loading}>
-          {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <PhoneIncoming className="w-4 h-4" />}
-          Simuler un appel entrant
-        </Button>
+  if (!started) return (
+    <div className="flex flex-col items-center justify-center py-16 gap-4">
+      <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center">
+        <Bot className="w-8 h-8 text-primary" />
       </div>
-    );
-  }
+      <div className="text-center">
+        <p className="text-base font-semibold">Agent IA Central</p>
+        <p className="text-sm text-muted-foreground mt-1 max-w-xs">
+          Testez l'agent IA en simulant une interaction. Il comprend les demandes, consulte le CRM et crée des tickets automatiquement.
+        </p>
+      </div>
+      <Button className="rounded-full gap-2" onClick={startConversation} disabled={loading}>
+        {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <PhoneIncoming className="w-4 h-4" />}
+        Démarrer une session IA
+      </Button>
+    </div>
+  );
 
   return (
     <div className="flex flex-col h-[500px]">
-      {/* Messages */}
       <div className="flex-1 overflow-y-auto space-y-3 px-1 py-2">
         {messages.filter(m => m.role !== "system").map((msg, i) => (
           <div key={i} className={`flex gap-2 ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
@@ -124,11 +101,7 @@ function ChatIA({ onTicketCreated }) {
                 <Bot className="w-3.5 h-3.5 text-primary" />
               </div>
             )}
-            <div className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-sm ${
-              msg.role === "user"
-                ? "bg-primary text-white"
-                : "bg-secondary/40 text-foreground"
-            }`}>
+            <div className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-sm ${msg.role === "user" ? "bg-primary text-white" : "bg-secondary/40 text-foreground"}`}>
               {msg.content}
             </div>
           </div>
@@ -143,18 +116,12 @@ function ChatIA({ onTicketCreated }) {
             </div>
           </div>
         )}
-        <div ref={messagesEndRef} />
+        <div ref={endRef} />
       </div>
-
-      {/* Input */}
       <div className="flex gap-2 pt-3 border-t border-border/50">
-        <Input
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-          placeholder="Tapez votre message..."
-          className="flex-1 h-10 rounded-xl text-sm"
-        />
+        <Input value={input} onChange={e => setInput(e.target.value)}
+          onKeyDown={e => e.key === "Enter" && sendMessage()}
+          placeholder="Tapez votre message…" className="flex-1 h-10 rounded-xl text-sm" />
         <Button size="icon" className="h-10 w-10 rounded-xl" onClick={sendMessage} disabled={loading || !input.trim()}>
           <Send className="w-4 h-4" />
         </Button>
@@ -163,106 +130,14 @@ function ChatIA({ onTicketCreated }) {
   );
 }
 
-// ── TICKET DETAIL ─────────────────────────────────────────────────────────
-function TicketDetail({ ticket, onClose, onUpdate }) {
-  const [statut, setStatut] = useState(ticket.statut);
-  const [notes, setNotes] = useState(ticket.notes || "");
-  const [saving, setSaving] = useState(false);
-
-  const save = async () => {
-    setSaving(true);
-    await base44.entities.TicketIA.update(ticket.id, { statut, notes });
-    setSaving(false);
-    onUpdate();
-    onClose();
-  };
-
-  const prioriteConfig = PRIORITE_CONFIG[ticket.priorite] || PRIORITE_CONFIG.normal;
-
-  return (
-    <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={onClose}>
-      <div className="bg-white rounded-2xl max-w-lg w-full shadow-xl" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center justify-between p-5 border-b border-border/50">
-          <div className="flex items-center gap-2">
-            <span className={`text-xs font-semibold px-2 py-1 rounded-full ${prioriteConfig.color}`}>
-              {prioriteConfig.label}
-            </span>
-            <span className="text-sm font-semibold">{ticket.numero}</span>
-          </div>
-          <button onClick={onClose} className="text-muted-foreground hover:text-foreground">
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-        <div className="p-5 space-y-4">
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <p className="text-xs text-muted-foreground">Appelant</p>
-              <p className="text-sm font-medium">{ticket.appelant_nom || "Inconnu"}</p>
-              <p className="text-xs text-muted-foreground">{ticket.appelant_telephone || ""}</p>
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">Type</p>
-              <p className="text-sm font-medium">{TYPE_LABELS[ticket.type_demande] || ticket.type_demande}</p>
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">Module</p>
-              <div className="flex items-center gap-1 mt-0.5">{MODULE_ICONS[ticket.module]} <span className="text-sm capitalize">{ticket.module}</span></div>
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">Date</p>
-              <p className="text-sm">{fmt(ticket.date_appel)} {fmtTime(ticket.date_appel)}</p>
-            </div>
-          </div>
-
-          {ticket.resume_ia && (
-            <div className="bg-primary/5 border border-primary/15 rounded-xl p-3">
-              <p className="text-xs font-semibold text-primary mb-1 flex items-center gap-1"><Zap className="w-3 h-3" /> Résumé IA</p>
-              <p className="text-sm">{ticket.resume_ia}</p>
-            </div>
-          )}
-
-          {ticket.description && (
-            <div>
-              <p className="text-xs text-muted-foreground mb-1">Description</p>
-              <p className="text-sm bg-secondary/20 rounded-xl p-3">{ticket.description}</p>
-            </div>
-          )}
-
-          {ticket.transcription && (
-            <div>
-              <p className="text-xs text-muted-foreground mb-1">Transcription</p>
-              <p className="text-xs bg-secondary/10 rounded-xl p-3 max-h-24 overflow-y-auto font-mono">{ticket.transcription}</p>
-            </div>
-          )}
-
-          <div>
-            <label className="text-xs text-muted-foreground mb-1 block">Statut</label>
-            <select value={statut} onChange={(e) => setStatut(e.target.value)}
-              className="w-full h-9 rounded-xl border border-input bg-transparent px-3 text-sm">
-              <option value="nouveau">Nouveau</option>
-              <option value="en_cours">En cours</option>
-              <option value="resolu">Résolu</option>
-              <option value="escalade">Escalade</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="text-xs text-muted-foreground mb-1 block">Notes internes</label>
-            <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} className="rounded-xl text-sm resize-none" />
-          </div>
-        </div>
-        <div className="flex gap-2 px-5 pb-5">
-          <Button variant="outline" className="rounded-full flex-1 text-sm h-9" onClick={onClose}>Annuler</Button>
-          <Button className="rounded-full flex-1 text-sm h-9" onClick={save} disabled={saving}>
-            {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Enregistrer"}
-          </Button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 // ── MAIN PAGE ─────────────────────────────────────────────────────────────
+const TABS = [
+  { id: "dashboard", label: "Dashboard", icon: TicketIcon },
+  { id: "agent", label: "Agent IA", icon: Bot },
+  { id: "tickets", label: "Tickets", icon: TicketIcon },
+  { id: "hub", label: "Hub IA & Flux", icon: Zap },
+];
+
 export default function AccueilIA() {
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -270,15 +145,11 @@ export default function AccueilIA() {
   const [selectedTicket, setSelectedTicket] = useState(null);
   const [filterStatut, setFilterStatut] = useState("all");
   const [filterPriorite, setFilterPriorite] = useState("all");
+  const [filterSource, setFilterSource] = useState("all");
   const [showNewTicket, setShowNewTicket] = useState(false);
-  const [newTicket, setNewTicket] = useState({
-    appelant_nom: "", appelant_telephone: "", type_demande: "incident_logement",
-    module: "location", priorite: "normal", description: "", source: "manuel"
-  });
-  const [savingNew, setSavingNew] = useState(false);
 
   const load = async () => {
-    const res = await base44.entities.TicketIA.list("-created_date", 100);
+    const res = await base44.entities.TicketIA.list("-created_date", 200);
     setTickets(res);
     setLoading(false);
   };
@@ -290,35 +161,25 @@ export default function AccueilIA() {
     urgents: tickets.filter(t => t.priorite === "urgent").length,
     nouveaux: tickets.filter(t => t.statut === "nouveau").length,
     resolus: tickets.filter(t => t.statut === "resolu").length,
-    location: tickets.filter(t => t.module === "location").length,
-    vente: tickets.filter(t => t.module === "vente").length,
+    parSource: {
+      appel: tickets.filter(t => t.source === "appel").length,
+      email: tickets.filter(t => t.source === "email").length,
+      chat: tickets.filter(t => t.source === "chat").length,
+      manuel: tickets.filter(t => t.source === "manuel").length,
+    },
+    parModule: {
+      location: tickets.filter(t => t.module === "location").length,
+      vente: tickets.filter(t => t.module === "vente").length,
+      comptabilite: tickets.filter(t => t.module === "comptabilite").length,
+    },
   };
 
   const filteredTickets = tickets.filter(t => {
     if (filterStatut !== "all" && t.statut !== filterStatut) return false;
     if (filterPriorite !== "all" && t.priorite !== filterPriorite) return false;
+    if (filterSource !== "all" && t.source !== filterSource) return false;
     return true;
   });
-
-  const createTicket = async () => {
-    setSavingNew(true);
-    await base44.entities.TicketIA.create({
-      ...newTicket,
-      numero: `TKT-${Date.now()}`,
-      date_appel: new Date().toISOString(),
-    });
-    setSavingNew(false);
-    setShowNewTicket(false);
-    setNewTicket({ appelant_nom: "", appelant_telephone: "", type_demande: "incident_logement", module: "location", priorite: "normal", description: "", source: "manuel" });
-    load();
-  };
-
-  const TABS = [
-    { id: "dashboard", label: "Dashboard", icon: TicketIcon },
-    { id: "agent", label: "Agent IA (simulation)", icon: Bot },
-    { id: "tickets", label: "Tous les tickets", icon: MessageSquare },
-    { id: "config", label: "Configuration", icon: Zap },
-  ];
 
   return (
     <div className="space-y-6 max-w-5xl">
@@ -326,10 +187,11 @@ export default function AccueilIA() {
       <div className="flex items-start justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
-            <Bot className="w-6 h-6 text-primary" />
-            Accueil IA
+            <Bot className="w-6 h-6 text-primary" /> Accueil IA
           </h1>
-          <p className="text-sm text-muted-foreground mt-0.5">Standardiste intelligent — gestion automatique des appels et tickets</p>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            Cerveau central IA — Rounded · Email · Tickets · CRM
+          </p>
         </div>
         <Button className="rounded-full gap-2 h-9 text-sm" onClick={() => setShowNewTicket(true)}>
           <Plus className="w-3.5 h-3.5" /> Nouveau ticket
@@ -346,7 +208,12 @@ export default function AccueilIA() {
                 activeTab === tab.id ? "bg-primary text-white shadow-sm" : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
               }`}>
               <Icon className="w-3.5 h-3.5" />
-              <span className="hidden sm:block">{tab.label}</span>
+              <span>{tab.label}</span>
+              {tab.id === "tickets" && stats.nouveaux > 0 && (
+                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${activeTab === tab.id ? "bg-white/20" : "bg-primary text-white"}`}>
+                  {stats.nouveaux}
+                </span>
+              )}
             </button>
           );
         })}
@@ -355,7 +222,7 @@ export default function AccueilIA() {
       {/* ── DASHBOARD ── */}
       {activeTab === "dashboard" && (
         <div className="space-y-5">
-          {/* Stats */}
+          {/* KPIs */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {[
               { label: "Total tickets", value: stats.total, icon: TicketIcon, color: "text-primary", bg: "bg-primary/10" },
@@ -376,31 +243,53 @@ export default function AccueilIA() {
             })}
           </div>
 
-          {/* Modules */}
-          <div className="grid grid-cols-2 gap-3">
-            <div className="bg-white rounded-2xl border border-border/50 p-4 flex items-center gap-4">
-              <div className="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center">
-                <Home className="w-4 h-4 text-blue-600" />
-              </div>
-              <div>
-                <p className="text-lg font-bold text-blue-600">{stats.location}</p>
-                <p className="text-xs text-muted-foreground">Tickets Location</p>
-              </div>
-            </div>
-            <div className="bg-white rounded-2xl border border-border/50 p-4 flex items-center gap-4">
-              <div className="w-9 h-9 rounded-xl bg-purple-50 flex items-center justify-center">
-                <TrendingUp className="w-4 h-4 text-purple-600" />
-              </div>
-              <div>
-                <p className="text-lg font-bold text-purple-600">{stats.vente}</p>
-                <p className="text-xs text-muted-foreground">Tickets Vente</p>
-              </div>
+          {/* Sources */}
+          <div className="bg-white rounded-2xl border border-border/50 p-5">
+            <p className="text-sm font-semibold mb-4">Tickets par source</p>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {Object.entries(stats.parSource).map(([src, count]) => {
+                const cfg = SOURCE_CONFIG[src];
+                const Icon = cfg.icon;
+                return (
+                  <div key={src} className="flex items-center gap-3 p-3 bg-secondary/20 rounded-xl">
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${cfg.color}`}>
+                      <Icon className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <p className="text-lg font-bold">{count}</p>
+                      <p className="text-xs text-muted-foreground">{cfg.label}</p>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
 
-          {/* Recent urgent tickets */}
+          {/* Modules */}
+          <div className="grid grid-cols-3 gap-3">
+            {[
+              { label: "Location", value: stats.parModule.location, icon: Home, color: "text-blue-600", bg: "bg-blue-50" },
+              { label: "Vente", value: stats.parModule.vente, icon: TrendingUp, color: "text-purple-600", bg: "bg-purple-50" },
+              { label: "Comptabilité", value: stats.parModule.comptabilite, icon: CreditCard, color: "text-green-600", bg: "bg-green-50" },
+            ].map(s => {
+              const Icon = s.icon;
+              return (
+                <div key={s.label} className="bg-white rounded-2xl border border-border/50 p-4 flex items-center gap-3">
+                  <div className={`w-9 h-9 rounded-xl ${s.bg} flex items-center justify-center flex-shrink-0`}>
+                    <Icon className={`w-4 h-4 ${s.color}`} />
+                  </div>
+                  <div>
+                    <p className={`text-xl font-bold ${s.color}`}>{s.value}</p>
+                    <p className="text-xs text-muted-foreground">{s.label}</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Urgents */}
           <div className="bg-white rounded-2xl border border-border/50 p-5">
-            <p className="text-sm font-semibold mb-3">Tickets urgents récents</p>
+            <p className="text-sm font-semibold mb-3">Tickets urgents non résolus</p>
             {tickets.filter(t => t.priorite === "urgent" && t.statut !== "resolu").length === 0 ? (
               <div className="text-center py-8">
                 <CheckCircle2 className="w-8 h-8 text-green-500 mx-auto mb-2" />
@@ -408,19 +297,52 @@ export default function AccueilIA() {
               </div>
             ) : (
               <div className="space-y-2">
-                {tickets.filter(t => t.priorite === "urgent" && t.statut !== "resolu").slice(0, 5).map(t => (
-                  <div key={t.id} className="flex items-center gap-3 bg-red-50 border border-red-100 rounded-xl px-4 py-3 cursor-pointer hover:border-red-300 transition-colors"
+                {tickets.filter(t => t.priorite === "urgent" && t.statut !== "resolu").slice(0, 6).map(t => (
+                  <div key={t.id}
+                    className="flex items-center gap-3 bg-red-50 border border-red-100 rounded-xl px-4 py-3 cursor-pointer hover:border-red-300 transition-colors"
                     onClick={() => setSelectedTicket(t)}>
                     <AlertTriangle className="w-4 h-4 text-red-600 flex-shrink-0" />
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium">{t.appelant_nom || "Appelant inconnu"}</p>
-                      <p className="text-xs text-muted-foreground truncate">{t.resume_ia || t.description || TYPE_LABELS[t.type_demande]}</p>
+                      <p className="text-sm font-medium">{t.appelant_nom || "Inconnu"}</p>
+                      <p className="text-xs text-muted-foreground truncate">{t.resume_ia || t.description || "—"}</p>
                     </div>
-                    <p className="text-xs text-muted-foreground flex-shrink-0">{fmt(t.date_appel)}</p>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      {SOURCE_CONFIG[t.source] && (() => {
+                        const SrcIcon = SOURCE_CONFIG[t.source].icon;
+                        return <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${SOURCE_CONFIG[t.source].color}`}><SrcIcon className="w-3 h-3 inline" /></span>;
+                      })()}
+                      <span className="text-xs text-muted-foreground">{fmt(t.date_appel)}</span>
+                    </div>
                   </div>
                 ))}
               </div>
             )}
+          </div>
+
+          {/* Liens rapides vers modules */}
+          <div className="grid grid-cols-2 gap-3">
+            <a href="/admin/parametres/emails"
+              className="flex items-center gap-3 p-4 bg-white rounded-2xl border border-border/50 hover:border-primary/30 hover:shadow-sm transition-all group">
+              <div className="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center">
+                <Mail className="w-4 h-4 text-blue-600" />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-semibold">IA Email</p>
+                <p className="text-xs text-muted-foreground">Gérer les emails entrants</p>
+              </div>
+              <ArrowUpRight className="w-4 h-4 text-muted-foreground group-hover:text-primary" />
+            </a>
+            <a href="https://app.callrounded.com" target="_blank" rel="noreferrer"
+              className="flex items-center gap-3 p-4 bg-white rounded-2xl border border-border/50 hover:border-green-300 hover:shadow-sm transition-all group">
+              <div className="w-9 h-9 rounded-xl bg-green-50 flex items-center justify-center">
+                <Phone className="w-4 h-4 text-green-600" />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-semibold">Rounded</p>
+                <p className="text-xs text-muted-foreground">Dashboard agent vocal</p>
+              </div>
+              <ArrowUpRight className="w-4 h-4 text-muted-foreground group-hover:text-green-600" />
+            </a>
           </div>
         </div>
       )}
@@ -430,11 +352,11 @@ export default function AccueilIA() {
         <div className="bg-white rounded-2xl border border-border/50 p-5">
           <div className="flex items-center gap-3 mb-4 pb-4 border-b border-border/50">
             <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center">
-              <Bot className="w-4.5 h-4.5 text-primary" />
+              <Bot className="w-4 h-4 text-primary" />
             </div>
             <div>
-              <p className="text-sm font-semibold">Simulation d'appel</p>
-              <p className="text-xs text-muted-foreground">Testez le standardiste IA en simulant une conversation</p>
+              <p className="text-sm font-semibold">Agent IA — Cerveau central</p>
+              <p className="text-xs text-muted-foreground">Accès CRM complet : biens, dossiers, contacts, paiements</p>
             </div>
           </div>
           <ChatIA onTicketCreated={load} />
@@ -444,9 +366,8 @@ export default function AccueilIA() {
       {/* ── TICKETS ── */}
       {activeTab === "tickets" && (
         <div className="space-y-4">
-          {/* Filters */}
           <div className="flex gap-2 flex-wrap">
-            <select value={filterStatut} onChange={(e) => setFilterStatut(e.target.value)}
+            <select value={filterStatut} onChange={e => setFilterStatut(e.target.value)}
               className="h-9 rounded-xl border border-input bg-white px-3 text-sm">
               <option value="all">Tous statuts</option>
               <option value="nouveau">Nouveau</option>
@@ -454,12 +375,20 @@ export default function AccueilIA() {
               <option value="resolu">Résolu</option>
               <option value="escalade">Escalade</option>
             </select>
-            <select value={filterPriorite} onChange={(e) => setFilterPriorite(e.target.value)}
+            <select value={filterPriorite} onChange={e => setFilterPriorite(e.target.value)}
               className="h-9 rounded-xl border border-input bg-white px-3 text-sm">
               <option value="all">Toutes priorités</option>
               <option value="urgent">Urgent</option>
               <option value="normal">Normal</option>
               <option value="faible">Faible</option>
+            </select>
+            <select value={filterSource} onChange={e => setFilterSource(e.target.value)}
+              className="h-9 rounded-xl border border-input bg-white px-3 text-sm">
+              <option value="all">Toutes sources</option>
+              <option value="appel">Appel Rounded</option>
+              <option value="email">Email IA</option>
+              <option value="chat">Chat IA</option>
+              <option value="manuel">Manuel</option>
             </select>
           </div>
 
@@ -476,16 +405,22 @@ export default function AccueilIA() {
                 {filteredTickets.map(t => {
                   const statutConfig = STATUT_CONFIG[t.statut] || STATUT_CONFIG.nouveau;
                   const prioriteConfig = PRIORITE_CONFIG[t.priorite] || PRIORITE_CONFIG.normal;
+                  const sourceConfig = SOURCE_CONFIG[t.source] || SOURCE_CONFIG.manuel;
+                  const SrcIcon = sourceConfig.icon;
                   return (
-                    <div key={t.id} className="flex items-center gap-4 px-5 py-4 hover:bg-secondary/10 cursor-pointer transition-colors"
+                    <div key={t.id}
+                      className="flex items-center gap-4 px-5 py-4 hover:bg-secondary/10 cursor-pointer transition-colors"
                       onClick={() => setSelectedTicket(t)}>
                       <div className={`w-2 h-2 rounded-full flex-shrink-0 ${prioriteConfig.dot}`} />
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <p className="text-sm font-medium">{t.appelant_nom || "Appelant inconnu"}</p>
-                          <span className={`text-xs px-2 py-0.5 rounded-full ${statutConfig.color}`}>{statutConfig.label}</span>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <p className="text-sm font-medium">{t.appelant_nom || "Inconnu"}</p>
+                          <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${statutConfig.color}`}>{statutConfig.label}</span>
+                          <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${sourceConfig.color}`}>
+                            <SrcIcon className="w-3 h-3 inline mr-0.5" />{sourceConfig.label}
+                          </span>
                         </div>
-                        <p className="text-xs text-muted-foreground truncate mt-0.5">{t.resume_ia || TYPE_LABELS[t.type_demande] || "—"}</p>
+                        <p className="text-xs text-muted-foreground truncate mt-0.5">{t.resume_ia || t.description || "—"}</p>
                       </div>
                       <div className="flex items-center gap-2 flex-shrink-0">
                         {MODULE_ICONS[t.module]}
@@ -501,164 +436,15 @@ export default function AccueilIA() {
         </div>
       )}
 
-      {/* ── CONFIG ── */}
-      {activeTab === "config" && (
-        <div className="space-y-4">
+      {/* ── HUB IA ── */}
+      {activeTab === "hub" && <HubIAFlux />}
 
-          {/* Rounded — intégration active */}
-          <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-2xl p-5 space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-green-100 flex items-center justify-center flex-shrink-0">
-                  <Phone className="w-5 h-5 text-green-600" />
-                </div>
-                <div>
-                  <p className="text-sm font-semibold flex items-center gap-2">
-                    Rounded — Agent vocal IA
-                    <span className="text-[10px] bg-green-500 text-white px-2 py-0.5 rounded-full font-bold">CONNECTÉ</span>
-                  </p>
-                  <p className="text-xs text-muted-foreground">callrounded.com · Clé API configurée</p>
-                </div>
-              </div>
-              <a href="https://app.callrounded.com" target="_blank" rel="noreferrer">
-                <ArrowUpRight className="w-4 h-4 text-green-600" />
-              </a>
-            </div>
-
-            <div className="bg-white/70 rounded-xl p-4 space-y-3">
-              <p className="text-xs font-semibold text-green-800">⚙️ Configuration du webhook Rounded</p>
-              <p className="text-xs text-muted-foreground">Dans votre dashboard Rounded → Settings → Webhooks, ajoutez cette URL :</p>
-              <div className="bg-gray-900 text-green-400 text-xs font-mono rounded-lg px-4 py-3 flex items-center justify-between gap-2">
-                <span className="break-all">…/functions/roundedWebhook</span>
-                <button
-                  onClick={() => navigator.clipboard.writeText(window.location.origin + '/functions/roundedWebhook')}
-                  className="text-gray-400 hover:text-white flex-shrink-0 text-[10px] border border-gray-600 rounded px-1.5 py-0.5">
-                  Copier
-                </button>
-              </div>
-              <div className="space-y-1.5">
-                <p className="text-xs font-semibold text-green-800">Événements à activer :</p>
-                {["event_call_status_updated", "event_transcript", "event_post_call"].map(ev => (
-                  <div key={ev} className="flex items-center gap-2">
-                    <div className="w-1.5 h-1.5 rounded-full bg-green-500 flex-shrink-0" />
-                    <code className="text-[11px] text-green-800 font-mono">{ev}</code>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="bg-white/70 rounded-xl p-4 space-y-2">
-              <p className="text-xs font-semibold text-green-800">🔄 Flux de traitement automatique</p>
-              {[
-                { step: "1", text: "Appel entrant → Rounded répond avec l'agent vocal IA" },
-                { step: "2", text: "Transcription temps réel envoyée via webhook" },
-                { step: "3", text: "En fin d'appel : analyse IA de la transcription" },
-                { step: "4", text: "Ticket créé automatiquement dans le bon module (Location / Vente / Compta)" },
-                { step: "5", text: "Alerte email si priorité urgente" },
-                { step: "6", text: "Lead créé si appelant non identifié" },
-              ].map(s => (
-                <div key={s.step} className="flex items-start gap-2.5">
-                  <span className="w-5 h-5 rounded-full bg-green-200 text-green-800 text-[10px] font-bold flex items-center justify-center flex-shrink-0 mt-0.5">{s.step}</span>
-                  <p className="text-xs text-muted-foreground">{s.text}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="bg-white rounded-2xl border border-border/50 p-5 space-y-4">
-            <p className="text-sm font-semibold">Règles d'escalade automatique</p>
-            <div className="space-y-2">
-              {[
-                { rule: "Incident urgent (fuite, incendie, intrusion)", action: "Alerte SMS agent de garde immédiate" },
-                { rule: "Problème paiement > 2 semaines retard", action: "Redirection module Comptabilité" },
-                { rule: "Demande visite — bien disponible", action: "Proposition créneaux automatique" },
-                { rule: "Interlocuteur non identifié", action: "Création Lead générique + ticket" },
-              ].map((r, i) => (
-                <div key={i} className="flex items-start gap-3 p-3 bg-secondary/20 rounded-xl">
-                  <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <Zap className="w-2.5 h-2.5 text-primary" />
-                  </div>
-                  <div>
-                    <p className="text-xs font-medium">{r.rule}</p>
-                    <p className="text-xs text-muted-foreground">→ {r.action}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* New ticket modal */}
+      {/* Modals */}
       {showNewTicket && (
-        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={() => setShowNewTicket(false)}>
-          <div className="bg-white rounded-2xl max-w-md w-full shadow-xl p-5 space-y-4" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between">
-              <p className="text-sm font-semibold">Créer un ticket manuellement</p>
-              <button onClick={() => setShowNewTicket(false)}><X className="w-4 h-4 text-muted-foreground" /></button>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="col-span-2">
-                <label className="text-xs text-muted-foreground mb-1 block">Nom appelant</label>
-                <Input value={newTicket.appelant_nom} onChange={(e) => setNewTicket(p => ({ ...p, appelant_nom: e.target.value }))} className="h-9 text-sm rounded-xl" />
-              </div>
-              <div>
-                <label className="text-xs text-muted-foreground mb-1 block">Téléphone</label>
-                <Input value={newTicket.appelant_telephone} onChange={(e) => setNewTicket(p => ({ ...p, appelant_telephone: e.target.value }))} className="h-9 text-sm rounded-xl" />
-              </div>
-              <div>
-                <label className="text-xs text-muted-foreground mb-1 block">Priorité</label>
-                <select value={newTicket.priorite} onChange={(e) => setNewTicket(p => ({ ...p, priorite: e.target.value }))}
-                  className="w-full h-9 rounded-xl border border-input bg-transparent px-3 text-sm">
-                  <option value="urgent">Urgent</option>
-                  <option value="normal">Normal</option>
-                  <option value="faible">Faible</option>
-                </select>
-              </div>
-              <div>
-                <label className="text-xs text-muted-foreground mb-1 block">Module</label>
-                <select value={newTicket.module} onChange={(e) => setNewTicket(p => ({ ...p, module: e.target.value }))}
-                  className="w-full h-9 rounded-xl border border-input bg-transparent px-3 text-sm">
-                  <option value="location">Location</option>
-                  <option value="vente">Vente</option>
-                  <option value="comptabilite">Comptabilité</option>
-                  <option value="general">Général</option>
-                </select>
-              </div>
-              <div>
-                <label className="text-xs text-muted-foreground mb-1 block">Type</label>
-                <select value={newTicket.type_demande} onChange={(e) => setNewTicket(p => ({ ...p, type_demande: e.target.value }))}
-                  className="w-full h-9 rounded-xl border border-input bg-transparent px-3 text-sm">
-                  <option value="incident_logement">Incident logement</option>
-                  <option value="demande_visite">Demande visite</option>
-                  <option value="demande_information">Demande d'info</option>
-                  <option value="probleme_paiement">Problème paiement</option>
-                  <option value="question_administrative">Question admin</option>
-                  <option value="autre">Autre</option>
-                </select>
-              </div>
-              <div className="col-span-2">
-                <label className="text-xs text-muted-foreground mb-1 block">Description</label>
-                <Textarea value={newTicket.description} onChange={(e) => setNewTicket(p => ({ ...p, description: e.target.value }))} rows={3} className="text-sm rounded-xl resize-none" />
-              </div>
-            </div>
-            <div className="flex gap-2">
-              <Button variant="outline" className="rounded-full flex-1 h-9 text-sm" onClick={() => setShowNewTicket(false)}>Annuler</Button>
-              <Button className="rounded-full flex-1 h-9 text-sm" onClick={createTicket} disabled={savingNew}>
-                {savingNew ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Créer le ticket"}
-              </Button>
-            </div>
-          </div>
-        </div>
+        <TicketCreateModal onClose={() => setShowNewTicket(false)} onCreated={() => { load(); }} />
       )}
-
-      {/* Ticket detail modal */}
       {selectedTicket && (
-        <TicketDetail
-          ticket={selectedTicket}
-          onClose={() => setSelectedTicket(null)}
-          onUpdate={load}
-        />
+        <TicketDetailModal ticket={selectedTicket} onClose={() => setSelectedTicket(null)} onUpdate={load} />
       )}
     </div>
   );

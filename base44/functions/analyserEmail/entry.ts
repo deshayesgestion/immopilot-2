@@ -93,17 +93,32 @@ Classifie et fournis:
       statut: 'lu',
     };
 
-    // Chercher un dossier locatif ou acquéreur correspondant
+    // ── IDENTIFICATION CONTACT & DOSSIER ─────────────────────────────────
     if (email.de) {
-      const dossiers = await base44.entities.DossierLocatif.filter({ agent_email: email.de });
-      if (dossiers.length > 0) {
-        updateData.dossier_id = dossiers[0].id;
+      // 1. Chercher dans Contact (entité CRM unifiée)
+      const contacts = await base44.entities.Contact.filter({ email: email.de });
+      if (contacts.length > 0) {
         updateData.contact_identifie = true;
+        // Chercher un DossierImmobilier lié à ce contact
+        const dossiers = await base44.entities.DossierImmobilier.filter({ type: analyse.module === 'vente' ? 'vente' : 'location' });
+        const dossierLie = dossiers.find(d => d.contact_ids?.includes(contacts[0].id));
+        if (dossierLie) {
+          updateData.dossier_id = dossierLie.id;
+          if (dossierLie.bien_id) updateData.bien_id = dossierLie.bien_id;
+          if (dossierLie.bien_titre) updateData.bien_titre = dossierLie.bien_titre;
+        }
       }
+      // 2. Fallback: DossierLocatif (ancien système)
+      if (!updateData.dossier_id) {
+        const dossiersLocatifs = await base44.entities.DossierLocatif.filter({ agent_email: email.de });
+        if (dossiersLocatifs.length > 0) {
+          updateData.dossier_id = dossiersLocatifs[0].id;
+          updateData.contact_identifie = true;
+        }
+      }
+      // 3. Acquereur
       const acquereurs = await base44.entities.Acquereur.filter({ email: email.de });
-      if (acquereurs.length > 0) {
-        updateData.contact_identifie = true;
-      }
+      if (acquereurs.length > 0) updateData.contact_identifie = true;
     }
 
     await base44.entities.EmailEntrant.update(email.id, updateData);
