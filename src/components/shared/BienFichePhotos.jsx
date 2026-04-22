@@ -1,11 +1,71 @@
 import { useState } from "react";
 import { base44 } from "@/api/base44Client";
-import { Upload, X, Star, Loader2, ImageIcon, Sparkles, Check } from "lucide-react";
+import { Upload, X, Star, Loader2, ImageIcon, Sparkles, Check, Zap, Sofa, Building } from "lucide-react";
+
+const AI_MODES = [
+  {
+    id: "amelioration",
+    label: "Amélioration",
+    icon: Zap,
+    color: "bg-violet-600 hover:bg-violet-700",
+    colorLight: "bg-violet-50 border-violet-200 text-violet-700",
+    description: "Luminosité, netteté, couleurs",
+    prompt: "Enhance this real estate photo professionally: improve brightness, sharpness, and color balance to make it look bright, clean and attractive for a property listing. Keep the exact same composition, framing and perspective.",
+  },
+  {
+    id: "agencement",
+    label: "Agencement",
+    icon: Sofa,
+    color: "bg-emerald-600 hover:bg-emerald-700",
+    colorLight: "bg-emerald-50 border-emerald-200 text-emerald-700",
+    description: "Optimise le mobilier existant",
+    prompt: "Optimize the furniture arrangement and interior styling in this real estate photo to make it look more attractive and well-organized. Improve the overall visual appeal for a property listing while keeping existing furniture and structure. Make it look like a professional interior design photo.",
+  },
+  {
+    id: "projection",
+    label: "Projection",
+    icon: Building,
+    color: "bg-amber-600 hover:bg-amber-700",
+    colorLight: "bg-amber-50 border-amber-200 text-amber-700",
+    description: "Ajoute du mobilier virtuel",
+    prompt: "Add tasteful, modern virtual furniture and decor to this empty or sparse real estate room photo. Create a realistic, welcoming and professionally staged interior that helps buyers or renters visualize living in the space. Use contemporary furniture that matches the room's style and proportions.",
+  },
+];
+
+// Mini picker shown over the image on hover
+function AIModePickerOverlay({ url, onSelect }) {
+  return (
+    <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center gap-1.5 p-2">
+      <p className="text-white text-[10px] font-semibold uppercase tracking-wide mb-0.5">Mode IA</p>
+      {AI_MODES.map(mode => {
+        const Icon = mode.icon;
+        return (
+          <button
+            key={mode.id}
+            type="button"
+            onClick={() => onSelect(mode)}
+            className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-white text-xs font-semibold transition-all ${mode.color}`}
+          >
+            <Icon className="w-3 h-3 flex-shrink-0" />
+            <span>{mode.label}</span>
+            <span className="text-white/70 font-normal ml-auto hidden sm:block">{mode.description}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
 
 export default function BienFichePhotos({ photos = [], photoPrincipale, onChange }) {
   const [uploading, setUploading] = useState(false);
-  const [enhancing, setEnhancing] = useState({}); // { [url]: "loading" | "done" }
-  const [enhanced, setEnhanced] = useState({}); // { [originalUrl]: enhancedUrl }
+  // { [url]: { status: "picking"|"loading"|"done", mode: AIModes[n], result: url } }
+  const [aiState, setAiState] = useState({});
+
+  const setAi = (url, patch) =>
+    setAiState(prev => ({ ...prev, [url]: { ...(prev[url] || {}), ...patch } }));
+
+  const clearAi = (url) =>
+    setAiState(prev => { const n = { ...prev }; delete n[url]; return n; });
 
   const handleUpload = async (e) => {
     const files = Array.from(e.target.files);
@@ -26,50 +86,31 @@ export default function BienFichePhotos({ photos = [], photoPrincipale, onChange
   const removePhoto = (url) => {
     const newPhotos = photos.filter(p => p !== url);
     const newPrincipale = photoPrincipale === url ? (newPhotos[0] || "") : photoPrincipale;
-    // Clean up enhanced state for removed photo
-    setEnhanced(prev => { const n = { ...prev }; delete n[url]; return n; });
-    setEnhancing(prev => { const n = { ...prev }; delete n[url]; return n; });
+    clearAi(url);
     onChange({ photos: newPhotos, photo_principale: newPrincipale });
   };
 
-  const setPrincipale = (url) => {
-    onChange({ photo_principale: url });
-  };
+  const setPrincipale = (url) => onChange({ photo_principale: url });
 
-  const enhancePhoto = async (url) => {
-    setEnhancing(prev => ({ ...prev, [url]: "loading" }));
+  const runAI = async (url, mode) => {
+    setAi(url, { status: "loading", mode, result: null });
     const result = await base44.integrations.Core.GenerateImage({
-      prompt: "Improve this real estate photo: enhance brightness, sharpness, and colors to make it look more professional and appealing. Keep the exact same composition and perspective.",
+      prompt: mode.prompt,
       existing_image_urls: [url],
     });
-    const enhancedUrl = result.url;
-    setEnhanced(prev => ({ ...prev, [url]: enhancedUrl }));
-    setEnhancing(prev => ({ ...prev, [url]: "done" }));
+    setAi(url, { status: "done", mode, result: result.url });
   };
 
-  const replaceWithEnhanced = (originalUrl) => {
-    const enhancedUrl = enhanced[originalUrl];
-    if (!enhancedUrl) return;
-    const newPhotos = photos.map(p => p === originalUrl ? enhancedUrl : p);
-    const newPrincipale = photoPrincipale === originalUrl ? enhancedUrl : photoPrincipale;
-    // Move enhanced tracking to new url
-    setEnhanced(prev => { const n = { ...prev }; delete n[originalUrl]; return n; });
-    setEnhancing(prev => { const n = { ...prev }; delete n[originalUrl]; return n; });
+  const replaceWith = (originalUrl, newUrl) => {
+    const newPhotos = photos.map(p => p === originalUrl ? newUrl : p);
+    const newPrincipale = photoPrincipale === originalUrl ? newUrl : photoPrincipale;
+    clearAi(originalUrl);
     onChange({ photos: newPhotos, photo_principale: newPrincipale });
   };
 
-  const keepEnhancedAsCopy = (originalUrl) => {
-    const enhancedUrl = enhanced[originalUrl];
-    if (!enhancedUrl) return;
-    const newPhotos = [...photos, enhancedUrl];
-    setEnhanced(prev => { const n = { ...prev }; delete n[originalUrl]; return n; });
-    setEnhancing(prev => { const n = { ...prev }; delete n[originalUrl]; return n; });
-    onChange({ photos: newPhotos });
-  };
-
-  const discardEnhanced = (url) => {
-    setEnhanced(prev => { const n = { ...prev }; delete n[url]; return n; });
-    setEnhancing(prev => { const n = { ...prev }; delete n[url]; return n; });
+  const addAsCopy = (originalUrl, newUrl) => {
+    clearAi(originalUrl);
+    onChange({ photos: [...photos, newUrl] });
   };
 
   return (
@@ -89,98 +130,100 @@ export default function BienFichePhotos({ photos = [], photoPrincipale, onChange
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
           {photos.map((url, i) => {
             const isPrincipale = url === photoPrincipale;
-            const enhanceStatus = enhancing[url]; // "loading" | "done" | undefined
-            const enhancedUrl = enhanced[url];
+            const ai = aiState[url] || {};
 
             return (
               <div key={i} className="space-y-1.5">
+                {/* Image tile */}
                 <div className={`relative rounded-xl overflow-hidden aspect-video group border-2 transition-all ${isPrincipale ? "border-primary" : "border-transparent"}`}>
                   <img src={url} alt="" className="w-full h-full object-cover" />
 
-                  {/* Hover overlay */}
-                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-all flex flex-col items-center justify-center gap-2 p-2">
-                    <div className="flex items-center gap-1.5">
-                      <button
-                        type="button"
-                        onClick={() => setPrincipale(url)}
-                        title="Photo principale"
-                        className="p-1.5 bg-white/90 rounded-lg hover:bg-white transition-colors"
-                      >
-                        <Star className={`w-3.5 h-3.5 ${isPrincipale ? "fill-amber-400 text-amber-400" : "text-slate-600"}`} />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => removePhoto(url)}
-                        title="Supprimer"
-                        className="p-1.5 bg-white/90 rounded-lg hover:bg-red-50 transition-colors"
-                      >
-                        <X className="w-3.5 h-3.5 text-red-500" />
-                      </button>
+                  {/* Loading overlay */}
+                  {ai.status === "loading" && (
+                    <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center gap-2 pointer-events-none">
+                      <Loader2 className="w-6 h-6 animate-spin text-white" />
+                      <span className="text-white text-xs font-semibold">{ai.mode?.label} IA…</span>
                     </div>
+                  )}
 
-                    {/* AI Enhance button */}
-                    {!enhanceStatus && (
-                      <button
-                        type="button"
-                        onClick={() => enhancePhoto(url)}
-                        className="flex items-center gap-1 px-2.5 py-1.5 bg-violet-600 hover:bg-violet-700 text-white rounded-lg text-xs font-semibold transition-colors"
-                      >
-                        <Sparkles className="w-3 h-3" /> Améliorer IA
-                      </button>
-                    )}
-
-                    {enhanceStatus === "loading" && (
-                      <div className="flex items-center gap-1 px-2.5 py-1.5 bg-violet-600/80 text-white rounded-lg text-xs font-semibold">
-                        <Loader2 className="w-3 h-3 animate-spin" /> IA en cours…
-                      </div>
-                    )}
-
-                    {enhanceStatus === "done" && (
-                      <div className="flex items-center gap-1 px-2 py-1 bg-green-600/90 text-white rounded-lg text-xs font-semibold">
+                  {/* Done badge on image */}
+                  {ai.status === "done" && (
+                    <div className="absolute inset-0 bg-black/30 flex items-center justify-center pointer-events-none">
+                      <div className="flex items-center gap-1 px-2 py-1 bg-green-600 text-white rounded-lg text-xs font-semibold">
                         <Check className="w-3 h-3" /> Prête
                       </div>
-                    )}
-                  </div>
+                    </div>
+                  )}
+
+                  {/* Hover overlay: normal actions + IA picker trigger */}
+                  {!ai.status && (
+                    <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-all">
+                      {/* Top actions */}
+                      <div className="absolute top-1.5 right-1.5 flex gap-1">
+                        <button type="button" onClick={() => setPrincipale(url)} title="Photo principale"
+                          className="p-1.5 bg-white/90 rounded-lg hover:bg-white transition-colors">
+                          <Star className={`w-3.5 h-3.5 ${isPrincipale ? "fill-amber-400 text-amber-400" : "text-slate-600"}`} />
+                        </button>
+                        <button type="button" onClick={() => removePhoto(url)} title="Supprimer"
+                          className="p-1.5 bg-white/90 rounded-lg hover:bg-red-50 transition-colors">
+                          <X className="w-3.5 h-3.5 text-red-500" />
+                        </button>
+                      </div>
+
+                      {/* IA button → opens picker */}
+                      <button
+                        type="button"
+                        onClick={() => setAi(url, { status: "picking" })}
+                        className="absolute bottom-1.5 left-1/2 -translate-x-1/2 flex items-center gap-1 px-2.5 py-1.5 bg-violet-600 hover:bg-violet-700 text-white rounded-lg text-xs font-semibold transition-colors whitespace-nowrap"
+                      >
+                        <Sparkles className="w-3 h-3" /> IA
+                      </button>
+                    </div>
+                  )}
+
+                  {/* AI mode picker */}
+                  {ai.status === "picking" && (
+                    <>
+                      <AIModePickerOverlay url={url} onSelect={(mode) => runAI(url, mode)} />
+                      {/* Cancel */}
+                      <button
+                        type="button"
+                        onClick={() => clearAi(url)}
+                        className="absolute top-1.5 right-1.5 p-1 bg-white/90 rounded-lg text-muted-foreground hover:text-foreground transition-colors z-10"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </>
+                  )}
 
                   {/* Badges */}
-                  {isPrincipale && (
+                  {isPrincipale && ai.status !== "picking" && (
                     <div className="absolute bottom-1.5 left-1.5 bg-primary text-white text-[10px] px-1.5 py-0.5 rounded-full font-semibold flex items-center gap-1 pointer-events-none">
                       <Star className="w-2.5 h-2.5 fill-white" /> Principale
                     </div>
                   )}
-                  {enhanceStatus === "loading" && (
-                    <div className="absolute inset-0 bg-violet-900/30 flex items-center justify-center pointer-events-none">
-                      <Loader2 className="w-6 h-6 animate-spin text-white" />
-                    </div>
-                  )}
                 </div>
 
-                {/* Enhanced result actions */}
-                {enhanceStatus === "done" && enhancedUrl && (
-                  <div className="bg-violet-50 border border-violet-200 rounded-xl p-2 space-y-1.5">
-                    <p className="text-[10px] font-semibold text-violet-700 uppercase tracking-wide">Version améliorée prête</p>
-                    <img src={enhancedUrl} alt="Version améliorée" className="w-full aspect-video object-cover rounded-lg" />
+                {/* Result panel */}
+                {ai.status === "done" && ai.result && (
+                  <div className={`border rounded-xl p-2 space-y-1.5 ${ai.mode?.colorLight}`}>
+                    <div className="flex items-center gap-1.5">
+                      {ai.mode && <ai.mode.icon className="w-3 h-3" />}
+                      <p className="text-[10px] font-semibold uppercase tracking-wide">{ai.mode?.label} — résultat</p>
+                    </div>
+                    <img src={ai.result} alt="Version IA" className="w-full aspect-video object-cover rounded-lg" />
                     <div className="grid grid-cols-2 gap-1">
-                      <button
-                        type="button"
-                        onClick={() => replaceWithEnhanced(url)}
-                        className="py-1.5 bg-violet-600 hover:bg-violet-700 text-white rounded-lg text-xs font-semibold transition-colors"
-                      >
+                      <button type="button" onClick={() => replaceWith(url, ai.result)}
+                        className="py-1.5 bg-slate-800 hover:bg-slate-900 text-white rounded-lg text-xs font-semibold transition-colors">
                         Remplacer
                       </button>
-                      <button
-                        type="button"
-                        onClick={() => keepEnhancedAsCopy(url)}
-                        className="py-1.5 bg-white hover:bg-violet-50 text-violet-700 border border-violet-200 rounded-lg text-xs font-semibold transition-colors"
-                      >
+                      <button type="button" onClick={() => addAsCopy(url, ai.result)}
+                        className="py-1.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-lg text-xs font-semibold transition-colors">
                         Ajouter copie
                       </button>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => discardEnhanced(url)}
-                      className="w-full py-1 text-[10px] text-muted-foreground hover:text-foreground transition-colors"
-                    >
+                    <button type="button" onClick={() => clearAi(url)}
+                      className="w-full py-1 text-[10px] text-muted-foreground hover:text-foreground transition-colors">
                       Ignorer
                     </button>
                   </div>
