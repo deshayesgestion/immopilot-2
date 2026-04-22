@@ -1,14 +1,16 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { TrendingUp, Home, Users, FileSignature, BarChart2, Loader2 } from "lucide-react";
+import { TrendingUp, Home, Users, FileSignature, BarChart2, Loader2, FolderOpen } from "lucide-react";
 import VentePipeline from "@/components/crm/VentePipeline";
 import BiensList from "@/components/shared/BiensList";
 import LeadFiche from "@/components/crm/LeadFiche";
+import DossiersListSection from "@/components/shared/DossiersListSection";
 
 const TABS = [
   { id: "pipeline", label: "Pipeline Leads", icon: Users },
   { id: "biens", label: "Biens à vendre", icon: Home },
   { id: "transactions", label: "Transactions", icon: FileSignature },
+  { id: "dossiers", label: "Dossiers", icon: FolderOpen },
 ];
 
 const TX_COLORS = {
@@ -60,20 +62,23 @@ export default function ModuleVente() {
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedLead, setSelectedLead] = useState(null);
+  const [dossiers, setDossiers] = useState([]);
 
   useEffect(() => {
     const load = async () => {
       setLoading(true);
-      const [b, l, c, t] = await Promise.all([
+      const [b, l, c, t, d] = await Promise.all([
         base44.entities.Bien.filter({ type: "vente" }),
         base44.entities.Lead.list("-created_date", 200),
         base44.entities.Contact.list("-created_date", 200),
         base44.entities.Transaction.filter({ type: "vente" }),
+        base44.entities.DossierImmobilier.filter({ type: "vente" }),
       ]);
       setBiens(b);
       setLeads(l);
       setContacts(c);
       setTransactions(t);
+      setDossiers(d);
       setLoading(false);
     };
     load();
@@ -157,6 +162,13 @@ export default function ModuleVente() {
           )}
           {tab === "transactions" && (
             <TransactionsList transactions={transactions} contactMap={contactMap} bienMap={bienMap} />
+          )}
+          {tab === "dossiers" && (
+            <DossiersListSection
+              dossiers={dossiers}
+              typeModule="vente"
+              onDossierCreated={(d) => setDossiers(prev => [d, ...prev])}
+            />
           )}
         </>
       )}

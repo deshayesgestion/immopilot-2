@@ -1,15 +1,17 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { KeySquare, Home, Users, Euro, Search, Loader2, AlertCircle } from "lucide-react";
+import { KeySquare, Home, Users, Euro, Search, Loader2, AlertCircle, FolderOpen } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import BiensList from "@/components/shared/BiensList";
 import ModuleLocationLocataires from "@/components/modules/location/ModuleLocationLocataires";
 import ModuleLocationPaiements from "@/components/modules/location/ModuleLocationPaiements";
+import DossiersListSection from "@/components/shared/DossiersListSection";
 
 const TABS = [
   { id: "biens", label: "Biens", icon: Home },
   { id: "locataires", label: "Locataires", icon: Users },
   { id: "paiements", label: "Loyers", icon: Euro },
+  { id: "dossiers", label: "Dossiers", icon: FolderOpen },
 ];
 
 export default function ModuleLocation() {
@@ -20,17 +22,20 @@ export default function ModuleLocation() {
   const [contacts, setContacts] = useState([]); // tous les contacts (pour contactMap)
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [dossiers, setDossiers] = useState([]);
 
   useEffect(() => {
     const load = async () => {
       setLoading(true);
-      const [b, p, allContacts] = await Promise.all([
+      const [b, p, allContacts, d] = await Promise.all([
         base44.entities.Bien.filter({ type: "location" }),
         base44.entities.Paiement.filter({ type: "loyer" }),
         base44.entities.Contact.list("-created_date", 500),
+        base44.entities.DossierImmobilier.filter({ type: "location" }),
       ]);
       setBiens(b);
       setPaiements(p);
+      setDossiers(d);
       // Locataires = contacts avec type "locataire", sinon tous les contacts liés à des paiements
       const locatairesList = allContacts.filter(c => c.type === "locataire");
       setLocataires(locatairesList.length > 0 ? locatairesList : allContacts);
@@ -127,6 +132,13 @@ export default function ModuleLocation() {
           {tab === "biens" && <BiensList biens={biens} typeModule="location" onBiensChange={setBiens} search={search} />}
           {tab === "locataires" && <ModuleLocationLocataires locataires={locataires} biens={biens} search={search} />}
           {tab === "paiements" && <ModuleLocationPaiements paiements={paiements} contactMap={contactMap} bienMap={bienMap} search={search} />}
+          {tab === "dossiers" && (
+            <DossiersListSection
+              dossiers={dossiers}
+              typeModule="location"
+              onDossierCreated={(d) => setDossiers(prev => [d, ...prev])}
+            />
+          )}
         </>
       )}
     </div>

@@ -17,6 +17,7 @@ import {
   ListTodo,
   CalendarDays,
   Building2,
+  FolderOpen,
 } from "lucide-react";
 import { useState } from "react";
 import { useOrganization } from "@/lib/OrganizationContext";
@@ -29,6 +30,7 @@ const navItems = [
   { label: "Communications", path: "/admin/communications", icon: MessageSquare },
   // ── Modules principaux (toujours visibles) ──
   { label: "Biens", path: "/admin/modules/biens", icon: Building2 },
+  { label: "Dossiers", path: "/admin/dossiers", icon: FolderOpen },
   { label: "Vente", path: "/admin/modules/vente", icon: TrendingUp },
   { label: "Location", path: "/admin/modules/location", icon: KeySquare },
   { label: "Comptabilité", path: "/admin/modules/comptabilite", icon: Calculator },

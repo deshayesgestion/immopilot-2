@@ -1,0 +1,78 @@
+{
+  "name": "DossierImmobilier",
+  "type": "object",
+  "properties": {
+    "titre": {
+      "type": "string",
+      "description": "Titre du dossier"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "vente",
+        "location"
+      ],
+      "description": "Type de dossier"
+    },
+    "statut": {
+      "type": "string",
+      "enum": [
+        "nouveau",
+        "en_cours",
+        "signe",
+        "termine"
+      ],
+      "default": "nouveau",
+      "description": "Statut d'avancement"
+    },
+    "bien_id": {
+      "type": "string",
+      "description": "ID du bien immobilier (obligatoire)"
+    },
+    "bien_titre": {
+      "type": "string",
+      "description": "Titre du bien (d\u00e9normalis\u00e9 pour affichage rapide)"
+    },
+    "contact_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "IDs des contacts li\u00e9s (vendeur, acqu\u00e9reur, locataire\u2026)"
+    },
+    "paiement_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "IDs des paiements li\u00e9s"
+    },
+    "lead_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "IDs des leads li\u00e9s"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Notes internes du dossier"
+    },
+    "historique": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "description": "Historique des actions (date, auteur, action)"
+    },
+    "agency_id": {
+      "type": "string",
+      "description": "ID agence (multi-tenant)"
+    }
+  },
+  "required": [
+    "titre",
+    "type",
+    "bien_id"
+  ]
+}

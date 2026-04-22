@@ -66,6 +66,8 @@ import ModuleVente from './pages/admin/ModuleVente';
 import ModuleLocation from './pages/admin/ModuleLocation';
 import ModuleComptabilite from './pages/admin/ModuleComptabilite';
 import ModuleBiens from './pages/admin/ModuleBiens';
+import DossierImmobilierDetail from './pages/admin/DossierImmobilierDetail';
+import AdminDossiersImmobiliers from './pages/admin/AdminDossiersImmobiliers';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -127,6 +129,8 @@ const AuthenticatedApp = () => {
         <Route path="/admin/vente/cloture" element={<ModuleGuard moduleName="vente"><AdminVenteCloture /></ModuleGuard>} />
         <Route path="/admin/comptabilite" element={<ModuleGuard moduleName="compta"><AdminComptabilite /></ModuleGuard>} />
         <Route path="/admin/modules/biens" element={<ModuleBiens />} />
+        <Route path="/admin/dossiers" element={<AdminDossiersImmobiliers />} />
+        <Route path="/admin/dossiers/:id" element={<DossierImmobilierDetail />} />
         <Route path="/admin/modules/vente" element={<ModuleGuard moduleName="vente"><ModuleVente /></ModuleGuard>} />
         <Route path="/admin/modules/location" element={<ModuleGuard moduleName="location"><ModuleLocation /></ModuleGuard>} />
         <Route path="/admin/modules/comptabilite" element={<ModuleGuard moduleName="compta"><ModuleComptabilite /></ModuleGuard>} />

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { base44 } from "@/api/base44Client";
-import { X, Loader2, Sparkles, Globe, Eye, EyeOff } from "lucide-react";
+import { X, Loader2, Sparkles, Globe, Eye, EyeOff, FolderOpen } from "lucide-react";
+import DossierFormModal from "./DossierFormModal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import BienFichePhotos from "./BienFichePhotos";
@@ -50,6 +51,7 @@ export default function BienFormModal({ bien, typeDefaut, onClose, onSave }) {
   });
   const [saving, setSaving] = useState(false);
   const [generatingAI, setGeneratingAI] = useState(false);
+  const [showDossierModal, setShowDossierModal] = useState(false);
 
   const set = (k, v) => setForm(prev => ({ ...prev, [k]: v }));
   const setMany = (obj) => setForm(prev => ({ ...prev, ...obj }));
@@ -127,6 +129,14 @@ Génère un titre accrocheur et une description immobilière professionnelle de 
   };
 
   return (
+    <>
+    {showDossierModal && isEdit && (
+      <DossierFormModal
+        bienPrefill={{ ...form, id: bien?.id }}
+        onClose={() => setShowDossierModal(false)}
+        onSave={() => setShowDossierModal(false)}
+      />
+    )}
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm" onClick={onClose}>
       <div
         className="bg-white w-full sm:max-w-2xl sm:mx-4 sm:rounded-2xl shadow-2xl flex flex-col max-h-[95vh] rounded-t-2xl"
@@ -316,16 +326,29 @@ Génère un titre accrocheur et une description immobilière professionnelle de 
           </div>
 
           {/* Footer actions */}
-          <div className="flex gap-2 px-5 py-4 border-t border-border/50 flex-shrink-0 bg-white">
-            <Button type="button" variant="outline" className="flex-1 rounded-xl h-11" onClick={onClose}>
-              Annuler
-            </Button>
-            <Button type="submit" className="flex-1 rounded-xl h-11 text-base" disabled={saving || !form.titre}>
-              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : isEdit ? "Enregistrer" : "Créer le bien"}
-            </Button>
+          <div className="px-5 pb-0 pt-4 border-t border-border/50 flex-shrink-0 bg-white space-y-2">
+            {isEdit && (
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full rounded-xl h-10 gap-2 text-indigo-600 border-indigo-200 hover:bg-indigo-50"
+                onClick={() => setShowDossierModal(true)}
+              >
+                <FolderOpen className="w-4 h-4" /> Créer un dossier pour ce bien
+              </Button>
+            )}
+            <div className="flex gap-2 pb-4">
+              <Button type="button" variant="outline" className="flex-1 rounded-xl h-11" onClick={onClose}>
+                Annuler
+              </Button>
+              <Button type="submit" className="flex-1 rounded-xl h-11 text-base" disabled={saving || !form.titre}>
+                {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : isEdit ? "Enregistrer" : "Créer le bien"}
+              </Button>
+            </div>
           </div>
         </form>
       </div>
     </div>
+    </>
   );
 }
