@@ -1,0 +1,90 @@
+{
+  "name": "EmailAutomation",
+  "type": "object",
+  "properties": {
+    "agency_id": {
+      "type": "string"
+    },
+    "trigger": {
+      "type": "string",
+      "enum": [
+        "dossier_cree",
+        "dossier_statut_change",
+        "bien_statut_change",
+        "paiement_enregistre",
+        "ticket_cree",
+        "activite_client",
+        "hebdomadaire"
+      ],
+      "description": "\u00c9v\u00e9nement d\u00e9clencheur"
+    },
+    "type_email": {
+      "type": "string",
+      "enum": [
+        "suivi_dossier",
+        "rappel_paiement",
+        "confirmation_visite",
+        "mise_a_jour_hebdo",
+        "bienvenue",
+        "alerte_urgente"
+      ],
+      "description": "Type d'email automatique"
+    },
+    "actif": {
+      "type": "boolean",
+      "default": true
+    },
+    "condition_module": {
+      "type": "string",
+      "enum": [
+        "location",
+        "vente",
+        "comptabilite",
+        "tous"
+      ],
+      "default": "tous"
+    },
+    "condition_priorite": {
+      "type": "string",
+      "enum": [
+        "urgent",
+        "normal",
+        "faible",
+        "tous"
+      ],
+      "default": "tous"
+    },
+    "delai_heures": {
+      "type": "number",
+      "default": 0,
+      "description": "D\u00e9lai avant envoi en heures (0 = imm\u00e9diat)"
+    },
+    "sujet_template": {
+      "type": "string",
+      "description": "Template du sujet (variables: {client}, {bien}, {dossier})"
+    },
+    "corps_template": {
+      "type": "string",
+      "description": "Template du corps (laisser vide = IA g\u00e9n\u00e8re automatiquement)"
+    },
+    "nb_envois": {
+      "type": "number",
+      "default": 0
+    },
+    "dernier_envoi": {
+      "type": "string",
+      "description": "ISO datetime dernier envoi"
+    },
+    "historique_envois": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "description": "Journal: [{to, sujet, date, source_id, source_type}]"
+    }
+  },
+  "required": [
+    "trigger",
+    "type_email"
+  ]
+}

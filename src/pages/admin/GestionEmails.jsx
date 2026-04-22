@@ -8,10 +8,12 @@ import {
 import EmailInbox from "../../components/admin/emails/EmailInbox";
 import EmailDetail from "../../components/admin/emails/EmailDetail";
 import EmailComposeModal from "../../components/admin/emails/EmailComposeModal";
+import EmailAutomationsTab from "../../components/admin/emails/EmailAutomationsTab";
 
 const TABS = [
   { id: "inbox", label: "Boîte de réception", icon: Inbox },
   { id: "dashboard", label: "Dashboard", icon: BarChart2 },
+  { id: "automations", label: "Automations", icon: Bot },
   { id: "config", label: "Configuration", icon: Settings },
 ];
 
@@ -304,6 +306,11 @@ export default function GestionEmails() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* ── AUTOMATIONS ── */}
+      {activeTab === "automations" && (
+        <EmailAutomationsTab />
       )}
 
       {showCompose && (
