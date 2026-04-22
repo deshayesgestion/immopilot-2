@@ -1,7 +1,7 @@
 import { Toaster } from "@/components/ui/toaster"
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import { OrganizationProvider } from '@/lib/OrganizationContext';
@@ -17,26 +17,8 @@ import PropertyDetail from './pages/PropertyDetail';
 import AdminLayout from './components/admin/AdminLayout';
 import Dashboard from './pages/admin/Dashboard';
 
-import AdminCRM from './pages/admin/AdminCRM';
-import AdminAI from './pages/admin/AdminAI';
 import AdminSettings from './pages/admin/AdminSettings';
 import AdminUsers from './pages/admin/AdminUsers';
-import AdminDossiers from './pages/admin/AdminDossiers';
-import AdminLocation from './pages/admin/AdminLocation';
-import DossierLocatif from './pages/admin/DossierLocatif';
-import DossierLocatifDetail from './pages/admin/DossierLocatifDetail';
-import AdminAttribution from './pages/admin/AdminAttribution';
-import AdminAttributionDetail from './pages/admin/AdminAttributionDetail';
-import AdminSuivi from './pages/admin/AdminSuivi';
-import AdminSortie from './pages/admin/AdminSortie';
-import AdminSortieDetail from './pages/admin/AdminSortieDetail';
-import AdminVenteBiens from './pages/admin/AdminVenteBiens';
-import AdminAcquereurs from './pages/admin/AdminAcquereurs';
-import AdminTransactions from './pages/admin/AdminTransactions';
-import AdminTransactionDetail from './pages/admin/AdminTransactionDetail';
-import AdminVenteCloture from './pages/admin/AdminVenteCloture';
-import AdminMandats from './pages/admin/AdminMandats';
-import AdminComptabilite from './pages/admin/AdminComptabilite';
 import AdminSuiviDetail from './pages/admin/AdminSuiviDetail';
 import AccueilIA from './pages/admin/AccueilIA';
 import GestionEmails from './pages/admin/GestionEmails';
@@ -61,7 +43,6 @@ import AcquereurVisites from './pages/client/AcquereurVisites';
 import AcquereurDocuments from './pages/client/AcquereurDocuments';
 import AcquereurRecherche from './pages/client/AcquereurRecherche';
 import ConnectAdmin from './pages/ConnectAdmin';
-import ModuleGuard from './components/admin/ModuleGuard';
 import ModuleVente from './pages/admin/ModuleVente';
 import ModuleLocation from './pages/admin/ModuleLocation';
 import ModuleComptabilite from './pages/admin/ModuleComptabilite';
@@ -113,27 +94,28 @@ const AuthenticatedApp = () => {
 
 
         <Route path="/admin/utilisateurs" element={<AdminUsers />} />
-        <Route path="/admin/location" element={<ModuleGuard moduleName="location"><AdminLocation /></ModuleGuard>} />
-        <Route path="/admin/attribution" element={<ModuleGuard moduleName="location"><AdminAttribution /></ModuleGuard>} />
-        <Route path="/admin/attribution/:id" element={<ModuleGuard moduleName="location"><AdminAttributionDetail /></ModuleGuard>} />
-        <Route path="/admin/suivi" element={<ModuleGuard moduleName="location"><AdminSuivi /></ModuleGuard>} />
-        <Route path="/admin/suivi/:id" element={<ModuleGuard moduleName="location"><AdminSuiviDetail /></ModuleGuard>} />
-        <Route path="/admin/sortie" element={<ModuleGuard moduleName="location"><AdminSortie /></ModuleGuard>} />
-        <Route path="/admin/sortie/:id" element={<ModuleGuard moduleName="location"><AdminSortieDetail /></ModuleGuard>} />
+        <Route path="/admin/suivi/:id" element={<AdminSuiviDetail />} />
         <Route path="/admin/parametres" element={<AdminSettings />} />
-        <Route path="/admin/vente/mandats" element={<ModuleGuard moduleName="vente"><AdminMandats /></ModuleGuard>} />
-        <Route path="/admin/vente/biens" element={<ModuleGuard moduleName="vente"><AdminVenteBiens /></ModuleGuard>} />
-        <Route path="/admin/vente/acquereurs" element={<ModuleGuard moduleName="vente"><AdminAcquereurs /></ModuleGuard>} />
-        <Route path="/admin/vente/transactions" element={<ModuleGuard moduleName="vente"><AdminTransactions /></ModuleGuard>} />
-        <Route path="/admin/vente/transactions/:id" element={<ModuleGuard moduleName="vente"><AdminTransactionDetail /></ModuleGuard>} />
-        <Route path="/admin/vente/cloture" element={<ModuleGuard moduleName="vente"><AdminVenteCloture /></ModuleGuard>} />
-        <Route path="/admin/comptabilite" element={<ModuleGuard moduleName="compta"><AdminComptabilite /></ModuleGuard>} />
+        {/* Legacy redirects → nouvelles routes */}
+        <Route path="/admin/location" element={<Navigate to="/admin/modules/location" replace />} />
+        <Route path="/admin/attribution" element={<Navigate to="/admin/modules/location" replace />} />
+        <Route path="/admin/attribution/:id" element={<Navigate to="/admin/modules/location" replace />} />
+        <Route path="/admin/suivi" element={<Navigate to="/admin/modules/location" replace />} />
+        <Route path="/admin/sortie" element={<Navigate to="/admin/modules/location" replace />} />
+        <Route path="/admin/sortie/:id" element={<Navigate to="/admin/modules/location" replace />} />
+        <Route path="/admin/vente/mandats" element={<Navigate to="/admin/modules/vente" replace />} />
+        <Route path="/admin/vente/biens" element={<Navigate to="/admin/modules/vente" replace />} />
+        <Route path="/admin/vente/acquereurs" element={<Navigate to="/admin/modules/vente" replace />} />
+        <Route path="/admin/vente/transactions" element={<Navigate to="/admin/modules/vente" replace />} />
+        <Route path="/admin/vente/transactions/:id" element={<Navigate to="/admin/modules/vente" replace />} />
+        <Route path="/admin/vente/cloture" element={<Navigate to="/admin/modules/vente" replace />} />
+        <Route path="/admin/comptabilite" element={<Navigate to="/admin/modules/comptabilite" replace />} />
         <Route path="/admin/modules/biens" element={<ModuleBiens />} />
         <Route path="/admin/dossiers" element={<AdminDossiersImmobiliers />} />
         <Route path="/admin/dossiers/:id" element={<DossierImmobilierDetail />} />
-        <Route path="/admin/modules/vente" element={<ModuleGuard moduleName="vente"><ModuleVente /></ModuleGuard>} />
-        <Route path="/admin/modules/location" element={<ModuleGuard moduleName="location"><ModuleLocation /></ModuleGuard>} />
-        <Route path="/admin/modules/comptabilite" element={<ModuleGuard moduleName="compta"><ModuleComptabilite /></ModuleGuard>} />
+        <Route path="/admin/modules/vente" element={<ModuleVente />} />
+        <Route path="/admin/modules/location" element={<ModuleLocation />} />
+        <Route path="/admin/modules/comptabilite" element={<ModuleComptabilite />} />
         <Route path="/admin/parametres/accueil-ia" element={<AccueilIA />} />
         <Route path="/admin/parametres/emails" element={<GestionEmails />} />
         <Route path="/admin/import" element={<AdminImport />} />

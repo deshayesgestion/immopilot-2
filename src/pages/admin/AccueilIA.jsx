@@ -211,8 +211,7 @@ export default function AccueilIA() {
               }`}>
               <Icon className="w-3.5 h-3.5" />
               <span>{tab.label}</span>
-              {tab.id === "relances" && (stats.paiement + stats.dossier + stats.visite + stats.reponse > 0) && null}
-      {tab.id === "tickets" && stats.nouveaux > 0 && (
+              {tab.id === "tickets" && stats.nouveaux > 0 && (
                 <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${activeTab === tab.id ? "bg-white/20" : "bg-primary text-white"}`}>
                   {stats.nouveaux}
                 </span>

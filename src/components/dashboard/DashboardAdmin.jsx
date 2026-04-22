@@ -81,16 +81,16 @@ export default function DashboardAdmin({ agency }) {
   }, [loading]);
 
   const kpis = data ? [
-    { label: "Chiffre d'affaires", value: fmt(data.ca), icon: CreditCard, color: "text-green-600", bg: "bg-green-50", link: "/admin/comptabilite" },
-    { label: "Biens actifs", value: data.props.filter(p => p.status === "disponible").length, icon: Home, color: "text-blue-600", bg: "bg-blue-50", link: "/admin/location" },
-    { label: "Leads en cours", value: data.leads.filter(l => ["nouveau","en_cours"].includes(l.status)).length, icon: Users, color: "text-purple-600", bg: "bg-purple-50", link: "/admin/communications" },
-    { label: "Impayés", value: data.impayés, icon: AlertTriangle, color: "text-red-600", bg: "bg-red-50", link: "/admin/comptabilite", alert: data.impayés > 0 },
+    { label: "Chiffre d'affaires", value: fmt(data.ca), icon: CreditCard, color: "text-green-600", bg: "bg-green-50", link: "/admin/modules/comptabilite" },
+    { label: "Biens actifs", value: data.props.filter(p => p.status === "disponible").length, icon: Home, color: "text-blue-600", bg: "bg-blue-50", link: "/admin/modules/biens" },
+    { label: "Leads en cours", value: data.leads.filter(l => ["nouveau","en_cours"].includes(l.status)).length, icon: Users, color: "text-purple-600", bg: "bg-purple-50", link: "/admin/modules/vente" },
+    { label: "Impayés", value: data.impayés, icon: AlertTriangle, color: "text-red-600", bg: "bg-red-50", link: "/admin/modules/comptabilite", alert: data.impayés > 0 },
   ] : [];
 
   const quickActions = [
-    { label: "Créer un bien", icon: Home, path: "/admin/location", color: "bg-blue-500" },
+    { label: "Créer un bien", icon: Home, path: "/admin/modules/biens", color: "bg-blue-500" },
     { label: "Nouveau ticket", icon: FileText, path: "/admin/parametres/accueil-ia", color: "bg-amber-500" },
-    { label: "Inviter équipe", icon: Users, path: "/admin/equipe", color: "bg-purple-500" },
+    { label: "Utilisateurs", icon: Users, path: "/admin/utilisateurs", color: "bg-purple-500" },
     { label: "Agenda", icon: Calendar, path: "/admin/agenda", color: "bg-green-500" },
   ];
 
