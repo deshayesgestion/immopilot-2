@@ -51,15 +51,21 @@ Deno.serve(async (req) => {
       return Response.json({ ok: true, skipped: true, reason: 'no_matching_trigger' });
     }
 
-    // Déléguer à emailAutomation
-    const result = await base44.asServiceRole.functions.invoke('emailAutomation', {
-      trigger,
-      source_type,
-      source_id: entity_id,
-      source_data: data,
-    });
+    // Déléguer à emailAutomation ET smsWhatsappAutomation en parallèle
+    const [emailResult, smsResult] = await Promise.all([
+      base44.asServiceRole.functions.invoke('emailAutomation', {
+        trigger, source_type, source_id: entity_id, source_data: data,
+      }),
+      base44.asServiceRole.functions.invoke('smsWhatsappAutomation', {
+        trigger, source_type, source_id: entity_id, source_data: data,
+      }),
+    ]);
 
-    return Response.json({ ok: true, trigger, result: result?.data || result });
+    return Response.json({
+      ok: true, trigger,
+      email: emailResult?.data || emailResult,
+      sms_wa: smsResult?.data || smsResult,
+    });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
   }

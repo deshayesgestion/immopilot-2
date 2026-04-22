@@ -1,0 +1,80 @@
+{
+  "name": "MessageAutomation",
+  "type": "object",
+  "properties": {
+    "agency_id": {
+      "type": "string"
+    },
+    "trigger": {
+      "type": "string",
+      "enum": [
+        "dossier_cree",
+        "dossier_statut_change",
+        "bien_statut_change",
+        "paiement_enregistre",
+        "ticket_cree",
+        "activite_client"
+      ],
+      "description": "\u00c9v\u00e9nement d\u00e9clencheur"
+    },
+    "type_message": {
+      "type": "string",
+      "enum": [
+        "confirmation_visite",
+        "rappel_rdv",
+        "rappel_paiement",
+        "maj_dossier",
+        "nouveau_bien",
+        "bienvenue"
+      ],
+      "description": "Type de message"
+    },
+    "canal": {
+      "type": "string",
+      "enum": [
+        "sms",
+        "whatsapp",
+        "les_deux"
+      ],
+      "default": "sms",
+      "description": "Canal d'envoi pr\u00e9f\u00e9r\u00e9"
+    },
+    "actif": {
+      "type": "boolean",
+      "default": true
+    },
+    "condition_module": {
+      "type": "string",
+      "enum": [
+        "location",
+        "vente",
+        "comptabilite",
+        "tous"
+      ],
+      "default": "tous"
+    },
+    "template": {
+      "type": "string",
+      "description": "Template du message (variables: {client}, {bien}, {dossier}, {montant}, {date}). Vide = IA g\u00e9n\u00e8re."
+    },
+    "nb_envois": {
+      "type": "number",
+      "default": 0
+    },
+    "dernier_envoi": {
+      "type": "string"
+    },
+    "historique_envois": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "description": "Journal: [{to_phone, canal, contenu, date, source_id, dedupe_key}]"
+    }
+  },
+  "required": [
+    "trigger",
+    "type_message",
+    "canal"
+  ]
+}

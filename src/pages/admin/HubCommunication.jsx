@@ -7,8 +7,9 @@ import {
   MessageSquare, Mail, Phone, Search, Loader2, Send,
   ChevronRight, Bot, X, Plus, Clock, CheckCircle2,
   AlertTriangle, User, StickyNote, ArrowDownLeft, ArrowUpRight,
-  Filter, Inbox
+  Filter, Inbox, Zap
 } from "lucide-react";
+import SmsWhatsappAutomationsTab from "@/components/admin/communications/SmsWhatsappAutomationsTab";
 
 const fmt = (d) => d ? new Date(d).toLocaleString("fr-FR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }) : "—";
 
@@ -238,6 +239,8 @@ export default function HubCommunication() {
     .sort((a, b) => new Date(b.created_date) - new Date(a.created_date))
     .slice(0, 5);
 
+  const [activeTab, setActiveTab] = useState("contacts");
+
   return (
     <div className="max-w-6xl mx-auto space-y-5">
       {/* Header */}
@@ -246,7 +249,7 @@ export default function HubCommunication() {
           <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
             <MessageSquare className="w-6 h-6 text-primary" /> Hub Communication
           </h1>
-          <p className="text-sm text-muted-foreground mt-0.5">Tous les canaux centralisés — appels, emails, messages</p>
+          <p className="text-sm text-muted-foreground mt-0.5">Tous les canaux centralisés — appels, emails, SMS, WhatsApp</p>
         </div>
         {totalUnread > 0 && (
           <div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-full px-4 py-2">
@@ -256,6 +259,27 @@ export default function HubCommunication() {
         )}
       </div>
 
+      {/* Tabs */}
+      <div className="flex gap-1 bg-white rounded-2xl border border-border/50 p-1.5 overflow-x-auto">
+        {[
+          { id: "contacts", label: "Contacts & Timeline", icon: User },
+          { id: "automations", label: "Automations SMS/WA", icon: Zap },
+        ].map(tab => {
+          const Icon = tab.icon;
+          return (
+            <button key={tab.id} onClick={() => setActiveTab(tab.id)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all flex-shrink-0 ${
+                activeTab === tab.id ? "bg-primary text-white shadow-sm" : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
+              }`}>
+              <Icon className="w-4 h-4" />{tab.label}
+            </button>
+          );
+        })}
+      </div>
+
+      {activeTab === "automations" && <SmsWhatsappAutomationsTab />}
+
+      {activeTab === "contacts" && <>
       {/* KPI strip */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
@@ -405,6 +429,7 @@ export default function HubCommunication() {
           onSent={load}
         />
       )}
+      </>}
     </div>
   );
 }
