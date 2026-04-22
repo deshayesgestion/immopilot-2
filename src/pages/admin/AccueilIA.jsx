@@ -5,11 +5,12 @@ import { Input } from "@/components/ui/input";
 import {
   Bot, Phone, TicketIcon, AlertTriangle, CheckCircle2,
   PhoneIncoming, Home, TrendingUp, CreditCard, Loader2,
-  Plus, Send, Zap, Eye, Mail, ArrowUpRight
+  Plus, Send, Zap, Eye, Mail, ArrowUpRight, Bell
 } from "lucide-react";
 import HubIAFlux from "@/components/ia/HubIAFlux";
 import TicketCreateModal from "@/components/ia/TicketCreateModal";
 import TicketDetailModal from "@/components/ia/TicketDetailModal";
+import RelancesTab from "@/components/admin/relances/RelancesTab";
 
 const fmt = (d) => d ? new Date(d).toLocaleDateString("fr-FR") : "—";
 
@@ -135,6 +136,7 @@ const TABS = [
   { id: "dashboard", label: "Dashboard", icon: TicketIcon },
   { id: "agent", label: "Agent IA", icon: Bot },
   { id: "tickets", label: "Tickets", icon: TicketIcon },
+  { id: "relances", label: "Relances IA", icon: Bell },
   { id: "hub", label: "Hub IA & Flux", icon: Zap },
 ];
 
@@ -209,7 +211,8 @@ export default function AccueilIA() {
               }`}>
               <Icon className="w-3.5 h-3.5" />
               <span>{tab.label}</span>
-              {tab.id === "tickets" && stats.nouveaux > 0 && (
+              {tab.id === "relances" && (stats.paiement + stats.dossier + stats.visite + stats.reponse > 0) && null}
+      {tab.id === "tickets" && stats.nouveaux > 0 && (
                 <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${activeTab === tab.id ? "bg-white/20" : "bg-primary text-white"}`}>
                   {stats.nouveaux}
                 </span>
@@ -435,6 +438,9 @@ export default function AccueilIA() {
           )}
         </div>
       )}
+
+      {/* ── RELANCES IA ── */}
+      {activeTab === "relances" && <RelancesTab />}
 
       {/* ── HUB IA ── */}
       {activeTab === "hub" && <HubIAFlux />}

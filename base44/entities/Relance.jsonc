@@ -5,57 +5,115 @@
     "agency_id": {
       "type": "string"
     },
-    "transaction_id": {
-      "type": "string"
-    },
-    "tiers_nom": {
-      "type": "string"
-    },
-    "tiers_email": {
-      "type": "string"
-    },
-    "bien_titre": {
-      "type": "string"
-    },
-    "montant": {
-      "type": "number"
-    },
-    "niveau": {
-      "type": "number",
-      "description": "1=rappel, 2=relance ferme, 3=mise en demeure"
-    },
-    "statut": {
+    "type_relance": {
       "type": "string",
       "enum": [
-        "planifiee",
-        "envoyee",
-        "ignoree",
-        "resolue"
+        "paiement_retard",
+        "reponse_client",
+        "dossier_inactif",
+        "visite_non_confirmee"
       ],
-      "default": "planifiee"
-    },
-    "date_envoi": {
-      "type": "string"
+      "description": "Nature de la relance"
     },
     "canal": {
       "type": "string",
       "enum": [
         "email",
         "sms",
-        "courrier"
+        "whatsapp"
       ],
       "default": "email"
     },
-    "contenu": {
+    "statut": {
+      "type": "string",
+      "enum": [
+        "planifiee",
+        "envoyee",
+        "repondue",
+        "ignoree",
+        "resolue"
+      ],
+      "default": "planifiee"
+    },
+    "niveau": {
+      "type": "number",
+      "default": 1,
+      "description": "1=rappel doux, 2=relance ferme, 3=mise en demeure"
+    },
+    "contact_id": {
+      "type": "string",
+      "description": "ID Contact cible"
+    },
+    "contact_nom": {
       "type": "string"
+    },
+    "contact_email": {
+      "type": "string"
+    },
+    "contact_telephone": {
+      "type": "string"
+    },
+    "dossier_id": {
+      "type": "string",
+      "description": "DossierImmobilier li\u00e9"
+    },
+    "dossier_titre": {
+      "type": "string"
+    },
+    "bien_id": {
+      "type": "string",
+      "description": "Bien concern\u00e9"
+    },
+    "bien_titre": {
+      "type": "string"
+    },
+    "paiement_id": {
+      "type": "string",
+      "description": "Paiement li\u00e9 (si retard)"
+    },
+    "montant": {
+      "type": "number",
+      "description": "Montant concern\u00e9 (paiement)"
+    },
+    "contenu_ia": {
+      "type": "string",
+      "description": "Message g\u00e9n\u00e9r\u00e9 par l'IA"
+    },
+    "raison": {
+      "type": "string",
+      "description": "Raison d\u00e9taill\u00e9e de la relance"
+    },
+    "jours_inactivite": {
+      "type": "number",
+      "description": "Jours sans activit\u00e9 (dossier inactif)"
+    },
+    "jours_retard": {
+      "type": "number",
+      "description": "Jours de retard (paiement)"
+    },
+    "date_envoi": {
+      "type": "string",
+      "description": "ISO datetime d'envoi r\u00e9el"
+    },
+    "date_prochaine": {
+      "type": "string",
+      "description": "ISO datetime de prochaine relance pr\u00e9vue"
+    },
+    "historique": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "description": "Historique des tentatives [{date, canal, contenu, statut}]"
     },
     "auto": {
       "type": "boolean",
-      "default": false
+      "default": true,
+      "description": "G\u00e9n\u00e9r\u00e9e automatiquement par l'IA"
     }
   },
   "required": [
-    "tiers_nom",
-    "montant"
+    "type_relance",
+    "contact_nom"
   ]
 }
