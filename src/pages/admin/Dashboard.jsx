@@ -4,6 +4,8 @@ import DashboardAdmin from "../../components/dashboard/DashboardAdmin";
 import DashboardAgent from "../../components/dashboard/DashboardAgent";
 import DashboardGestionnaire from "../../components/dashboard/DashboardGestionnaire";
 import DashboardComptable from "../../components/dashboard/DashboardComptable";
+import DashboardResponsableVente from "../../components/dashboard/DashboardResponsableVente";
+import DashboardResponsableLocation from "../../components/dashboard/DashboardResponsableLocation";
 import OnboardingChecklist from "../../components/onboarding/OnboardingChecklist";
 import { ROLE_STEP_LABELS } from "@/lib/onboardingSteps";
 import { Loader2 } from "lucide-react";
@@ -47,6 +49,8 @@ export default function Dashboard() {
       case "agent": return <DashboardAgent user={user} />;
       case "gestionnaire": return <DashboardGestionnaire user={user} />;
       case "comptable": return <DashboardComptable user={user} />;
+      case "responsable_vente": return <DashboardResponsableVente user={user} />;
+      case "responsable_location": return <DashboardResponsableLocation user={user} />;
       default: return <DashboardAdmin agency={agency} />;
     }
   };

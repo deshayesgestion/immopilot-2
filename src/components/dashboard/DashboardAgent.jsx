@@ -1,67 +1,87 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
-  Home, Users, Calendar, TrendingUp, ArrowUpRight, Plus,
-  Brain, Eye, Phone, Clock, CheckCircle2, AlertTriangle
+  Home, Users, Calendar, TrendingUp, ArrowUpRight,
+  Brain, Zap, Clock, CheckCircle2, Loader2, RefreshCw, ArrowRight
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import CockpitPeriodFilter, { filterByPeriod } from "./CockpitPeriodFilter";
 
 export default function DashboardAgent({ user }) {
-  const [data, setData] = useState(null);
+  const navigate = useNavigate();
+  const [rawData, setRawData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [aiTips, setAiTips] = useState([]);
+  const [period, setPeriod] = useState("30d");
+  const [customStart, setCustomStart] = useState("");
+  const [customEnd, setCustomEnd] = useState("");
+  const [aiActions, setAiActions] = useState([]);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [executedAI, setExecutedAI] = useState(new Set());
 
-  useEffect(() => {
-    const load = async () => {
-      const [props, leads, events, transactions] = await Promise.all([
-        base44.entities.Property.filter({ agent_email: user?.email || "" }).catch(() => base44.entities.Property.list("-created_date", 50)),
-        base44.entities.Lead.list("-created_date", 50),
-        base44.entities.Evenement.filter({ agent_email: user?.email || "" }).catch(() => []),
-        base44.entities.TransactionVente.list("-created_date", 30),
-      ]);
+  const load = async () => {
+    setLoading(true);
+    const [props, leads, events, transactions] = await Promise.all([
+      base44.entities.Property.filter({ agent_email: user?.email || "" }).catch(() => base44.entities.Property.list("-created_date", 50)),
+      base44.entities.Lead.list("-created_date", 100),
+      base44.entities.Evenement.filter({ agent_email: user?.email || "" }).catch(() => []),
+      base44.entities.Transaction.list("-created_date", 50),
+    ]);
+    setRawData({ props, leads, events, transactions });
+    setLoading(false);
+  };
 
-      const today = new Date().toISOString().slice(0, 10);
-      const visitesDuJour = events.filter(e => e.date_debut?.slice(0, 10) === today && e.type === "visite");
-      const newLeads = leads.filter(l => l.status === "nouveau");
+  useEffect(() => { load(); }, [user?.email]);
 
-      setData({ props, leads, events, transactions, visitesDuJour, newLeads });
-      setLoading(false);
+  const data = useMemo(() => {
+    if (!rawData) return null;
+    const fp = (items, field = "created_date") => filterByPeriod(items, period, customStart, customEnd, field);
+    const leadsP = fp(rawData.leads);
+    const today = new Date().toISOString().slice(0, 10);
+    const visitesDuJour = rawData.events.filter(e => e.date_debut?.slice(0, 10) === today && e.type === "visite");
+    const newLeads = leadsP.filter(l => l.statut === "nouveau" || l.status === "nouveau");
+    return { props: rawData.props, leads: leadsP, events: rawData.events, transactions: rawData.transactions, visitesDuJour, newLeads };
+  }, [rawData, period, customStart, customEnd]);
 
-      // AI tips
-      if (newLeads.length > 0 || props.length > 0) {
-        base44.integrations.Core.InvokeLLM({
-          prompt: `Agent immobilier avec ${newLeads.length} nouveaux leads, ${visitesDuJour.length} visites aujourd'hui, ${props.length} biens. Génère 2 suggestions d'action courtes (max 12 mots) en JSON.`,
-          response_json_schema: {
-            type: "object",
-            properties: {
-              tips: { type: "array", items: { type: "object", properties: { message: { type: "string" }, icon: { type: "string" } } } }
-            }
-          }
-        }).then(r => setAiTips(r?.tips || [])).catch(() => {});
+  const analyzeAI = async () => {
+    if (!data || aiLoading) return;
+    setAiLoading(true);
+    const res = await base44.integrations.Core.InvokeLLM({
+      prompt: `Agent immobilier. Données:
+- Biens assignés: ${data.props.length}
+- Leads: ${data.leads.length} | Nouveaux: ${data.newLeads.length}
+- Visites aujourd'hui: ${data.visitesDuJour.length}
+Génère 3 actions prioritaires pour l'agent. Courtes et actionnables (< 12 mots).`,
+      response_json_schema: {
+        type: "object",
+        properties: {
+          actions: { type: "array", items: { type: "object", properties: { action: { type: "string" }, raison: { type: "string" } } } }
+        }
       }
-    };
-    load();
-  }, [user?.email]);
+    });
+    setAiActions(res?.actions || []);
+    setAiLoading(false);
+  };
 
   const kpis = data ? [
-    { label: "Biens assignés", value: data.props.length, icon: Home, color: "text-blue-600", bg: "bg-blue-50", link: "/admin/location" },
-    { label: "Leads à traiter", value: data.newLeads.length, icon: Users, color: "text-purple-600", bg: "bg-purple-50", link: "/admin/communications", alert: data.newLeads.length > 0 },
+    { label: "Biens assignés", value: data.props.length, icon: Home, color: "text-blue-600", bg: "bg-blue-50", link: "/admin/modules/biens" },
+    { label: "Leads période", value: data.leads.length, icon: Users, color: "text-purple-600", bg: "bg-purple-50", link: "/admin/communications", alert: data.newLeads.length > 0 },
     { label: "Visites aujourd'hui", value: data.visitesDuJour.length, icon: Calendar, color: "text-amber-600", bg: "bg-amber-50", link: "/admin/agenda" },
-    { label: "Transactions", value: data.transactions.length, icon: TrendingUp, color: "text-green-600", bg: "bg-green-50", link: "/admin/vente/transactions" },
+    { label: "Transactions", value: data.transactions.length, icon: TrendingUp, color: "text-green-600", bg: "bg-green-50", link: "/admin/modules/vente" },
   ] : [];
 
-  const quickActions = [
-    { label: "Nouveau bien", icon: Home, path: "/admin/location", color: "bg-blue-500" },
-    { label: "Planifier visite", icon: Calendar, path: "/admin/agenda", color: "bg-amber-500" },
-    { label: "Relancer lead", icon: Phone, path: "/admin/communications", color: "bg-purple-500" },
-    { label: "Voir pipeline", icon: TrendingUp, path: "/admin/vente/transactions", color: "bg-green-500" },
-  ];
-
   return (
-    <div className="space-y-6">
-      {/* KPIs */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="space-y-4 max-w-5xl">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
+        <CockpitPeriodFilter period={period} onPeriodChange={setPeriod}
+          customStart={customStart} customEnd={customEnd}
+          onCustomChange={(k, v) => k === "start" ? setCustomStart(v) : setCustomEnd(v)} />
+        <Button variant="outline" size="sm" className="rounded-full gap-2 h-8 text-xs self-start" onClick={load} disabled={loading}>
+          {loading ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />} Actualiser
+        </Button>
+      </div>
+
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {loading ? Array(4).fill(0).map((_, i) => (
           <div key={i} className="bg-white rounded-2xl p-5 border border-border/50 animate-pulse h-28" />
         )) : kpis.map((k, i) => (
@@ -78,39 +98,44 @@ export default function DashboardAgent({ user }) {
         ))}
       </div>
 
-      {/* AI Tips */}
-      {aiTips.length > 0 && (
-        <div className="bg-gradient-to-r from-primary/5 to-accent rounded-2xl border border-primary/15 p-4">
-          <div className="flex items-center gap-2 mb-3">
+      {/* IA Actionnelle */}
+      <div className="bg-white rounded-2xl border border-border/50 p-5">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
             <Brain className="w-4 h-4 text-primary" />
-            <p className="text-sm font-semibold text-primary">Suggestions IA pour vous</p>
+            <p className="text-sm font-semibold">IA — Mes priorités du jour</p>
           </div>
-          <div className="flex flex-wrap gap-2">
-            {aiTips.map((tip, i) => (
-              <span key={i} className="text-xs bg-white border border-primary/20 text-foreground rounded-full px-3 py-1.5">
-                💡 {tip.message}
-              </span>
-            ))}
-          </div>
+          <Button size="sm" variant="outline" className="rounded-full h-7 text-xs gap-1.5" onClick={analyzeAI} disabled={aiLoading}>
+            {aiLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Zap className="w-3 h-3" />}
+            {aiActions.length ? "Actualiser" : "Analyser"}
+          </Button>
         </div>
-      )}
-
-      {/* Quick Actions */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        {quickActions.map((a, i) => (
-          <Link key={i} to={a.path}>
-            <button className="w-full bg-white border border-border/50 rounded-2xl p-4 flex flex-col items-center gap-2 hover:shadow-sm transition-all">
-              <div className={`w-10 h-10 rounded-xl ${a.color} flex items-center justify-center`}>
-                <a.icon className="w-4.5 h-4.5 text-white" />
-              </div>
-              <span className="text-xs font-medium text-center">{a.label}</span>
-            </button>
-          </Link>
-        ))}
+        {aiActions.length === 0 && !aiLoading && (
+          <p className="text-xs text-muted-foreground text-center py-4">Cliquez "Analyser" pour vos priorités IA du jour</p>
+        )}
+        {aiLoading && <div className="flex justify-center py-4"><Loader2 className="w-5 h-5 animate-spin text-primary/40" /></div>}
+        {aiActions.length > 0 && !aiLoading && (
+          <div className="space-y-2">
+            {aiActions.map((a, i) => {
+              const done = executedAI.has(i);
+              return (
+                <button key={i} onClick={() => { setExecutedAI(prev => new Set([...prev, i])); navigate("/admin/agenda"); }}
+                  className={`w-full text-left flex items-center gap-3 rounded-xl border px-3.5 py-3 transition-all group ${done ? "border-green-200 bg-green-50 opacity-60" : "border-border/50 hover:border-primary/40 hover:bg-accent/30"}`}>
+                  <span className="text-primary font-bold text-sm flex-shrink-0">{i + 1}.</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-semibold">{a.action}</p>
+                    <p className="text-[11px] text-muted-foreground">{a.raison}</p>
+                  </div>
+                  {done ? <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0" />
+                    : <ArrowRight className="w-3.5 h-3.5 text-muted-foreground/30 group-hover:text-primary flex-shrink-0 transition-colors" />}
+                </button>
+              );
+            })}
+          </div>
+        )}
       </div>
 
-      {/* Visites du jour + Leads */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div className="bg-white rounded-2xl border border-border/50 p-5">
           <div className="flex items-center justify-between mb-4">
             <p className="text-sm font-semibold">Visites du jour</p>
@@ -138,18 +163,18 @@ export default function DashboardAgent({ user }) {
 
         <div className="bg-white rounded-2xl border border-border/50 p-5">
           <div className="flex items-center justify-between mb-4">
-            <p className="text-sm font-semibold">Leads à traiter</p>
+            <p className="text-sm font-semibold">Leads à traiter (période)</p>
             <Link to="/admin/communications" className="text-xs text-primary hover:underline">Voir tout →</Link>
           </div>
           <div className="space-y-2.5">
             {(data?.newLeads.slice(0, 5) || []).map(l => (
               <div key={l.id} className="flex items-center gap-3">
                 <div className="w-7 h-7 rounded-full bg-purple-50 flex items-center justify-center text-xs font-semibold text-purple-600 flex-shrink-0">
-                  {l.name?.[0]?.toUpperCase()}
+                  {(l.name || l.contact_id || "?")[0]?.toUpperCase()}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm truncate">{l.name}</p>
-                  <p className="text-xs text-muted-foreground capitalize">{l.type}</p>
+                  <p className="text-sm truncate">{l.name || "Lead"}</p>
+                  <p className="text-xs text-muted-foreground capitalize">{l.source || "—"}</p>
                 </div>
                 <span className="text-[10px] bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full">Nouveau</span>
               </div>
