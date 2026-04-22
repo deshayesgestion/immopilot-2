@@ -33,6 +33,92 @@
       "default": "disponible",
       "description": "Statut du bien"
     },
+    "description": {
+      "type": "string",
+      "description": "Description du bien"
+    },
+    "surface": {
+      "type": "number",
+      "description": "Surface en m\u00b2"
+    },
+    "nb_pieces": {
+      "type": "number",
+      "description": "Nombre de pi\u00e8ces"
+    },
+    "etage": {
+      "type": "string",
+      "description": "\u00c9tage"
+    },
+    "chauffage": {
+      "type": "string",
+      "description": "Type de chauffage"
+    },
+    "dpe": {
+      "type": "string",
+      "enum": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E",
+        "F",
+        "G"
+      ],
+      "description": "Classe DPE"
+    },
+    "balcon": {
+      "type": "boolean",
+      "default": false
+    },
+    "terrasse": {
+      "type": "boolean",
+      "default": false
+    },
+    "jardin": {
+      "type": "boolean",
+      "default": false
+    },
+    "garage": {
+      "type": "boolean",
+      "default": false
+    },
+    "parking": {
+      "type": "boolean",
+      "default": false
+    },
+    "cave": {
+      "type": "boolean",
+      "default": false
+    },
+    "meuble": {
+      "type": "boolean",
+      "default": false
+    },
+    "ascenseur": {
+      "type": "boolean",
+      "default": false
+    },
+    "photos": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "URLs des photos"
+    },
+    "photo_principale": {
+      "type": "string",
+      "description": "URL de la photo principale"
+    },
+    "is_published_internal": {
+      "type": "boolean",
+      "default": false,
+      "description": "Publi\u00e9 sur la landing page"
+    },
+    "is_published_external": {
+      "type": "boolean",
+      "default": false,
+      "description": "Pr\u00e9par\u00e9 pour export externe"
+    },
     "owner_id": {
       "type": "string",
       "description": "ID du propri\u00e9taire (relation vers Contact)"
