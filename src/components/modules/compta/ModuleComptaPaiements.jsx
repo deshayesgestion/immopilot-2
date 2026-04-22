@@ -1,4 +1,4 @@
-import { Home, User } from "lucide-react";
+import { Home, User, CheckCircle2, Circle } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const STATUT_COLORS = {
@@ -21,6 +21,12 @@ const STATUT_LABELS = {
   en_attente: "En attente",
   en_retard: "En retard",
 };
+const MODE_LABELS = {
+  virement: "Virement",
+  carte: "Carte",
+  especes: "Espèces",
+  cheque: "Chèque",
+};
 const MODULE_LINK = {
   loyer: "/admin/modules/location",
   commission: "/admin/modules/vente",
@@ -41,6 +47,8 @@ export default function ModuleComptaPaiements({ paiements, contactMap, bienMap }
             <th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide">Montant</th>
             <th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide">Échéance</th>
             <th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide">Statut</th>
+            <th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide">Mode</th>
+            <th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide">Rapprochement</th>
             <th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide">Module</th>
           </tr>
         </thead>
@@ -79,16 +87,30 @@ export default function ModuleComptaPaiements({ paiements, contactMap, bienMap }
                   {p.date_echeance ? new Date(p.date_echeance).toLocaleDateString("fr-FR") : "—"}
                 </td>
                 <td className="px-4 py-3">
-                  <span className={`text-xs px-2 py-1 rounded-full font-medium ${STATUT_COLORS[p.statut] || "bg-secondary text-muted-foreground"}`}>
-                    {STATUT_LABELS[p.statut] || p.statut || "—"}
-                  </span>
+                <span className={`text-xs px-2 py-1 rounded-full font-medium ${STATUT_COLORS[p.statut] || "bg-secondary text-muted-foreground"}`}>
+                  {STATUT_LABELS[p.statut] || p.statut || "—"}
+                </span>
+                </td>
+                <td className="px-4 py-3 text-xs text-muted-foreground">
+                {MODE_LABELS[p.mode_paiement] || "—"}
                 </td>
                 <td className="px-4 py-3">
-                  {moduleLink ? (
-                    <Link to={moduleLink} className="text-xs text-primary hover:underline">
-                      {p.type === "loyer" ? "Location →" : "Vente →"}
-                    </Link>
-                  ) : "—"}
+                {p.statut_rapprochement === "matche" ? (
+                  <span className="flex items-center gap-1 text-xs text-green-600 font-medium">
+                    <CheckCircle2 className="w-3.5 h-3.5" /> Matché
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                    <Circle className="w-3.5 h-3.5" /> Non matché
+                  </span>
+                )}
+                </td>
+                <td className="px-4 py-3">
+                {moduleLink ? (
+                  <Link to={moduleLink} className="text-xs text-primary hover:underline">
+                    {p.type === "loyer" ? "Location →" : "Vente →"}
+                  </Link>
+                ) : "—"}
                 </td>
               </tr>
             );

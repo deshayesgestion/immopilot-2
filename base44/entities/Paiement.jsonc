@@ -37,6 +37,33 @@
       "default": "en_attente",
       "description": "Statut du paiement"
     },
+    "mode_paiement": {
+      "type": "string",
+      "enum": [
+        "virement",
+        "carte",
+        "especes",
+        "cheque"
+      ],
+      "description": "Mode de r\u00e8glement"
+    },
+    "reference_paiement": {
+      "type": "string",
+      "description": "R\u00e9f\u00e9rence libre (num\u00e9ro de virement, re\u00e7u\u2026)"
+    },
+    "identifiant_externe": {
+      "type": "string",
+      "description": "Identifiant bancaire externe (pour futur import automatique)"
+    },
+    "statut_rapprochement": {
+      "type": "string",
+      "enum": [
+        "non_matche",
+        "matche"
+      ],
+      "default": "non_matche",
+      "description": "Statut de rapprochement bancaire"
+    },
     "date_echeance": {
       "type": "string",
       "description": "Date d'\u00e9ch\u00e9ance (ISO)"
