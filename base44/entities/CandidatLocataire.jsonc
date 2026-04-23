@@ -1,0 +1,158 @@
+{
+  "name": "CandidatLocataire",
+  "type": "object",
+  "properties": {
+    "agency_id": {
+      "type": "string"
+    },
+    "bien_id": {
+      "type": "string",
+      "description": "Bien convoit\u00e9 (obligatoire)"
+    },
+    "bien_titre": {
+      "type": "string"
+    },
+    "bien_adresse": {
+      "type": "string"
+    },
+    "contact_id": {
+      "type": "string",
+      "description": "ID Contact li\u00e9 (optionnel)"
+    },
+    "nom": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string"
+    },
+    "telephone": {
+      "type": "string"
+    },
+    "situation_pro": {
+      "type": "string",
+      "enum": [
+        "cdi",
+        "cdd",
+        "independant",
+        "retraite",
+        "etudiant",
+        "sans_emploi",
+        "autre"
+      ],
+      "description": "Situation professionnelle"
+    },
+    "employeur": {
+      "type": "string"
+    },
+    "revenus_mensuels": {
+      "type": "number",
+      "description": "Revenus nets mensuels (\u20ac)"
+    },
+    "revenus_garant": {
+      "type": "number",
+      "description": "Revenus du garant (\u20ac)"
+    },
+    "nom_garant": {
+      "type": "string"
+    },
+    "statut": {
+      "type": "string",
+      "enum": [
+        "prospect",
+        "dossier_complet",
+        "visite_planifiee",
+        "visite_faite",
+        "selectionne",
+        "refuse",
+        "converti"
+      ],
+      "default": "prospect",
+      "description": "Statut du candidat"
+    },
+    "docs_identite": {
+      "type": "boolean",
+      "default": false
+    },
+    "docs_revenus": {
+      "type": "boolean",
+      "default": false
+    },
+    "docs_imposition": {
+      "type": "boolean",
+      "default": false
+    },
+    "docs_domicile": {
+      "type": "boolean",
+      "default": false
+    },
+    "docs_urls": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "URLs des documents upload\u00e9s"
+    },
+    "scoring_ia": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "scoring_solvabilite": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "scoring_risque": {
+      "type": "string",
+      "enum": [
+        "faible",
+        "modere",
+        "eleve"
+      ]
+    },
+    "scoring_stabilite": {
+      "type": "string",
+      "enum": [
+        "forte",
+        "moyenne",
+        "faible"
+      ]
+    },
+    "scoring_recommandation": {
+      "type": "string",
+      "enum": [
+        "fort",
+        "moyen",
+        "faible"
+      ]
+    },
+    "scoring_commentaire": {
+      "type": "string"
+    },
+    "scoring_detail": {
+      "type": "object",
+      "description": "D\u00e9tail analyse IA {capacite_paiement, coherence_revenus, stabilite_locative}"
+    },
+    "evenement_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "IDs des RDV li\u00e9s"
+    },
+    "feedback_visite": {
+      "type": "string"
+    },
+    "notes_agent": {
+      "type": "string"
+    },
+    "dossier_locatif_id": {
+      "type": "string",
+      "description": "ID DossierLocatif apr\u00e8s conversion"
+    }
+  },
+  "required": [
+    "bien_id",
+    "nom"
+  ]
+}
