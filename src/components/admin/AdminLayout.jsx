@@ -4,6 +4,8 @@ import { useAgency } from "../../hooks/useAgency";
 import { Menu, X } from "lucide-react";
 import { useState } from "react";
 import OnboardingFAB from "../onboarding/OnboardingFAB.jsx";
+import { AIProvider } from "@/lib/AIContext";
+import AIStatusBar from "./AIStatusBar";
 
 export default function AdminLayout() {
   const { agency } = useAgency();
@@ -11,6 +13,7 @@ export default function AdminLayout() {
   const [collapsed, setCollapsed] = useState(false);
 
   return (
+    <AIProvider>
     <div className="flex min-h-screen bg-[#F9F9FB]">
       {/* Desktop sidebar */}
       <div className="hidden lg:block sticky top-0 h-screen flex-shrink-0">
@@ -36,6 +39,7 @@ export default function AdminLayout() {
           <span className="font-semibold text-sm">{agency?.name || "ImmoPilot"} — Back-office</span>
         </div>
 
+        <AIStatusBar />
         <main className="flex-1 p-6 lg:p-8 overflow-auto">
           <Outlet />
         </main>
@@ -43,5 +47,6 @@ export default function AdminLayout() {
 
       <OnboardingFAB />
     </div>
+    </AIProvider>
   );
 }

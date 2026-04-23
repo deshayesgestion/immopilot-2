@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef } from "react";
 import { base44 } from "@/api/base44Client";
-import { Bot, TrendingUp, KeySquare, Calculator, Headphones, Play, History, Settings2, Zap } from "lucide-react";
+import { Bot, TrendingUp, KeySquare, Calculator, Headphones, Play, History, Settings2, Zap, ToggleRight, ToggleLeft, RefreshCw } from "lucide-react";
 import AgentCard from "@/components/agents/AgentCard";
 import AgentChatPanel from "@/components/agents/AgentChatPanel";
 import AgentHistorique from "@/components/agents/AgentHistorique";
+import { useAI } from "@/lib/AIContext";
+import { Button } from "@/components/ui/button";
 
 export const AGENTS_CONFIG = [
   {
@@ -65,24 +67,9 @@ export default function AdminAgents() {
   const [tab, setTab] = useState("agents");
   const [selectedAgent, setSelectedAgent] = useState(null);
   const [conversations, setConversations] = useState({});
-  const [rawData, setRawData] = useState(null);
-  const [loadingData, setLoadingData] = useState(true);
 
-  // Charger les données du SaaS pour le contexte des agents
-  useEffect(() => {
-    const load = async () => {
-      const [leads, paiements, dossiers, contacts, tickets] = await Promise.all([
-        base44.entities.Lead.list("-created_date", 100),
-        base44.entities.Paiement.list("-created_date", 200),
-        base44.entities.DossierImmobilier.list("-created_date", 100),
-        base44.entities.Contact.list("-created_date", 100),
-        base44.entities.TicketIA.list("-created_date", 50),
-      ]);
-      setRawData({ leads, paiements, dossiers, contacts, tickets });
-      setLoadingData(false);
-    };
-    load();
-  }, []);
+  // Utiliser le contexte IA global (données déjà chargées en fond)
+  const { data: rawData, agentStatus, toggleAgent, metrics, alerts, refreshData, loading: loadingData, lastRefresh } = useAI();
 
   // Charger toutes les conversations de chaque agent
   useEffect(() => {
@@ -98,11 +85,6 @@ export default function AdminAgents() {
     };
     loadConvs();
   }, []);
-
-  const handleSelectAgent = (agent) => {
-    setSelectedAgent(agent);
-    setTab("agents");
-  };
 
   const handleConversationCreated = (agentId, conv) => {
     setConversations(prev => ({
@@ -124,9 +106,22 @@ export default function AdminAgents() {
             4 agents spécialisés · Vente · Location · Comptabilité · Support
           </p>
         </div>
-        <div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-full px-3 py-1.5">
-          <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-          <span className="text-xs font-medium text-green-700">{AGENTS_CONFIG.length} agents actifs</span>
+        <div className="flex items-center gap-3">
+          {lastRefresh && (
+            <span className="text-[11px] text-muted-foreground hidden sm:block">
+              MAJ {lastRefresh.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}
+            </span>
+          )}
+          <Button variant="outline" size="sm" className="rounded-full gap-1.5 h-8 text-xs" onClick={refreshData} disabled={loadingData}>
+            <RefreshCw className={`w-3 h-3 ${loadingData ? "animate-spin" : ""}`} />
+            Actualiser
+          </Button>
+          <div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-full px-3 py-1.5">
+            <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+            <span className="text-xs font-medium text-green-700">
+              {Object.values(agentStatus).filter(Boolean).length}/{AGENTS_CONFIG.length} actifs
+            </span>
+          </div>
         </div>
       </div>
 
@@ -159,6 +154,8 @@ export default function AdminAgents() {
                   isSelected={selectedAgent?.id === agent.id}
                   compact={!!selectedAgent}
                   rawData={rawData}
+                  isActive={agentStatus[agent.id] !== false}
+                  onToggle={() => toggleAgent(agent.id)}
                   onSelect={() => setSelectedAgent(selectedAgent?.id === agent.id ? null : agent)}
                 />
               ))}

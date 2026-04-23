@@ -1,4 +1,4 @@
-import { Play, MessageSquare, Clock, CheckCircle2, AlertTriangle } from "lucide-react";
+import { Play, MessageSquare, Clock, CheckCircle2, AlertTriangle, ToggleRight, ToggleLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const fmt = (d) => d ? new Date(d).toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }) : "—";
@@ -33,7 +33,7 @@ function getMetrics(agent, rawData) {
   }
 }
 
-export default function AgentCard({ agent, conversations, isSelected, compact, rawData, onSelect }) {
+export default function AgentCard({ agent, conversations, isSelected, compact, rawData, isActive = true, onToggle, onSelect }) {
   const Icon = agent.icon;
   const metrics = getMetrics(agent, rawData);
   const lastConv = conversations[0];
@@ -73,9 +73,14 @@ export default function AgentCard({ agent, conversations, isSelected, compact, r
           <div className={`w-11 h-11 rounded-2xl ${agent.bg} border ${agent.border} flex items-center justify-center`}>
             <Icon className={`w-5 h-5 ${agent.color}`} />
           </div>
-          <div className="flex items-center gap-1.5">
-            <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-            <span className="text-[10px] font-medium text-green-700">Actif</span>
+          <div className="flex items-center gap-2">
+            <div className={`w-1.5 h-1.5 rounded-full ${isActive ? "bg-green-500 animate-pulse" : "bg-gray-300"}`} />
+            <span className={`text-[10px] font-medium ${isActive ? "text-green-700" : "text-gray-400"}`}>{isActive ? "Actif" : "Inactif"}</span>
+            {onToggle && (
+              <button onClick={e => { e.stopPropagation(); onToggle(); }}>
+                {isActive ? <ToggleRight className="w-5 h-5 text-green-500" /> : <ToggleLeft className="w-5 h-5 text-gray-300" />}
+              </button>
+            )}
           </div>
         </div>
         <p className="text-sm font-bold">{agent.name}</p>
