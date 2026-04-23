@@ -178,9 +178,16 @@ function DossierDetail({ dossier, onClose, onUpdate }) {
 
   const save = async (data) => {
     setSaving(true);
-    const updated = await base44.entities.DossierLocatif.update(d.id, data);
-    setD(prev => ({ ...prev, ...data }));
-    onUpdate({ ...d, ...data });
+    // S'assurer que les champs requis sont toujours présents dans la mise à jour
+    const safeData = {
+      locataire_nom: d.locataire_nom || "—",
+      bien_id: d.bien_id || "unknown",
+      loyer_mensuel: d.loyer_mensuel || 0,
+      ...data,
+    };
+    await base44.entities.DossierLocatif.update(d.id, safeData);
+    setD(prev => ({ ...prev, ...safeData }));
+    onUpdate({ ...d, ...safeData });
     setSaving(false);
   };
 
