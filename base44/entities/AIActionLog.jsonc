@@ -1,0 +1,92 @@
+{
+  "name": "AIActionLog",
+  "type": "object",
+  "properties": {
+    "agency_id": {
+      "type": "string"
+    },
+    "action_type": {
+      "type": "string",
+      "enum": [
+        "email",
+        "sms",
+        "whatsapp",
+        "relance",
+        "ticket_create",
+        "dossier_update",
+        "paiement_action",
+        "lead_update",
+        "bi_analyse",
+        "call_rounded"
+      ],
+      "description": "Type d'action IA"
+    },
+    "agent": {
+      "type": "string",
+      "enum": [
+        "agent_vente",
+        "agent_location",
+        "agent_comptabilite",
+        "agent_support",
+        "accueil_ia",
+        "email_ia",
+        "relance_ia",
+        "rounded"
+      ],
+      "description": "Agent IA responsable"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "success",
+        "error",
+        "blocked",
+        "pending"
+      ],
+      "default": "success"
+    },
+    "target_contact": {
+      "type": "string",
+      "description": "Nom ou email du contact concern\u00e9"
+    },
+    "target_entity": {
+      "type": "string",
+      "description": "Entit\u00e9 concern\u00e9e (Dossier, Bien\u2026)"
+    },
+    "target_entity_id": {
+      "type": "string"
+    },
+    "module": {
+      "type": "string",
+      "enum": [
+        "vente",
+        "location",
+        "comptabilite",
+        "support",
+        "general"
+      ]
+    },
+    "details": {
+      "type": "string",
+      "description": "Description d\u00e9taill\u00e9e de l'action"
+    },
+    "error_message": {
+      "type": "string"
+    },
+    "tokens_used": {
+      "type": "number"
+    },
+    "duration_ms": {
+      "type": "number",
+      "description": "Dur\u00e9e d'ex\u00e9cution en ms"
+    },
+    "blocked_reason": {
+      "type": "string",
+      "description": "Raison du blocage anti-spam/boucle"
+    }
+  },
+  "required": [
+    "action_type",
+    "agent"
+  ]
+}

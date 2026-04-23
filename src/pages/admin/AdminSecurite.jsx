@@ -4,19 +4,26 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Shield, Search, Loader2, Trash2, Download, AlertTriangle,
-  CheckCircle2, User, Edit3, PlusCircle, LogIn, Upload, Eye,
-  XCircle, Lock, Database, FileDown
+  CheckCircle2, Edit3, PlusCircle, LogIn, Upload, Eye,
+  XCircle, Lock, Database, FileDown, Bot, Activity,
+  Settings, Bell
 } from "lucide-react";
 
+import AILogsTab from "@/components/admin/securite/AILogsTab";
+import AIMonitoringTab from "@/components/admin/securite/AIMonitoringTab";
+import AIControlTab from "@/components/admin/securite/AIControlTab";
+import AIAlertsTab from "@/components/admin/securite/AIAlertsTab";
+
+// ── AUDIT LOG (actions humaines) ──────────────────────────────────────────
 const ACTION_CONFIG = {
-  create:        { label: "Création",       color: "bg-green-100 text-green-700",  icon: PlusCircle },
-  update:        { label: "Modification",   color: "bg-blue-100 text-blue-700",    icon: Edit3 },
-  delete:        { label: "Suppression",    color: "bg-red-100 text-red-700",      icon: Trash2 },
-  login:         { label: "Connexion",      color: "bg-gray-100 text-gray-600",    icon: LogIn },
-  export:        { label: "Export",         color: "bg-amber-100 text-amber-700",  icon: FileDown },
-  import:        { label: "Import",         color: "bg-violet-100 text-violet-700",icon: Upload },
-  rgpd_delete:   { label: "Suppression RGPD", color: "bg-rose-100 text-rose-700", icon: XCircle },
-  access_denied: { label: "Accès refusé",   color: "bg-orange-100 text-orange-700",icon: Lock },
+  create:        { label: "Création",       color: "bg-green-100 text-green-700",   icon: PlusCircle },
+  update:        { label: "Modification",   color: "bg-blue-100 text-blue-700",     icon: Edit3 },
+  delete:        { label: "Suppression",    color: "bg-red-100 text-red-700",       icon: Trash2 },
+  login:         { label: "Connexion",      color: "bg-gray-100 text-gray-600",     icon: LogIn },
+  export:        { label: "Export",         color: "bg-amber-100 text-amber-700",   icon: FileDown },
+  import:        { label: "Import",         color: "bg-violet-100 text-violet-700", icon: Upload },
+  rgpd_delete:   { label: "Suppression RGPD", color: "bg-rose-100 text-rose-700",  icon: XCircle },
+  access_denied: { label: "Accès refusé",   color: "bg-orange-100 text-orange-700", icon: Lock },
 };
 
 const fmt = (d) => d ? new Date(d).toLocaleString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "—";
@@ -31,7 +38,6 @@ function ActionBadge({ action }) {
   );
 }
 
-// ── AUDIT LOGS TAB ──────────────────────────────────────────────────────
 function AuditLogsTab() {
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -81,7 +87,6 @@ function AuditLogsTab() {
           <Download className="w-3.5 h-3.5" /> Exporter
         </Button>
       </div>
-
       {loading ? (
         <div className="flex justify-center py-16"><Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /></div>
       ) : filtered.length === 0 ? (
@@ -140,7 +145,7 @@ function AuditLogsTab() {
   );
 }
 
-// ── RGPD TAB ─────────────────────────────────────────────────────────────
+// ── RGPD ──────────────────────────────────────────────────────────────────
 function RgpdTab() {
   const [email, setEmail] = useState("");
   const [searching, setSearching] = useState(false);
@@ -151,36 +156,29 @@ function RgpdTab() {
   const search = async () => {
     if (!email.trim()) return;
     setSearching(true); setFound(null); setDone(false);
-    const [leads, acq, users] = await Promise.all([
+    const [leads, users] = await Promise.all([
       base44.entities.Lead.filter({ email }),
-      base44.entities.Acquereur.filter({ email }),
       base44.entities.User.list(),
     ]);
     const userMatch = users.filter(u => u.email === email);
-    setFound({ leads, acq, user: userMatch });
+    setFound({ leads, user: userMatch });
     setSearching(false);
   };
 
   const deleteAll = async () => {
-    if (!window.confirm(`Supprimer définitivement toutes les données de ${email} ? Cette action est irréversible.`)) return;
+    if (!window.confirm(`Supprimer définitivement toutes les données de ${email} ?`)) return;
     setDeleting(true);
     for (const l of found.leads) await base44.entities.Lead.delete(l.id);
-    for (const a of found.acq) await base44.entities.Acquereur.delete(a.id);
-    // Log RGPD action
     const user = await base44.auth.me();
     await base44.entities.AuditLog.create({
-      user_email: user?.email,
-      user_name: user?.full_name || user?.email,
-      user_role: user?.role,
-      action: "rgpd_delete",
-      entity: "Contact",
-      entity_label: email,
-      details: `Suppression RGPD demandée pour ${email} — ${found.leads.length} leads, ${found.acq.length} acquéreurs supprimés`,
+      user_email: user?.email, user_name: user?.full_name || user?.email, user_role: user?.role,
+      action: "rgpd_delete", entity: "Contact", entity_label: email,
+      details: `Suppression RGPD — ${found.leads.length} leads supprimés`,
     });
     setDeleting(false); setDone(true); setFound(null); setEmail("");
   };
 
-  const totalFound = (found?.leads?.length || 0) + (found?.acq?.length || 0);
+  const totalFound = found?.leads?.length || 0;
 
   return (
     <div className="space-y-5 max-w-xl">
@@ -188,10 +186,9 @@ function RgpdTab() {
         <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
         <div>
           <p className="text-sm font-semibold text-amber-800">Droit à l'oubli — RGPD</p>
-          <p className="text-xs text-amber-700 mt-0.5">Recherchez une personne par email pour identifier et supprimer toutes ses données personnelles conformément au RGPD.</p>
+          <p className="text-xs text-amber-700 mt-0.5">Recherchez une personne par email pour identifier et supprimer toutes ses données personnelles.</p>
         </div>
       </div>
-
       <div className="bg-white rounded-2xl border border-border/50 p-5 space-y-4">
         <p className="text-sm font-semibold">Recherche par email</p>
         <div className="flex gap-2">
@@ -201,31 +198,14 @@ function RgpdTab() {
             {searching ? <Loader2 className="w-4 h-4 animate-spin" /> : "Rechercher"}
           </Button>
         </div>
-
-        {done && (
-          <div className="flex items-center gap-2 text-sm text-green-700 bg-green-50 rounded-xl px-4 py-3">
-            <CheckCircle2 className="w-4 h-4" /> Données supprimées avec succès.
-          </div>
-        )}
-
+        {done && <div className="flex items-center gap-2 text-sm text-green-700 bg-green-50 rounded-xl px-4 py-3"><CheckCircle2 className="w-4 h-4" /> Données supprimées.</div>}
         {found && (
           <div className="space-y-3">
             <p className="text-sm font-medium">{totalFound} enregistrement{totalFound > 1 ? "s" : ""} trouvé{totalFound > 1 ? "s" : ""}</p>
-            {[
-              { label: "Leads / Prospects", items: found.leads, icon: "👤" },
-              { label: "Acquéreurs", items: found.acq, icon: "🔑" },
-            ].map(g => g.items.length > 0 && (
-              <div key={g.label} className="bg-secondary/20 rounded-xl p-3">
-                <p className="text-xs font-semibold mb-2">{g.icon} {g.label} ({g.items.length})</p>
-                {g.items.map(i => (
-                  <p key={i.id} className="text-xs text-muted-foreground">{i.name || i.nom} · {i.email}</p>
-                ))}
-              </div>
-            ))}
             {found.user?.length > 0 && (
               <div className="bg-amber-50 border border-amber-200 rounded-xl p-3">
                 <p className="text-xs font-semibold text-amber-800 mb-1">⚠️ Compte utilisateur actif</p>
-                <p className="text-xs text-amber-700">Ce compte ne peut pas être supprimé automatiquement. Désactivez-le manuellement dans Équipe.</p>
+                <p className="text-xs text-amber-700">Ce compte ne peut pas être supprimé automatiquement.</p>
               </div>
             )}
             {totalFound > 0 && (
@@ -240,18 +220,19 @@ function RgpdTab() {
   );
 }
 
-// ── BACKUPS TAB ────────────────────────────────────────────────────────────
+// ── BACKUPS ────────────────────────────────────────────────────────────────
 function BackupsTab() {
   const [exporting, setExporting] = useState(null);
   const [done, setDone] = useState(null);
 
   const EXPORTS = [
-    { id: "Property", label: "Biens immobiliers", icon: "🏠", entity: "Property" },
+    { id: "Bien", label: "Biens immobiliers", icon: "🏠", entity: "Bien" },
     { id: "Lead", label: "Leads / Prospects", icon: "👤", entity: "Lead" },
-    { id: "Acquereur", label: "Acquéreurs", icon: "🔑", entity: "Acquereur" },
-    { id: "Transaction", label: "Transactions comptables", icon: "💰", entity: "Transaction" },
-    { id: "TransactionVente", label: "Transactions vente", icon: "📈", entity: "TransactionVente" },
-    { id: "DossierLocatif", label: "Dossiers locatifs", icon: "📂", entity: "DossierLocatif" },
+    { id: "Contact", label: "Contacts", icon: "👥", entity: "Contact" },
+    { id: "Transaction", label: "Transactions", icon: "💰", entity: "Transaction" },
+    { id: "DossierImmobilier", label: "Dossiers immobiliers", icon: "📂", entity: "DossierImmobilier" },
+    { id: "Paiement", label: "Paiements", icon: "💳", entity: "Paiement" },
+    { id: "AIActionLog", label: "Logs IA", icon: "🤖", entity: "AIActionLog" },
   ];
 
   const exportEntity = async (item) => {
@@ -269,14 +250,10 @@ function BackupsTab() {
     a.href = URL.createObjectURL(blob);
     a.download = `backup_${item.entity.toLowerCase()}_${new Date().toISOString().slice(0, 10)}.csv`;
     a.click();
-    // Log export
     const user = await base44.auth.me();
     await base44.entities.AuditLog.create({
-      user_email: user?.email,
-      user_name: user?.full_name || user?.email,
-      user_role: user?.role,
-      action: "export",
-      entity: item.entity,
+      user_email: user?.email, user_name: user?.full_name || user?.email, user_role: user?.role,
+      action: "export", entity: item.entity,
       details: `Export sauvegarde — ${data.length} enregistrements`,
     });
     setExporting(null); setDone(item.id);
@@ -291,7 +268,6 @@ function BackupsTab() {
           <p className="text-xs text-blue-700 mt-0.5">Exportez vos données en CSV à tout moment. Les exports sont tracés dans le journal d'audit.</p>
         </div>
       </div>
-
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {EXPORTS.map(item => (
           <div key={item.id} className="bg-white rounded-2xl border border-border/50 p-4 flex items-center justify-between gap-4">
@@ -301,31 +277,12 @@ function BackupsTab() {
             </div>
             <Button size="sm" variant="outline" className="rounded-full h-8 text-xs gap-1.5 flex-shrink-0"
               onClick={() => exportEntity(item)} disabled={exporting === item.id}>
-              {exporting === item.id
-                ? <Loader2 className="w-3 h-3 animate-spin" />
-                : done === item.id
-                  ? <><CheckCircle2 className="w-3 h-3 text-green-600" /> Exporté</>
-                  : <><Download className="w-3 h-3" /> Exporter</>}
+              {exporting === item.id ? <Loader2 className="w-3 h-3 animate-spin" /> :
+               done === item.id ? <><CheckCircle2 className="w-3 h-3 text-green-600" /> Exporté</> :
+               <><Download className="w-3 h-3" /> Exporter</>}
             </Button>
           </div>
         ))}
-      </div>
-
-      <div className="bg-white rounded-2xl border border-border/50 p-5 space-y-3">
-        <p className="text-sm font-semibold">Bonnes pratiques</p>
-        <div className="space-y-2">
-          {[
-            "Exportez vos données régulièrement (hebdomadaire recommandé)",
-            "Stockez les sauvegardes dans un emplacement sécurisé hors plateforme",
-            "Vérifiez l'intégrité des fichiers après chaque export",
-            "Documentez les exports dans votre politique RGPD interne",
-          ].map((tip, i) => (
-            <div key={i} className="flex items-start gap-2 text-xs text-muted-foreground">
-              <CheckCircle2 className="w-3.5 h-3.5 text-green-500 flex-shrink-0 mt-0.5" />
-              {tip}
-            </div>
-          ))}
-        </div>
       </div>
     </div>
   );
@@ -333,21 +290,41 @@ function BackupsTab() {
 
 // ── MAIN ──────────────────────────────────────────────────────────────────
 const TABS = [
-  { id: "logs", label: "Journal d'audit", icon: Shield },
-  { id: "rgpd", label: "Suppression RGPD", icon: Trash2 },
-  { id: "backups", label: "Sauvegardes", icon: Database },
+  { id: "ai-monitoring", label: "Monitoring IA",      icon: Activity },
+  { id: "ai-logs",       label: "Logs IA",            icon: Bot },
+  { id: "ai-control",    label: "Contrôle IA",        icon: Settings },
+  { id: "ai-alerts",     label: "Alertes IA",         icon: Bell },
+  { id: "logs",          label: "Journal d'audit",    icon: Shield },
+  { id: "rgpd",          label: "RGPD",               icon: XCircle },
+  { id: "backups",       label: "Sauvegardes",        icon: Database },
 ];
 
+// BackupsTab is defined above in this file
+
 export default function AdminSecurite() {
-  const [tab, setTab] = useState("logs");
+  const [tab, setTab] = useState("ai-monitoring");
+  const [alertCount, setAlertCount] = useState(0);
+
+  useEffect(() => {
+    base44.entities.AIActionLog.list("-created_date", 500).then(logs => {
+      const now = new Date();
+      const last24h = logs.filter(l => (now - new Date(l.created_date)) < 86400000);
+      const errors = last24h.filter(l => l.status === "error").length;
+      const lastHour = logs.filter(l => (now - new Date(l.created_date)) < 3600000).length;
+      setAlertCount((errors > 5 ? 1 : 0) + (lastHour > 50 ? 1 : 0));
+    }).catch(() => {});
+  }, []);
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6">
+    <div className="max-w-6xl space-y-6">
       <div>
         <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
-          <Shield className="w-6 h-6 text-primary" /> Sécurité & Traçabilité
+          <Shield className="w-6 h-6 text-primary" />
+          Sécurité & Centre de Contrôle IA
         </h1>
-        <p className="text-sm text-muted-foreground mt-0.5">Journal d'audit, conformité RGPD et sauvegardes</p>
+        <p className="text-sm text-muted-foreground mt-0.5">
+          Monitoring, logs, contrôle des agents IA, alertes et conformité RGPD
+        </p>
       </div>
 
       <div className="flex gap-1 bg-white rounded-2xl border border-border/50 shadow-sm p-1.5 overflow-x-auto">
@@ -355,18 +332,28 @@ export default function AdminSecurite() {
           const Icon = t.icon;
           return (
             <button key={t.id} onClick={() => setTab(t.id)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-medium transition-all flex-shrink-0 ${
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium transition-all flex-shrink-0 relative ${
                 tab === t.id ? "bg-primary text-white shadow-sm" : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
               }`}>
-              <Icon className="w-3.5 h-3.5" />{t.label}
+              <Icon className="w-3.5 h-3.5" />
+              {t.label}
+              {t.id === "ai-alerts" && alertCount > 0 && (
+                <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ml-0.5 ${
+                  tab === t.id ? "bg-white/20" : "bg-red-500 text-white"
+                }`}>{alertCount}</span>
+              )}
             </button>
           );
         })}
       </div>
 
-      {tab === "logs" && <AuditLogsTab />}
-      {tab === "rgpd" && <RgpdTab />}
-      {tab === "backups" && <BackupsTab />}
+      {tab === "ai-monitoring" && <AIMonitoringTab />}
+      {tab === "ai-logs"       && <AILogsTab />}
+      {tab === "ai-control"    && <AIControlTab />}
+      {tab === "ai-alerts"     && <AIAlertsTab />}
+      {tab === "logs"          && <AuditLogsTab />}
+      {tab === "rgpd"          && <RgpdTab />}
+      {tab === "backups"       && <BackupsTab />}
     </div>
   );
 }
