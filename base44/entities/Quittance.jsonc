@@ -1,0 +1,89 @@
+{
+  "name": "Quittance",
+  "type": "object",
+  "properties": {
+    "agency_id": {
+      "type": "string"
+    },
+    "dossier_locatif_id": {
+      "type": "string"
+    },
+    "contact_id": {
+      "type": "string"
+    },
+    "bien_id": {
+      "type": "string"
+    },
+    "locataire_nom": {
+      "type": "string"
+    },
+    "bien_titre": {
+      "type": "string"
+    },
+    "bien_adresse": {
+      "type": "string"
+    },
+    "mois": {
+      "type": "string",
+      "description": "Format YYYY-MM"
+    },
+    "mois_label": {
+      "type": "string",
+      "description": "ex: Avril 2024"
+    },
+    "montant_loyer": {
+      "type": "number"
+    },
+    "montant_charges": {
+      "type": "number",
+      "default": 0
+    },
+    "montant_total": {
+      "type": "number"
+    },
+    "statut": {
+      "type": "string",
+      "enum": [
+        "en_attente",
+        "paye",
+        "en_retard",
+        "impaye"
+      ],
+      "default": "en_attente"
+    },
+    "date_echeance": {
+      "type": "string"
+    },
+    "date_paiement": {
+      "type": "string"
+    },
+    "mode_paiement": {
+      "type": "string",
+      "enum": [
+        "virement",
+        "cheque",
+        "especes",
+        "prelevement"
+      ]
+    },
+    "pdf_url": {
+      "type": "string"
+    },
+    "email_envoye": {
+      "type": "boolean",
+      "default": false
+    },
+    "relance_count": {
+      "type": "number",
+      "default": 0
+    },
+    "relance_date": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "dossier_locatif_id",
+    "mois",
+    "montant_loyer"
+  ]
+}

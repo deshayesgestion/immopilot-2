@@ -6,112 +6,211 @@
       "type": "string"
     },
     "reference": {
-      "type": "string"
+      "type": "string",
+      "description": "R\u00e9f\u00e9rence unique (ex: LOC-2024-001)"
     },
-    "property_title": {
-      "type": "string"
-    },
-    "property_address": {
-      "type": "string"
-    },
-    "property_id": {
-      "type": "string"
-    },
-    "agent_email": {
-      "type": "string"
-    },
-    "agent_name": {
-      "type": "string"
-    },
-    "owner_name": {
-      "type": "string"
-    },
-    "loyer": {
-      "type": "number"
-    },
-    "charges": {
-      "type": "number"
-    },
-    "depot_garantie": {
-      "type": "number"
-    },
-    "current_step": {
-      "type": "number",
-      "default": 1
-    },
-    "statut": {
+    "etape": {
       "type": "string",
       "enum": [
-        "en_cours",
-        "en_attente",
-        "termine",
-        "archive"
+        "candidature",
+        "validation",
+        "signature",
+        "edle",
+        "vie_bail",
+        "edls",
+        "cloture"
       ],
-      "default": "en_cours"
+      "default": "candidature",
+      "description": "\u00c9tape courante du cycle locatif"
     },
-    "candidatures": {
-      "type": "array",
-      "items": {
-        "type": "object"
-      }
-    },
-    "visites": {
-      "type": "array",
-      "items": {
-        "type": "object"
-      }
-    },
-    "documents": {
-      "type": "array",
-      "items": {
-        "type": "object"
-      }
-    },
-    "locataire_selectionne": {
-      "type": "object"
-    },
-    "ia_scoring": {
-      "type": "object"
-    },
-    "paiements": {
-      "type": "array",
-      "items": {
-        "type": "object"
-      }
-    },
-    "edl_entree": {
-      "type": "object"
-    },
-    "edl_sortie": {
-      "type": "object"
-    },
-    "incidents": {
-      "type": "array",
-      "items": {
-        "type": "object"
-      }
-    },
-    "contrat_url": {
+    "bien_id": {
       "type": "string"
     },
-    "date_entree": {
+    "bien_titre": {
       "type": "string"
     },
-    "date_sortie": {
+    "bien_adresse": {
       "type": "string"
+    },
+    "loyer_mensuel": {
+      "type": "number"
+    },
+    "charges_mensuelle": {
+      "type": "number",
+      "default": 0
+    },
+    "contact_id": {
+      "type": "string",
+      "description": "ID locataire principal"
+    },
+    "locataire_nom": {
+      "type": "string"
+    },
+    "locataire_email": {
+      "type": "string"
+    },
+    "locataire_telephone": {
+      "type": "string"
+    },
+    "proprietaire_id": {
+      "type": "string"
+    },
+    "proprietaire_nom": {
+      "type": "string"
+    },
+    "scoring_ia": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100,
+      "description": "Score solvabilit\u00e9 IA (0-100)"
+    },
+    "scoring_commentaire": {
+      "type": "string"
+    },
+    "validation_statut": {
+      "type": "string",
+      "enum": [
+        "en_attente",
+        "valide",
+        "refuse"
+      ],
+      "default": "en_attente"
+    },
+    "date_debut_bail": {
+      "type": "string",
+      "description": "ISO date"
+    },
+    "date_fin_bail": {
+      "type": "string",
+      "description": "ISO date (null = CDI)"
+    },
+    "duree_mois": {
+      "type": "number",
+      "default": 12
+    },
+    "type_bail": {
+      "type": "string",
+      "enum": [
+        "vide",
+        "meuble",
+        "commercial"
+      ],
+      "default": "vide"
+    },
+    "depot_garantie_montant": {
+      "type": "number"
+    },
+    "depot_garantie_statut": {
+      "type": "string",
+      "enum": [
+        "a_percevoir",
+        "percu",
+        "restitue_partiel",
+        "restitue_total"
+      ],
+      "default": "a_percevoir"
+    },
+    "depot_garantie_percu_date": {
+      "type": "string"
+    },
+    "depot_garantie_restitution_montant": {
+      "type": "number"
+    },
+    "depot_garantie_retenues": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "description": "[{motif, montant}]"
+    },
+    "edle_date": {
+      "type": "string",
+      "description": "Date EDL entr\u00e9e"
+    },
+    "edle_photos": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "URLs photos EDL entr\u00e9e"
+    },
+    "edle_checklist": {
+      "type": "object",
+      "description": "Checklist pi\u00e8ce par pi\u00e8ce"
+    },
+    "edle_signe": {
+      "type": "boolean",
+      "default": false
+    },
+    "edls_date": {
+      "type": "string"
+    },
+    "edls_photos": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "edls_checklist": {
+      "type": "object"
+    },
+    "edls_signe": {
+      "type": "boolean",
+      "default": false
+    },
+    "edls_degradations": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "description": "[{description, montant_estime}]"
+    },
+    "bail_url": {
+      "type": "string",
+      "description": "URL du contrat de bail sign\u00e9"
+    },
+    "bail_signe": {
+      "type": "boolean",
+      "default": false
+    },
+    "bail_statut": {
+      "type": "string",
+      "enum": [
+        "en_preparation",
+        "actif",
+        "termine",
+        "resilie"
+      ],
+      "default": "en_preparation"
+    },
+    "alerte_fin_bail": {
+      "type": "boolean",
+      "default": false
+    },
+    "renouvellement_propose": {
+      "type": "boolean",
+      "default": false
+    },
+    "quittances_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
     },
     "notes": {
       "type": "string"
     },
-    "steps_completed": {
+    "historique": {
       "type": "array",
       "items": {
-        "type": "number"
-      }
+        "type": "object"
+      },
+      "description": "[{date, action, auteur}]"
     }
   },
   "required": [
-    "property_title",
-    "agent_email"
+    "bien_id",
+    "locataire_nom",
+    "loyer_mensuel"
   ]
 }
