@@ -5,13 +5,20 @@ import { useAgency } from "../../hooks/useAgency";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2, Save, CheckCircle, Building2, Bot, ArrowRight, Mail } from "lucide-react";
+import { Loader2, Save, CheckCircle, Building2, Bot, ArrowRight, Mail, Globe } from "lucide-react";
+import LandingEditor from "@/components/admin/landing/LandingEditor";
+
+const PAGE_TABS = [
+  { id: "agence", label: "🏢 Agence" },
+  { id: "landing", label: "🌐 Landing Page" },
+];
 
 export default function AdminSettings() {
   const { agency, refetch } = useAgency();
   const [form, setForm] = useState(null);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [pageTab, setPageTab] = useState("agence");
 
   useEffect(() => {
     if (agency) {
@@ -68,18 +75,32 @@ export default function AdminSettings() {
   );
 
   return (
-    <div className="space-y-6 max-w-2xl">
+    <div className="space-y-6 max-w-5xl">
       <div>
         <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
           <Building2 className="w-6 h-6 text-primary" />
-          Paramètres de l'agence
+          Paramètres
         </h1>
         <p className="text-muted-foreground text-sm mt-1">
-          Ces informations apparaissent sur le site public. <span className="text-primary font-medium">agency_id : {agency?.id || "non créé"}</span>
+          Configurez votre agence et personnalisez votre site public.
         </p>
       </div>
 
-      <form onSubmit={handleSave} className="space-y-4">
+      {/* Page tabs */}
+      <div className="flex gap-1 bg-white rounded-2xl border border-border/50 p-1.5 max-w-xs">
+        {PAGE_TABS.map(t => (
+          <button key={t.id} onClick={() => setPageTab(t.id)}
+            className={`flex-1 px-3 py-1.5 rounded-xl text-xs font-medium transition-all ${pageTab === t.id ? "bg-primary text-white shadow-sm" : "text-muted-foreground hover:bg-secondary/50"}`}>
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {pageTab === "landing" && agency && (
+        <LandingEditor agency={agency} onSave={refetch} />
+      )}
+
+      {pageTab === "agence" && <form onSubmit={handleSave} className="space-y-4 max-w-2xl">
         <Section title="Identité">
           <div className="grid grid-cols-2 gap-3">
             <div>
@@ -198,7 +219,7 @@ export default function AdminSettings() {
           )}
           {saved ? "Enregistré !" : "Enregistrer les paramètres"}
         </Button>
-      </form>
+      </form>}
     </div>
   );
 }

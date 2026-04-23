@@ -76,6 +76,96 @@
         "inactive"
       ],
       "default": "active"
+    },
+    "lp_hero_title": {
+      "type": "string",
+      "description": "Titre principal hero"
+    },
+    "lp_hero_subtitle": {
+      "type": "string",
+      "description": "Sous-titre hero"
+    },
+    "lp_hero_cta1_label": {
+      "type": "string",
+      "description": "Label bouton CTA principal"
+    },
+    "lp_hero_cta1_url": {
+      "type": "string",
+      "description": "URL bouton CTA principal"
+    },
+    "lp_hero_cta2_label": {
+      "type": "string",
+      "description": "Label bouton CTA secondaire"
+    },
+    "lp_hero_cta2_url": {
+      "type": "string",
+      "description": "URL bouton CTA secondaire"
+    },
+    "lp_services": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "description": "Services [{icon, title, description}]"
+    },
+    "lp_testimonials": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "description": "T\u00e9moignages [{name, role, text, avatar}]"
+    },
+    "lp_stats": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "description": "Statistiques [{label, value}]"
+    },
+    "lp_section_hero_enabled": {
+      "type": "boolean",
+      "default": true
+    },
+    "lp_section_featured_enabled": {
+      "type": "boolean",
+      "default": true
+    },
+    "lp_section_agency_enabled": {
+      "type": "boolean",
+      "default": true
+    },
+    "lp_section_services_enabled": {
+      "type": "boolean",
+      "default": true
+    },
+    "lp_section_stats_enabled": {
+      "type": "boolean",
+      "default": true
+    },
+    "lp_section_testimonials_enabled": {
+      "type": "boolean",
+      "default": true
+    },
+    "lp_section_contact_enabled": {
+      "type": "boolean",
+      "default": true
+    },
+    "lp_featured_biens_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "IDs des biens mis en avant sur la landing"
+    },
+    "lp_featured_filter": {
+      "type": "string",
+      "enum": [
+        "all",
+        "vente",
+        "location"
+      ],
+      "default": "all",
+      "description": "Filtre biens en avant"
     }
   },
   "required": [

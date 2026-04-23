@@ -2,27 +2,34 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 
-const HERO_BG = "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=1800&q=85";
+const HERO_BG_DEFAULT = "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=1800&q=85";
 
-export default function HeroSection({ agencyName, slogan }) {
-  const name = agencyName || "Agence Dupont Immobilier";
+export default function HeroSection({
+  agencyName, slogan,
+  heroImageUrl, logoUrl,
+  cta1Label, cta1Url,
+  cta2Label, cta2Url,
+}) {
+  const name = agencyName || "Agence Immobilière";
   const tagline = slogan || "Des biens d'exception au cœur de votre région.";
+  const bg = heroImageUrl || HERO_BG_DEFAULT;
+  const c1Label = cta1Label || "Découvrir les biens";
+  const c1Url = cta1Url || "/vente";
+  const c2Label = cta2Label || "Faire estimer mon bien";
+  const c2Url = cta2Url || "/estimation";
 
   return (
     <section className="relative h-screen min-h-[600px] flex items-center justify-center overflow-hidden">
-      {/* Background image */}
       <div className="absolute inset-0">
-        <img
-          src={HERO_BG}
-          alt="Bien immobilier"
-          className="w-full h-full object-cover"
-        />
+        <img src={bg} alt="Bien immobilier" className="w-full h-full object-cover" />
         <div className="absolute inset-0 bg-black/40" />
         <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/30 to-black/60" />
       </div>
 
-      {/* Content */}
       <div className="relative z-10 text-center text-white px-6 max-w-4xl mx-auto">
+        {logoUrl && (
+          <img src={logoUrl} alt="logo" className="h-14 mx-auto mb-6 object-contain animate-fade-up" />
+        )}
         <p className="text-sm font-medium tracking-[0.2em] uppercase opacity-70 mb-6 animate-fade-up">
           Agence Immobilière
         </p>
@@ -34,21 +41,19 @@ export default function HeroSection({ agencyName, slogan }) {
         </p>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-10 animate-fade-up" style={{ animationDelay: "0.3s" }}>
-          <Link to="/vente">
+          <Link to={c1Url}>
             <Button size="lg" className="rounded-full px-8 h-12 text-sm font-medium gap-2 bg-white text-black hover:bg-white/90 shadow-xl">
-              Découvrir les biens
-              <ArrowRight className="w-4 h-4" />
+              {c1Label} <ArrowRight className="w-4 h-4" />
             </Button>
           </Link>
-          <Link to="/estimation">
+          <Link to={c2Url}>
             <Button variant="outline" size="lg" className="rounded-full px-8 h-12 text-sm font-medium border-white/40 text-white hover:bg-white/10 hover:text-white bg-transparent">
-              Faire estimer mon bien
+              {c2Label}
             </Button>
           </Link>
         </div>
       </div>
 
-      {/* Scroll indicator */}
       <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-white/50 animate-bounce">
         <div className="w-px h-8 bg-white/30" />
       </div>
