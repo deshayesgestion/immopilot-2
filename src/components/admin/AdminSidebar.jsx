@@ -3,7 +3,7 @@ import {
   LayoutDashboard, Building2, FolderOpen, Calculator,
   Settings, Users, Bot, Bell, Upload, Shield,
   MessageSquare, ListTodo, CalendarDays, ExternalLink,
-  ChevronDown, TrendingUp, KeySquare, Mail, Zap,
+  ChevronDown, TrendingUp, KeySquare, Mail, Zap, BarChart3,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -50,6 +50,7 @@ const NAV = [
   { type: "section", label: "Intelligence IA" },
   { label: "Accueil IA",    path: "/admin/parametres/accueil-ia", icon: Bot },
   { label: "Emails IA",     path: "/admin/parametres/emails",     icon: Mail },
+  { label: "BI & Prédictions", path: "/admin/bi",                 icon: BarChart3 },
 
   // ── Admin ──
   { type: "section", label: "Administration" },
