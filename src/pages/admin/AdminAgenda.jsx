@@ -10,11 +10,18 @@ import {
 } from "lucide-react";
 
 const TYPE_CONFIG = {
-  visite:    { label: "Visite",    color: "bg-blue-500",   light: "bg-blue-50 border-blue-200 text-blue-700",   dot: "bg-blue-500" },
-  appel:     { label: "Appel",     color: "bg-purple-500", light: "bg-purple-50 border-purple-200 text-purple-700", dot: "bg-purple-500" },
-  signature: { label: "Signature", color: "bg-green-500",  light: "bg-green-50 border-green-200 text-green-700",  dot: "bg-green-500" },
-  tache:     { label: "Tâche",     color: "bg-amber-500",  light: "bg-amber-50 border-amber-200 text-amber-700",  dot: "bg-amber-500" },
-  autre:     { label: "Autre",     color: "bg-gray-400",   light: "bg-gray-50 border-gray-200 text-gray-600",    dot: "bg-gray-400" },
+  visite:         { label: "Visite",       color: "bg-blue-500",   light: "bg-blue-50 border-blue-200 text-blue-700",    dot: "bg-blue-500" },
+  etat_des_lieux: { label: "État des lieux",color: "bg-teal-500",  light: "bg-teal-50 border-teal-200 text-teal-700",    dot: "bg-teal-500" },
+  appel:          { label: "Appel",        color: "bg-purple-500", light: "bg-purple-50 border-purple-200 text-purple-700", dot: "bg-purple-500" },
+  signature:      { label: "Signature",    color: "bg-green-500",  light: "bg-green-50 border-green-200 text-green-700",  dot: "bg-green-500" },
+  tache:          { label: "Tâche",        color: "bg-amber-500",  light: "bg-amber-50 border-amber-200 text-amber-700",  dot: "bg-amber-500" },
+  autre:          { label: "Autre",        color: "bg-gray-400",   light: "bg-gray-50 border-gray-200 text-gray-600",    dot: "bg-gray-400" },
+};
+
+const MODULE_CONFIG = {
+  location: { label: "Location", badge: "bg-emerald-100 text-emerald-700" },
+  vente:    { label: "Vente",    badge: "bg-blue-100 text-blue-700" },
+  general:  { label: "Général",  badge: "bg-gray-100 text-gray-600" },
 };
 
 const STATUT_CONFIG = {
@@ -25,7 +32,7 @@ const STATUT_CONFIG = {
 };
 
 const TYPE_ICONS = {
-  visite: Home, appel: Phone, signature: FileSignature, tache: CheckSquare, autre: Calendar,
+  visite: Home, etat_des_lieux: CheckSquare, appel: Phone, signature: FileSignature, tache: CheckSquare, autre: Calendar,
 };
 
 const fmt = (d) => d ? new Date(d).toLocaleDateString("fr-FR", { weekday: "short", day: "2-digit", month: "short" }) : "—";
@@ -262,6 +269,11 @@ function EvenementDetail({ ev, onClose, onEdit, onDelete }) {
           </div>
           <div className="flex items-center gap-2 mt-2">
             <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${statut.badge}`}>{statut.label}</span>
+            {ev.module && ev.module !== "general" && (
+              <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${MODULE_CONFIG[ev.module]?.badge || ""}`}>
+                {MODULE_CONFIG[ev.module]?.label}
+              </span>
+            )}
           </div>
         </div>
         <div className="p-4 space-y-2.5">
@@ -516,6 +528,7 @@ export default function AdminAgenda() {
   const [selectedEv, setSelectedEv] = useState(null);
   const [filterType, setFilterType] = useState("all");
   const [filterAgent, setFilterAgent] = useState("all");
+  const [filterModule, setFilterModule] = useState("all");
   const [currentUser, setCurrentUser] = useState(null);
   const [presetDate, setPresetDate] = useState(null);
 
@@ -534,8 +547,9 @@ export default function AdminAgenda() {
   const filtered = useMemo(() => evenements.filter(e => {
     if (filterType !== "all" && e.type !== filterType) return false;
     if (filterAgent !== "all" && e.agent_email !== filterAgent) return false;
+    if (filterModule !== "all" && (e.module || "general") !== filterModule) return false;
     return true;
-  }), [evenements, filterType, filterAgent]);
+  }), [evenements, filterType, filterAgent, filterModule]);
 
   const agents = useMemo(() => {
     const map = new Map();
@@ -670,6 +684,13 @@ export default function AdminAgenda() {
           className="h-8 rounded-full border border-input bg-white px-3 text-xs">
           <option value="all">Tous types</option>
           {Object.entries(TYPE_CONFIG).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
+        </select>
+        <select value={filterModule} onChange={e => setFilterModule(e.target.value)}
+          className="h-8 rounded-full border border-input bg-white px-3 text-xs">
+          <option value="all">Tous modules</option>
+          <option value="location">Location</option>
+          <option value="vente">Vente</option>
+          <option value="general">Général</option>
         </select>
         {agents.length > 1 && (
           <select value={filterAgent} onChange={e => setFilterAgent(e.target.value)}

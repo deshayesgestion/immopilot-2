@@ -9,12 +9,23 @@
       "type": "string",
       "enum": [
         "visite",
-        "appel",
+        "etat_des_lieux",
         "signature",
+        "appel",
         "tache",
         "autre"
       ],
       "default": "visite"
+    },
+    "module": {
+      "type": "string",
+      "enum": [
+        "location",
+        "vente",
+        "general"
+      ],
+      "default": "general",
+      "description": "Module source de l'\u00e9v\u00e9nement"
     },
     "date_debut": {
       "type": "string",
@@ -50,6 +61,14 @@
     },
     "bien_id": {
       "type": "string"
+    },
+    "dossier_locatif_id": {
+      "type": "string",
+      "description": "ID DossierLocatif li\u00e9"
+    },
+    "dossier_id": {
+      "type": "string",
+      "description": "ID DossierImmobilier li\u00e9 (vente)"
     },
     "statut": {
       "type": "string",

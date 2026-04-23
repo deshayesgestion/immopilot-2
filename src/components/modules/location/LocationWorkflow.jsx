@@ -2,9 +2,11 @@ import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Link } from "react-router-dom";
 import {
   Plus, FolderOpen, ChevronRight, User, Home, Euro, CheckCircle2,
-  Clock, Loader2, Star, FileText, AlertTriangle, Sparkles, X, ArrowRight
+  Clock, Loader2, Star, FileText, AlertTriangle, Sparkles, X, ArrowRight,
+  CalendarPlus, Calendar, MapPin, ExternalLink, Download
 } from "lucide-react";
 
 const ETAPES = [
@@ -170,6 +172,168 @@ function NouveauDossierModal({ biens, contacts, onClose, onCreated }) {
 }
 
 // ── DETAIL DOSSIER ────────────────────────────────────────────────────────
+const fmtDateTime = (iso) => {
+  if (!iso) return "—";
+  return new Date(iso).toLocaleString("fr-FR", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" });
+};
+
+function exportICS(evenements) {
+  const lines = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//ImmoPilot//Location//FR", "CALSCALE:GREGORIAN", "METHOD:PUBLISH"];
+  evenements.forEach(e => {
+    const uid = e.ics_uid || `${e.id}@immopilot`;
+    const dtstart = e.date_debut ? new Date(e.date_debut).toISOString().replace(/[-:]/g, "").replace(".000", "") : "";
+    const dtend = e.date_fin ? new Date(e.date_fin).toISOString().replace(/[-:]/g, "").replace(".000", "") : dtstart;
+    lines.push("BEGIN:VEVENT", `UID:${uid}`, `SUMMARY:${e.titre}`);
+    if (dtstart) lines.push(`DTSTART:${dtstart}`);
+    if (dtend) lines.push(`DTEND:${dtend}`);
+    if (e.lieu) lines.push(`LOCATION:${e.lieu}`);
+    lines.push("END:VEVENT");
+  });
+  lines.push("END:VCALENDAR");
+  const blob = new Blob([lines.join("\r\n")], { type: "text/calendar" });
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "visites-location.ics"; a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+// ── PLANIFIER VISITE ──────────────────────────────────────────────────────
+function PlanifierVisiteSection({ dossier, onVisiteCreated }) {
+  const now = new Date();
+  const pad = (n) => String(n).padStart(2, "0");
+  const defaultDate = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}T${pad(now.getHours()+1)}:00`;
+  const [form, setForm] = useState({ date_debut: defaultDate, date_fin: "", type: "visite", notes: "" });
+  const [visites, setVisites] = useState([]);
+  const [showForm, setShowForm] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
+
+  useEffect(() => {
+    base44.auth.me().then(setCurrentUser);
+    if (dossier.id) {
+      base44.entities.Evenement.filter({ dossier_locatif_id: dossier.id }).then(setVisites);
+    }
+  }, [dossier.id]);
+
+  // auto-end +1h
+  const handleDateChange = (val) => {
+    const d = new Date(val); d.setHours(d.getHours() + 1);
+    setForm(p => ({ ...p, date_debut: val, date_fin: `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}` }));
+  };
+
+  const creerVisite = async () => {
+    if (!form.date_debut) return;
+    setSaving(true);
+    const titre = `${form.type === "visite" ? "Visite" : "EDL"} — ${dossier.bien_titre || dossier.locataire_nom}`;
+    const ev = await base44.entities.Evenement.create({
+      titre,
+      type: form.type,
+      module: "location",
+      date_debut: form.date_debut,
+      date_fin: form.date_fin,
+      lieu: dossier.bien_adresse || "",
+      contact_nom: dossier.locataire_nom,
+      contact_email: dossier.locataire_email || "",
+      contact_telephone: dossier.locataire_telephone || "",
+      bien_titre: dossier.bien_titre || "",
+      bien_id: dossier.bien_id || "",
+      dossier_locatif_id: dossier.id,
+      statut: "planifie",
+      rappel_24h: true,
+      rappel_1h: true,
+      ics_uid: `${Date.now()}@immopilot`,
+      agent_email: currentUser?.email || "",
+      agent_nom: currentUser?.full_name || "",
+      notes: form.notes,
+    });
+    setVisites(p => [ev, ...p]);
+    onVisiteCreated && onVisiteCreated(ev);
+    setShowForm(false);
+    setSaving(false);
+  };
+
+  const STATUT_CFG = {
+    planifie: "bg-blue-100 text-blue-700",
+    confirme: "bg-green-100 text-green-700",
+    annule: "bg-red-100 text-red-700",
+    realise: "bg-gray-100 text-gray-600",
+  };
+
+  return (
+    <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 space-y-3">
+      <div className="flex items-center justify-between">
+        <p className="text-sm font-semibold text-blue-800 flex items-center gap-1.5">
+          <Calendar className="w-4 h-4" /> Visites & RDV planifiés ({visites.length})
+        </p>
+        <div className="flex gap-2">
+          {visites.length > 0 && (
+            <Button size="sm" variant="outline" className="h-7 text-xs rounded-full gap-1 border-blue-300"
+              onClick={() => exportICS(visites)}>
+              <Download className="w-3 h-3" /> ICS
+            </Button>
+          )}
+          <Button size="sm" className="h-7 text-xs rounded-full gap-1 bg-blue-600 hover:bg-blue-700"
+            onClick={() => setShowForm(!showForm)}>
+            <CalendarPlus className="w-3 h-3" /> Planifier
+          </Button>
+        </div>
+      </div>
+
+      {/* Liste visites existantes */}
+      {visites.length > 0 && (
+        <div className="space-y-1.5">
+          {visites.map(v => (
+            <div key={v.id} className="flex items-center gap-3 bg-white rounded-xl px-3 py-2 text-xs">
+              <div className="flex-1">
+                <span className="font-medium">{v.titre}</span>
+                <span className="text-muted-foreground ml-2">{fmtDateTime(v.date_debut)}</span>
+                {v.lieu && <span className="text-muted-foreground ml-2 flex items-center gap-0.5 inline-flex"><MapPin className="w-2.5 h-2.5" />{v.lieu}</span>}
+              </div>
+              <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${STATUT_CFG[v.statut] || STATUT_CFG.planifie}`}>{v.statut}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Formulaire création */}
+      {showForm && (
+        <div className="bg-white rounded-xl p-3 space-y-2 border border-blue-200">
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <label className="text-xs text-muted-foreground mb-1 block">Type</label>
+              <select value={form.type} onChange={e => setForm(p => ({ ...p, type: e.target.value }))}
+                className="w-full h-8 rounded-lg border border-input bg-white px-2 text-xs">
+                <option value="visite">Visite</option>
+                <option value="etat_des_lieux">État des lieux</option>
+                <option value="signature">Signature</option>
+              </select>
+            </div>
+            <div>
+              <label className="text-xs text-muted-foreground mb-1 block">Date & heure *</label>
+              <Input type="datetime-local" value={form.date_debut} onChange={e => handleDateChange(e.target.value)}
+                className="h-8 rounded-lg text-xs" />
+            </div>
+          </div>
+          <Input value={form.notes} onChange={e => setForm(p => ({ ...p, notes: e.target.value }))}
+            placeholder="Notes (optionnel)" className="h-8 rounded-lg text-xs" />
+          <div className="flex gap-2">
+            <Button size="sm" className="flex-1 h-8 text-xs rounded-full bg-blue-600 hover:bg-blue-700 gap-1"
+              onClick={creerVisite} disabled={saving || !form.date_debut}>
+              {saving ? <Loader2 className="w-3 h-3 animate-spin" /> : <CalendarPlus className="w-3 h-3" />}
+              Créer le RDV
+            </Button>
+            <Button size="sm" variant="outline" className="h-8 text-xs rounded-full" onClick={() => setShowForm(false)}>
+              Annuler
+            </Button>
+          </div>
+          <p className="text-[10px] text-blue-600 flex items-center gap-1">
+            <ExternalLink className="w-2.5 h-2.5" />
+            Visible dans <Link to="/admin/agenda" className="underline font-medium">l'Agenda global</Link>
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function DossierDetail({ dossier, onClose, onUpdate }) {
   const [d, setD] = useState(dossier);
   const [scoring, setScoring] = useState(false);
@@ -265,6 +429,9 @@ Retourne JSON: { score: number, commentaire: string (max 150 chars, concis et pr
 
         {/* Contenu */}
         <div className="p-5 space-y-5">
+          {/* Planifier visite — toujours visible */}
+          <PlanifierVisiteSection dossier={d} />
+
           {/* Infos générales */}
           <div className="grid grid-cols-2 gap-3">
             {[
@@ -526,8 +693,115 @@ export default function LocationWorkflow({ biens, contacts }) {
         </div>
       )}
 
+      {/* Mini-planning visites locatives */}
+      <MiniPlanningVisites />
+
       {showNew && <NouveauDossierModal biens={biens} contacts={contacts} onClose={() => setShowNew(false)} onCreated={d => { setDossiers(p => [d, ...p]); setSelected(d); }} />}
       {selected && <DossierDetail dossier={selected} onClose={() => setSelected(null)} onUpdate={update} />}
+    </div>
+  );
+}
+
+// ── MINI PLANNING VISITES LOCATIVES ───────────────────────────────────────
+function MiniPlanningVisites() {
+  const [visites, setVisites] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    base44.entities.Evenement.filter({ module: "location" }, "-date_debut", 50).then(data => {
+      setVisites(data);
+      setLoading(false);
+    }).catch(() => setLoading(false));
+  }, []);
+
+  const STATUT_CFG = {
+    planifie: { label: "Planifié",  cls: "bg-blue-100 text-blue-700" },
+    confirme: { label: "Confirmé",  cls: "bg-green-100 text-green-700" },
+    annule:   { label: "Annulé",    cls: "bg-red-100 text-red-700" },
+    realise:  { label: "Réalisé",   cls: "bg-gray-100 text-gray-600" },
+  };
+
+  const upcoming = visites.filter(v => v.statut !== "annule" && new Date(v.date_debut) >= new Date());
+  const past = visites.filter(v => v.statut !== "annule" && new Date(v.date_debut) < new Date());
+
+  return (
+    <div className="bg-white rounded-2xl border border-border/50 p-5 space-y-4">
+      <div className="flex items-center justify-between">
+        <p className="text-sm font-semibold flex items-center gap-2">
+          <Calendar className="w-4 h-4 text-primary" /> Planning des visites location
+          {upcoming.length > 0 && <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">{upcoming.length} à venir</span>}
+        </p>
+        <div className="flex gap-2">
+          {visites.length > 0 && (
+            <Button size="sm" variant="outline" className="h-8 text-xs rounded-full gap-1.5"
+              onClick={() => exportICS(visites)}>
+              <Download className="w-3 h-3" /> Export ICS / iCal
+            </Button>
+          )}
+          <Link to="/admin/agenda">
+            <Button size="sm" variant="outline" className="h-8 text-xs rounded-full gap-1.5">
+              <ExternalLink className="w-3 h-3" /> Agenda global
+            </Button>
+          </Link>
+        </div>
+      </div>
+
+      {loading ? (
+        <div className="flex justify-center py-6"><Loader2 className="w-4 h-4 animate-spin text-muted-foreground" /></div>
+      ) : upcoming.length === 0 && past.length === 0 ? (
+        <p className="text-sm text-center text-muted-foreground py-6">Aucune visite planifiée. Ouvrez un dossier pour planifier.</p>
+      ) : (
+        <div className="space-y-3">
+          {upcoming.length > 0 && (
+            <div>
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">À venir</p>
+              <div className="space-y-1.5">
+                {upcoming.sort((a, b) => new Date(a.date_debut) - new Date(b.date_debut)).map(v => {
+                  const cfg = STATUT_CFG[v.statut] || STATUT_CFG.planifie;
+                  return (
+                    <div key={v.id} className="flex items-center gap-3 px-3 py-2.5 bg-secondary/20 rounded-xl text-sm">
+                      <div className="w-1.5 h-8 rounded-full bg-blue-400 flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-sm truncate">{v.titre}</p>
+                        <p className="text-xs text-muted-foreground">{fmtDateTime(v.date_debut)}{v.lieu ? ` · ${v.lieu}` : ""}</p>
+                      </div>
+                      <div className="text-right flex-shrink-0">
+                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${cfg.cls}`}>{cfg.label}</span>
+                        {v.contact_nom && <p className="text-[10px] text-muted-foreground mt-0.5">{v.contact_nom}</p>}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+          {past.length > 0 && (
+            <div>
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Passées ({past.length})</p>
+              <div className="space-y-1.5">
+                {past.slice(0, 5).sort((a, b) => new Date(b.date_debut) - new Date(a.date_debut)).map(v => {
+                  const cfg = STATUT_CFG[v.statut] || STATUT_CFG.realise;
+                  return (
+                    <div key={v.id} className="flex items-center gap-3 px-3 py-2 opacity-60 text-sm">
+                      <div className="w-1.5 h-6 rounded-full bg-gray-300 flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-xs truncate">{v.titre}</p>
+                        <p className="text-[10px] text-muted-foreground">{fmtDateTime(v.date_debut)}</p>
+                      </div>
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${cfg.cls}`}>{cfg.label}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      <div className="border-t border-border/30 pt-3 flex items-center gap-2 text-xs text-muted-foreground">
+        <Download className="w-3 h-3" />
+        <span>Export ICS compatible Google Calendar, Apple Calendar et Outlook</span>
+      </div>
     </div>
   );
 }
