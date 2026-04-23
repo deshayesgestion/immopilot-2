@@ -12,16 +12,19 @@
     "etape": {
       "type": "string",
       "enum": [
-        "candidature",
+        "candidat",
+        "documents",
         "validation",
+        "rdv_visite",
+        "visite",
         "signature",
         "edle",
         "vie_bail",
         "edls",
         "cloture"
       ],
-      "default": "candidature",
-      "description": "\u00c9tape courante du cycle locatif"
+      "default": "candidat",
+      "description": "\u00c9tape courante du cycle locatif (8 \u00e9tapes)"
     },
     "bien_id": {
       "type": "string"
@@ -58,6 +61,10 @@
     "proprietaire_nom": {
       "type": "string"
     },
+    "docs_obligatoires": {
+      "type": "object",
+      "description": "Checklist documents: {doc_identite, doc_revenus, doc_dossier, doc_historique}"
+    },
     "scoring_ia": {
       "type": "number",
       "minimum": 0,
@@ -66,6 +73,25 @@
     },
     "scoring_commentaire": {
       "type": "string"
+    },
+    "scoring_risque": {
+      "type": "string",
+      "description": "Niveau de risque d'impay\u00e9 (faible/mod\u00e9r\u00e9/\u00e9lev\u00e9)"
+    },
+    "scoring_points_forts": {
+      "type": "string"
+    },
+    "scoring_points_faibles": {
+      "type": "string"
+    },
+    "scoring_recommandation": {
+      "type": "string",
+      "enum": [
+        "ACCEPTER",
+        "REFUSER",
+        "\u00c0 COMPLETER"
+      ],
+      "description": "Recommandation IA finale"
     },
     "validation_statut": {
       "type": "string",
@@ -124,19 +150,16 @@
       "description": "[{motif, montant}]"
     },
     "edle_date": {
-      "type": "string",
-      "description": "Date EDL entr\u00e9e"
+      "type": "string"
     },
     "edle_photos": {
       "type": "array",
       "items": {
         "type": "string"
-      },
-      "description": "URLs photos EDL entr\u00e9e"
+      }
     },
     "edle_checklist": {
-      "type": "object",
-      "description": "Checklist pi\u00e8ce par pi\u00e8ce"
+      "type": "object"
     },
     "edle_signe": {
       "type": "boolean",
@@ -166,8 +189,7 @@
       "description": "[{description, montant_estime}]"
     },
     "bail_url": {
-      "type": "string",
-      "description": "URL du contrat de bail sign\u00e9"
+      "type": "string"
     },
     "bail_signe": {
       "type": "boolean",
