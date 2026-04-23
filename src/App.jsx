@@ -50,6 +50,7 @@ import ModuleBiens from './pages/admin/ModuleBiens';
 import DossierImmobilierDetail from './pages/admin/DossierImmobilierDetail';
 import AdminDossiersImmobiliers from './pages/admin/AdminDossiersImmobiliers';
 import AdminBI from './pages/admin/AdminBI';
+import AdminAgents from './pages/admin/AdminAgents';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -125,6 +126,7 @@ const AuthenticatedApp = () => {
         <Route path="/admin/taches" element={<AdminTaches />} />
         <Route path="/admin/agenda" element={<AdminAgenda />} />
         <Route path="/admin/bi" element={<AdminBI />} />
+        <Route path="/admin/agents" element={<AdminAgents />} />
       </Route>
 
       {/* ── ESPACES CLIENTS ── */}
