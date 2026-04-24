@@ -2,14 +2,17 @@ import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import {
   TrendingUp, Home, Users, FileSignature, BarChart2, Loader2,
-  Euro, Target, Zap, AlertCircle
+  Euro, Target, Zap, AlertCircle, LayoutGrid
 } from "lucide-react";
 import BiensList from "@/components/shared/BiensList";
 import PipelineVendeur from "@/components/modules/vente/PipelineVendeur";
 import PipelineAcquereur from "@/components/modules/vente/PipelineAcquereur";
+import KanbanVente from "@/components/modules/vente/KanbanVente";
+import VenteDossierUnifie from "@/components/modules/vente/VenteDossierUnifie";
 
 const TABS = [
-  { id: "vendeur",     label: "Pipeline Vendeur",   icon: Home,          desc: "Mandats · Estimation IA · Documents" },
+  { id: "kanban",      label: "Pipeline Kanban",    icon: LayoutGrid,    desc: "Vue globale · Drag étapes · Actions rapides" },
+  { id: "vendeur",     label: "Dossiers Vendeur",   icon: Home,          desc: "Mandats · Estimation IA · Documents" },
   { id: "acquereur",   label: "Pipeline Acquéreur",  icon: Users,         desc: "Qualification · Matching · Offres · Compromis" },
   { id: "biens",       label: "Biens à vendre",      icon: FileSignature, desc: "Catalogue · Publication" },
   { id: "transactions",label: "Transactions",        icon: BarChart2,     desc: "Ventes clôturées · CA" },
@@ -62,13 +65,14 @@ function TransactionsList({ transactions, contactMap, bienMap }) {
 }
 
 export default function ModuleVente() {
-  const [tab, setTab] = useState("vendeur");
+  const [tab, setTab] = useState("kanban");
   const [biens, setBiens] = useState([]);
   const [contacts, setContacts] = useState([]);
   const [transactions, setTransactions] = useState([]);
   const [mandats, setMandats] = useState([]);
   const [acquereurs, setAcquereurs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedMandat, setSelectedMandat] = useState(null);
 
   useEffect(() => {
     const load = async () => {
@@ -177,6 +181,16 @@ export default function ModuleVente() {
         </div>
       ) : (
         <>
+          {tab === "kanban" && (
+            <KanbanVente
+              mandats={mandats}
+              biens={biens}
+              contacts={contacts}
+              acquereurs={acquereurs}
+              onMandatUpdate={setMandats}
+              onSelectMandat={setSelectedMandat}
+            />
+          )}
           {tab === "vendeur" && (
             <PipelineVendeur
               biens={biens}
@@ -204,6 +218,17 @@ export default function ModuleVente() {
             />
           )}
         </>
+      )}
+
+      {/* Fiche dossier unifiée */}
+      {selectedMandat && (
+        <VenteDossierUnifie
+          mandat={selectedMandat}
+          bien={bienMap[selectedMandat.bien_id]}
+          acquereurs={acquereurs}
+          onClose={() => setSelectedMandat(null)}
+          onUpdate={updated => setMandats(p => p.map(m => m.id === updated.id ? updated : m))}
+        />
       )}
     </div>
   );
