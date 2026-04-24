@@ -1,0 +1,99 @@
+{
+  "name": "SignatureRequest",
+  "type": "object",
+  "properties": {
+    "agency_id": {
+      "type": "string"
+    },
+    "document_type": {
+      "type": "string",
+      "enum": [
+        "bail",
+        "mandat_vente",
+        "compromis",
+        "edl_entree",
+        "edl_sortie",
+        "offre_achat"
+      ],
+      "description": "Type de document \u00e0 signer"
+    },
+    "document_titre": {
+      "type": "string",
+      "description": "Titre lisible du document"
+    },
+    "document_url": {
+      "type": "string",
+      "description": "URL du PDF \u00e0 signer"
+    },
+    "document_signe_url": {
+      "type": "string",
+      "description": "URL du PDF sign\u00e9 final avec preuve"
+    },
+    "source_id": {
+      "type": "string",
+      "description": "ID de l'entit\u00e9 source (DossierLocatif, MandatVente\u2026)"
+    },
+    "source_entity": {
+      "type": "string",
+      "description": "Nom de l'entit\u00e9 source"
+    },
+    "statut": {
+      "type": "string",
+      "enum": [
+        "en_preparation",
+        "envoye",
+        "partiellement_signe",
+        "signe",
+        "refuse",
+        "expire"
+      ],
+      "default": "en_preparation"
+    },
+    "signataires": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "description": "[{id, nom, email, role, statut, signe_le, token, signature_data}]"
+    },
+    "date_expiration": {
+      "type": "string",
+      "description": "ISO date limite de signature"
+    },
+    "date_envoi": {
+      "type": "string"
+    },
+    "date_signature_complete": {
+      "type": "string"
+    },
+    "preuve_horodatage": {
+      "type": "string",
+      "description": "Hash SHA-256 du document + timestamp"
+    },
+    "preuve_certificat": {
+      "type": "object",
+      "description": "Certificat de signature {hash, timestamp, signataires_ips, agent}"
+    },
+    "relances_count": {
+      "type": "number",
+      "default": 0
+    },
+    "derniere_relance": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "historique": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "description": "[{date, action, auteur, details}]"
+    }
+  },
+  "required": [
+    "document_type",
+    "document_titre"
+  ]
+}

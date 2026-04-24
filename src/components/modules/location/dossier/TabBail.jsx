@@ -7,6 +7,7 @@ import {
   CheckCircle2, Loader2, FileText, Send, ExternalLink, Sparkles,
   AlertTriangle, Download, Archive, Lock, BadgeCheck, XCircle, Info
 } from "lucide-react";
+import SignaturePanel from "@/components/signature/SignaturePanel";
 
 const fmt = d => d ? new Date(d).toLocaleDateString("fr-FR") : "—";
 
@@ -625,6 +626,21 @@ Retourne JSON strict: { ok: boolean, score: number (0-100), erreurs: string[] (c
           </div>
         )}
       </div>
+
+      {/* ── SIGNATURE ÉLECTRONIQUE ───────────────────────────────── */}
+      {candidatSelectionne && bailArchivedUrl && (
+        <div className="bg-white border border-border/50 rounded-2xl p-4 space-y-2">
+          <p className="text-sm font-semibold">✍️ Signature électronique</p>
+          <SignaturePanel
+            compact
+            documentType="bail"
+            documentTitre={`Bail — ${dossier.locataire_nom || ""} — ${dossier.bien_titre || ""}`}
+            documentUrl={bailArchivedUrl}
+            sourceId={dossier.id}
+            sourceEntity="DossierLocatif"
+          />
+        </div>
+      )}
 
       {/* ── RÉCAP DONNÉES DU BAIL ─────────────────────────────────── */}
       <div className="bg-secondary/30 rounded-2xl p-4">

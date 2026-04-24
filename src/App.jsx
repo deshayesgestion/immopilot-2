@@ -43,6 +43,8 @@ import AcquereurVisites from './pages/client/AcquereurVisites';
 import AcquereurDocuments from './pages/client/AcquereurDocuments';
 import AcquereurRecherche from './pages/client/AcquereurRecherche';
 import ConnectAdmin from './pages/ConnectAdmin';
+import Signature from './pages/Signature';
+import SignaturesDashboard from './pages/admin/SignaturesDashboard';
 import ModuleVente from './pages/admin/ModuleVente';
 import ModuleLocation from './pages/admin/ModuleLocation';
 import ModuleComptabilite from './pages/admin/ModuleComptabilite';
@@ -80,6 +82,8 @@ const AuthenticatedApp = () => {
     <Routes>
       {/* Route cachée pour connexion SaaS */}
       <Route path="/connect-admin" element={<ConnectAdmin />} />
+      {/* Page publique de signature électronique */}
+      <Route path="/signature" element={<Signature />} />
 
       <Route element={<Layout />}>
         <Route path="/" element={<Home />} />
@@ -127,6 +131,7 @@ const AuthenticatedApp = () => {
         <Route path="/admin/agenda" element={<AdminAgenda />} />
         <Route path="/admin/bi" element={<AdminBI />} />
         <Route path="/admin/agents" element={<AdminAgents />} />
+        <Route path="/admin/signatures" element={<SignaturesDashboard />} />
       </Route>
 
       {/* ── ESPACES CLIENTS ── */}

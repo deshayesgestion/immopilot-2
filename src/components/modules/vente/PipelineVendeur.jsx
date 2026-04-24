@@ -5,8 +5,9 @@ import { Input } from "@/components/ui/input";
 import {
   Plus, Home, FileText, Loader2, ChevronRight, Sparkles, CheckCircle2,
   X, Euro, User, Phone, Mail, MapPin, Building, ExternalLink,
-  Download, Send, BadgeCheck
+  Download, Send, BadgeCheck, PenTool
 } from "lucide-react";
+import SignaturePanel from "@/components/signature/SignaturePanel";
 
 const STATUT_MANDAT = {
   en_attente: { label: "En attente signature", cls: "bg-amber-100 text-amber-700" },
@@ -315,6 +316,20 @@ ${mandat.mandat_url ? `<div style="text-align:center;margin:20px 0"><a href="${m
           {tab==="mandat" && (
             <div className="space-y-4">
               {mandat.statut_mandat==="signe" && <div className="bg-green-50 border border-green-300 rounded-xl p-3 flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-green-600" /><p className="text-sm font-semibold text-green-800">Mandat signé ✓</p></div>}
+              {/* Signature électronique */}
+              {mandat.mandat_url && (
+                <div className="bg-white border border-border/50 rounded-2xl p-4 space-y-2">
+                  <p className="text-sm font-semibold flex items-center gap-2"><PenTool className="w-4 h-4 text-primary" /> Signature électronique</p>
+                  <SignaturePanel
+                    compact
+                    documentType="mandat_vente"
+                    documentTitre={`Mandat — ${mandat.vendeur_nom || ""} — ${bien?.titre || ""}`}
+                    documentUrl={mandat.mandat_url}
+                    sourceId={mandat.id}
+                    sourceEntity="MandatVente"
+                  />
+                </div>
+              )}
               <div className="flex gap-2 flex-wrap">
                 <Button size="sm" className="h-9 text-xs rounded-full gap-1.5 bg-indigo-600 hover:bg-indigo-700" onClick={genererMandatPDF} disabled={generating}>
                   {generating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />} {generating?"Génération…":"Générer PDF mandat"}
