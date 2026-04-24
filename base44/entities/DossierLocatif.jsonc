@@ -9,6 +9,18 @@
       "type": "string",
       "description": "R\u00e9f\u00e9rence unique (ex: LOC-2024-001)"
     },
+    "statut_dossier": {
+      "type": "string",
+      "enum": [
+        "ouvert",
+        "en_cours",
+        "verrouille",
+        "termine",
+        "archive"
+      ],
+      "default": "ouvert",
+      "description": "Statut global du dossier"
+    },
     "etape": {
       "type": "string",
       "enum": [
@@ -24,7 +36,7 @@
         "cloture"
       ],
       "default": "candidat",
-      "description": "\u00c9tape courante du cycle locatif (8 \u00e9tapes)"
+      "description": "\u00c9tape courante du cycle locatif"
     },
     "bien_id": {
       "type": "string"
@@ -61,27 +73,29 @@
     "proprietaire_nom": {
       "type": "string"
     },
+    "agent_email": {
+      "type": "string"
+    },
+    "agent_nom": {
+      "type": "string"
+    },
+    "candidat_selectionne_id": {
+      "type": "string",
+      "description": "ID CandidatLocataire s\u00e9lectionn\u00e9"
+    },
     "docs_obligatoires": {
       "type": "object",
-      "description": "Checklist documents: {doc_identite, doc_revenus, doc_dossier, doc_historique}"
+      "description": "Checklist documents"
     },
     "scoring_ia": {
       "type": "number",
       "minimum": 0,
-      "maximum": 100,
-      "description": "Score solvabilit\u00e9 IA (0-100)"
+      "maximum": 100
     },
     "scoring_commentaire": {
       "type": "string"
     },
     "scoring_risque": {
-      "type": "string",
-      "description": "Niveau de risque d'impay\u00e9 (faible/mod\u00e9r\u00e9/\u00e9lev\u00e9)"
-    },
-    "scoring_points_forts": {
-      "type": "string"
-    },
-    "scoring_points_faibles": {
       "type": "string"
     },
     "scoring_recommandation": {
@@ -90,8 +104,7 @@
         "ACCEPTER",
         "REFUSER",
         "\u00c0 COMPLETER"
-      ],
-      "description": "Recommandation IA finale"
+      ]
     },
     "validation_statut": {
       "type": "string",
@@ -103,12 +116,10 @@
       "default": "en_attente"
     },
     "date_debut_bail": {
-      "type": "string",
-      "description": "ISO date"
+      "type": "string"
     },
     "date_fin_bail": {
-      "type": "string",
-      "description": "ISO date (null = CDI)"
+      "type": "string"
     },
     "duree_mois": {
       "type": "number",
@@ -152,41 +163,70 @@
     "edle_date": {
       "type": "string"
     },
-    "edle_photos": {
+    "edle_checklist": {
+      "type": "object",
+      "description": "EDL entr\u00e9e par pi\u00e8ce: { piece_nom: { etat: neuf|bon|moyen|degrade, commentaire: string, photos: [url] } }"
+    },
+    "edle_pieces": {
       "type": "array",
       "items": {
         "type": "string"
-      }
-    },
-    "edle_checklist": {
-      "type": "object"
+      },
+      "description": "Liste des pi\u00e8ces inventori\u00e9es"
     },
     "edle_signe": {
       "type": "boolean",
       "default": false
     },
+    "edle_signe_locataire": {
+      "type": "boolean",
+      "default": false
+    },
+    "edle_signe_proprietaire": {
+      "type": "boolean",
+      "default": false
+    },
+    "edle_observations": {
+      "type": "string"
+    },
     "edls_date": {
       "type": "string"
     },
-    "edls_photos": {
+    "edls_checklist": {
+      "type": "object",
+      "description": "EDL sortie par pi\u00e8ce: m\u00eame structure qu'edle_checklist"
+    },
+    "edls_pieces": {
       "type": "array",
       "items": {
         "type": "string"
       }
     },
-    "edls_checklist": {
-      "type": "object"
-    },
     "edls_signe": {
       "type": "boolean",
       "default": false
+    },
+    "edls_signe_locataire": {
+      "type": "boolean",
+      "default": false
+    },
+    "edls_signe_proprietaire": {
+      "type": "boolean",
+      "default": false
+    },
+    "edls_observations": {
+      "type": "string"
     },
     "edls_degradations": {
       "type": "array",
       "items": {
         "type": "object"
       },
-      "description": "[{description, montant_estime}]"
+      "description": "[{piece, description, montant_estime}]"
+    },
+    "comparaison_edl": {
+      "type": "object",
+      "description": "R\u00e9sultat comparaison IA EDL entr\u00e9e vs sortie"
     },
     "bail_url": {
       "type": "string"
@@ -204,14 +244,6 @@
         "resilie"
       ],
       "default": "en_preparation"
-    },
-    "alerte_fin_bail": {
-      "type": "boolean",
-      "default": false
-    },
-    "renouvellement_propose": {
-      "type": "boolean",
-      "default": false
     },
     "quittances_ids": {
       "type": "array",

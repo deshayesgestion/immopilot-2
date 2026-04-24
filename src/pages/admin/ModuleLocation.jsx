@@ -15,14 +15,14 @@ import LocationTempsReel from "@/components/modules/location/LocationTempsReel";
 import PipelineSelection from "@/components/modules/location/PipelineSelection";
 
 const TABS = [
-  { id: "temps_reel", label: "Tableau de bord",   icon: Activity },
-  { id: "pipeline",   label: "Pipeline Candidats", icon: GitCompare },
-  { id: "workflow",   label: "Dossiers & Cycle",  icon: FolderOpen },
-  { id: "quittances", label: "Quittances",         icon: FileText },
-  { id: "depot",      label: "Dépôts de garantie",icon: Shield },
-  { id: "biens",      label: "Biens",              icon: Home },
-  { id: "locataires", label: "Locataires",         icon: Users },
-  { id: "paiements",  label: "Loyers",             icon: Euro },
+  { id: "temps_reel", label: "Tableau de bord",    icon: Activity,    group: "Vue d'ensemble" },
+  { id: "pipeline",   label: "Pipeline Candidats",  icon: GitCompare,  group: "Sélection" },
+  { id: "workflow",   label: "Dossiers & Cycle",   icon: FolderOpen,  group: "Sélection" },
+  { id: "quittances", label: "Quittances",          icon: FileText,    group: "Gestion" },
+  { id: "depot",      label: "Dépôts de garantie", icon: Shield,      group: "Gestion" },
+  { id: "biens",      label: "Biens",               icon: Home,        group: "Référentiel" },
+  { id: "locataires", label: "Locataires",          icon: Users,       group: "Référentiel" },
+  { id: "paiements",  label: "Loyers",              icon: Euro,        group: "Référentiel" },
 ];
 
 export default function ModuleLocation() {
@@ -54,16 +54,15 @@ export default function ModuleLocation() {
 
   const contactMap = Object.fromEntries(contacts.map(c => [c.id, c]));
   const bienMap = Object.fromEntries(biens.map(b => [b.id, b]));
-
   const loyersEnRetard = paiements.filter(p => p.statut === "en_retard");
   const loyersPayes = paiements.filter(p => p.statut === "paye");
   const totalEncaisse = loyersPayes.reduce((s, p) => s + (p.montant || 0), 0);
 
   const stats = [
-    { label: "Biens en location", value: biens.length,                              icon: Home,         color: "text-blue-600" },
-    { label: "Locataires",        value: locataires.length,                         icon: Users,        color: "text-green-600" },
-    { label: "Encaissé",          value: totalEncaisse.toLocaleString("fr-FR") + " €", icon: Euro,     color: "text-emerald-600" },
-    { label: "Retards",           value: loyersEnRetard.length,                     icon: AlertCircle,  color: "text-red-600" },
+    { label: "Biens en location", value: biens.length,                                icon: Home,        color: "text-blue-600",    bg: "bg-blue-50" },
+    { label: "Locataires",        value: locataires.length,                           icon: Users,       color: "text-green-600",   bg: "bg-green-50" },
+    { label: "Encaissé",          value: totalEncaisse.toLocaleString("fr-FR") + " €", icon: Euro,      color: "text-emerald-600", bg: "bg-emerald-50" },
+    { label: "Retards",           value: loyersEnRetard.length,                       icon: AlertCircle, color: "text-red-600",     bg: "bg-red-50" },
   ];
 
   const needsSearch = ["biens", "locataires", "paiements"].includes(tab);
@@ -72,12 +71,14 @@ export default function ModuleLocation() {
     <div className="space-y-5 max-w-6xl">
       {/* Header */}
       <div className="flex items-center gap-3">
-        <div className="p-2 bg-emerald-50 rounded-xl">
+        <div className="p-2.5 bg-emerald-50 rounded-xl">
           <KeySquare className="w-5 h-5 text-emerald-600" />
         </div>
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Module Location</h1>
-          <p className="text-sm text-muted-foreground">Cycle locatif complet · Dossiers · Quittances · Dépôts · IA Rounded</p>
+          <p className="text-sm text-muted-foreground">
+            Cycle locatif complet · Multi-candidats · EDL · IA Rounded · Quittances · Dépôts
+          </p>
         </div>
       </div>
 
@@ -87,8 +88,10 @@ export default function ModuleLocation() {
           const Icon = s.icon;
           return (
             <div key={i} className="bg-white rounded-2xl border border-border/50 p-4">
-              <div className="flex items-center gap-2 mb-1">
-                <Icon className={`w-4 h-4 ${s.color}`} />
+              <div className="flex items-center gap-2 mb-2">
+                <div className={`p-1.5 rounded-lg ${s.bg}`}>
+                  <Icon className={`w-3.5 h-3.5 ${s.color}`} />
+                </div>
                 <span className="text-xs text-muted-foreground">{s.label}</span>
               </div>
               <p className="text-xl font-bold">{s.value}</p>
@@ -97,19 +100,23 @@ export default function ModuleLocation() {
         })}
       </div>
 
-      {/* Tabs */}
-      <div className="flex flex-wrap gap-1 bg-white rounded-2xl border border-border/50 p-1.5">
+      {/* Navigation tabs */}
+      <div className="bg-white rounded-2xl border border-border/50 p-1.5 flex flex-wrap gap-1">
         {TABS.map(t => {
           const Icon = t.icon;
           return (
-            <button key={t.id} onClick={() => setTab(t.id)}
+            <button key={t.id} onClick={() => { setTab(t.id); setSearch(""); }}
               className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium transition-all flex-shrink-0 ${
-                tab === t.id ? "bg-primary text-white shadow-sm" : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
+                tab === t.id
+                  ? "bg-primary text-white shadow-sm"
+                  : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
               }`}>
               <Icon className="w-3.5 h-3.5" />
               {t.label}
               {t.id === "paiements" && loyersEnRetard.length > 0 && (
-                <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-semibold ${tab === t.id ? "bg-white/20" : "bg-red-100 text-red-600"}`}>
+                <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-semibold ${
+                  tab === t.id ? "bg-white/20" : "bg-red-100 text-red-600"
+                }`}>
                   {loyersEnRetard.length}
                 </span>
               )}
@@ -126,7 +133,9 @@ export default function ModuleLocation() {
       </div>
 
       {loading ? (
-        <div className="flex justify-center py-16"><Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /></div>
+        <div className="flex justify-center py-16">
+          <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+        </div>
       ) : (
         <>
           {tab === "temps_reel"  && <LocationTempsReel />}
