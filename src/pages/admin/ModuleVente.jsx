@@ -1,28 +1,35 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { TrendingUp, Home, Users, FileSignature, BarChart2, Loader2, FolderOpen } from "lucide-react";
-import VentePipeline from "@/components/crm/VentePipeline";
+import {
+  TrendingUp, Home, Users, FileSignature, BarChart2, Loader2,
+  Euro, Target, Zap, AlertCircle
+} from "lucide-react";
 import BiensList from "@/components/shared/BiensList";
-import LeadFiche from "@/components/crm/LeadFiche";
-import DossiersListSection from "@/components/shared/DossiersListSection";
+import PipelineVendeur from "@/components/modules/vente/PipelineVendeur.jsx";
+import PipelineAcquereur from "@/components/modules/vente/PipelineAcquereur.jsx";
 
 const TABS = [
-  { id: "pipeline", label: "Pipeline Leads", icon: Users },
-  { id: "biens", label: "Biens à vendre", icon: Home },
-  { id: "transactions", label: "Transactions", icon: FileSignature },
-  { id: "dossiers", label: "Dossiers", icon: FolderOpen },
+  { id: "vendeur",     label: "Pipeline Vendeur",   icon: Home,          desc: "Mandats · Estimation IA · Documents" },
+  { id: "acquereur",   label: "Pipeline Acquéreur",  icon: Users,         desc: "Qualification · Matching · Offres · Compromis" },
+  { id: "biens",       label: "Biens à vendre",      icon: FileSignature, desc: "Catalogue · Publication" },
+  { id: "transactions",label: "Transactions",        icon: BarChart2,     desc: "Ventes clôturées · CA" },
 ];
 
 const TX_COLORS = {
   en_cours: "bg-blue-100 text-blue-700",
-  signe: "bg-green-100 text-green-700",
-  cloture: "bg-slate-100 text-slate-600",
-  annule: "bg-red-100 text-red-600",
+  signe:    "bg-green-100 text-green-700",
+  cloture:  "bg-slate-100 text-slate-600",
+  annule:   "bg-red-100 text-red-600",
 };
 
 function TransactionsList({ transactions, contactMap, bienMap }) {
   if (!transactions.length)
-    return <div className="bg-white rounded-2xl border border-border/50 py-16 text-center text-muted-foreground text-sm">Aucune transaction</div>;
+    return (
+      <div className="bg-white rounded-2xl border border-border/50 py-16 text-center">
+        <BarChart2 className="w-8 h-8 text-muted-foreground/20 mx-auto mb-2" />
+        <p className="text-sm text-muted-foreground">Aucune transaction clôturée</p>
+      </div>
+    );
   return (
     <div className="bg-white rounded-2xl border border-border/50 overflow-hidden">
       <table className="w-full text-sm">
@@ -55,30 +62,29 @@ function TransactionsList({ transactions, contactMap, bienMap }) {
 }
 
 export default function ModuleVente() {
-  const [tab, setTab] = useState("pipeline");
+  const [tab, setTab] = useState("vendeur");
   const [biens, setBiens] = useState([]);
-  const [leads, setLeads] = useState([]);
   const [contacts, setContacts] = useState([]);
   const [transactions, setTransactions] = useState([]);
+  const [mandats, setMandats] = useState([]);
+  const [acquereurs, setAcquereurs] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedLead, setSelectedLead] = useState(null);
-  const [dossiers, setDossiers] = useState([]);
 
   useEffect(() => {
     const load = async () => {
       setLoading(true);
-      const [b, l, c, t, d] = await Promise.all([
+      const [b, c, t, m, a] = await Promise.all([
         base44.entities.Bien.filter({ type: "vente" }),
-        base44.entities.Lead.list("-created_date", 200),
-        base44.entities.Contact.list("-created_date", 200),
+        base44.entities.Contact.list("-created_date", 300),
         base44.entities.Transaction.filter({ type: "vente" }),
-        base44.entities.DossierImmobilier.filter({ type: "vente" }),
+        base44.entities.MandatVente.list("-created_date", 100),
+        base44.entities.Acquereur.list("-created_date", 200),
       ]);
       setBiens(b);
-      setLeads(l);
       setContacts(c);
       setTransactions(t);
-      setDossiers(d);
+      setMandats(m);
+      setAcquereurs(a);
       setLoading(false);
     };
     load();
@@ -87,15 +93,28 @@ export default function ModuleVente() {
   const contactMap = Object.fromEntries(contacts.map(c => [c.id, c]));
   const bienMap = Object.fromEntries(biens.map(b => [b.id, b]));
 
+  const caTotal = transactions.filter(t => t.statut === "cloture").reduce((s, t) => s + (t.prix || 0), 0);
+  const commissionsTotal = transactions.filter(t => t.statut === "cloture").reduce((s, t) => s + (t.commission || 0), 0);
+
   const stats = [
-    { label: "Biens actifs", value: biens.filter(b => b.statut === "disponible").length, color: "text-blue-600", bg: "bg-blue-50" },
-    { label: "Leads actifs", value: leads.filter(l => l.statut !== "perdu").length, color: "text-green-600", bg: "bg-green-50" },
-    { label: "Qualifiés", value: leads.filter(l => l.statut === "qualifie").length, color: "text-purple-600", bg: "bg-purple-50" },
-    { label: "CA clôturé", value: transactions.filter(t => t.statut === "cloture").reduce((s, t) => s + (t.prix || 0), 0).toLocaleString("fr-FR") + " €", color: "text-amber-600", bg: "bg-amber-50" },
+    { label: "Mandats actifs",    value: mandats.filter(m => m.statut === "actif").length,         color: "text-blue-600",    bg: "bg-blue-50",    icon: Home },
+    { label: "Acquéreurs",        value: acquereurs.filter(a => a.statut === "actif").length,       color: "text-green-600",   bg: "bg-green-50",   icon: Users },
+    { label: "Biens disponibles", value: biens.filter(b => b.statut === "disponible").length,       color: "text-indigo-600",  bg: "bg-indigo-50",  icon: Target },
+    { label: "CA clôturé",        value: caTotal.toLocaleString("fr-FR") + " €",                   color: "text-amber-600",   bg: "bg-amber-50",   icon: Euro },
   ];
 
+  // Alertes intelligentes
+  const biensBloqués = biens.filter(b => {
+    const mandat = mandats.find(m => m.bien_id === b.id);
+    if (!mandat) return false;
+    const debut = mandat.date_debut_mandat ? new Date(mandat.date_debut_mandat) : null;
+    if (!debut) return false;
+    const jours = Math.floor((new Date() - debut) / 86400000);
+    return jours > 60 && b.statut !== "vendu";
+  });
+
   return (
-    <div className="space-y-6 max-w-7xl">
+    <div className="space-y-5 max-w-7xl">
       {/* Header */}
       <div className="flex items-center gap-3">
         <div className="p-2.5 bg-blue-50 rounded-xl">
@@ -103,33 +122,50 @@ export default function ModuleVente() {
         </div>
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Module Vente</h1>
-          <p className="text-sm text-muted-foreground">Pipeline, biens et suivi des leads</p>
+          <p className="text-sm text-muted-foreground">
+            Mandats · Estimation IA · Pipeline acquéreur · Offres · Compromis · Closing
+          </p>
         </div>
       </div>
 
+      {/* Alertes IA */}
+      {biensBloqués.length > 0 && (
+        <div className="bg-amber-50 border border-amber-300 rounded-2xl px-4 py-3 flex items-start gap-3">
+          <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="text-sm font-bold text-amber-800">⚠ {biensBloqués.length} bien{biensBloqués.length > 1 ? "s" : ""} en vente depuis + de 60 jours</p>
+            <p className="text-xs text-amber-700 mt-0.5">{biensBloqués.map(b => b.titre).join(" · ")} — Envisagez une révision de prix.</p>
+          </div>
+        </div>
+      )}
+
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        {stats.map((s, i) => (
-          <div key={i} className="bg-white rounded-2xl border border-border/50 p-4">
-            <div className={`inline-flex p-1.5 rounded-lg ${s.bg} mb-2`}>
-              <BarChart2 className={`w-3.5 h-3.5 ${s.color}`} />
+        {stats.map((s) => {
+          const Icon = s.icon;
+          return (
+            <div key={s.label} className="bg-white rounded-2xl border border-border/50 p-4">
+              <div className={`inline-flex p-1.5 rounded-lg ${s.bg} mb-2`}>
+                <Icon className={`w-3.5 h-3.5 ${s.color}`} />
+              </div>
+              <p className="text-xl font-bold">{s.value}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">{s.label}</p>
             </div>
-            <p className="text-xl font-bold">{s.value}</p>
-            <p className="text-xs text-muted-foreground mt-0.5">{s.label}</p>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
-      {/* Tabs */}
-      <div className="flex gap-1 bg-white rounded-2xl border border-border/50 p-1.5">
+      {/* Navigation tabs */}
+      <div className="bg-white rounded-2xl border border-border/50 p-1.5 flex flex-wrap gap-1">
         {TABS.map(t => {
           const Icon = t.icon;
           return (
             <button key={t.id} onClick={() => setTab(t.id)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all flex-shrink-0 ${
                 tab === t.id ? "bg-primary text-white shadow-sm" : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
               }`}>
-              <Icon className="w-4 h-4" /> {t.label}
+              <Icon className="w-4 h-4" />
+              <span>{t.label}</span>
             </button>
           );
         })}
@@ -141,52 +177,33 @@ export default function ModuleVente() {
         </div>
       ) : (
         <>
-          {tab === "pipeline" && (
-            <VentePipeline
-              leads={leads}
-              contacts={contacts}
+          {tab === "vendeur" && (
+            <PipelineVendeur
               biens={biens}
-              contactMap={contactMap}
-              bienMap={bienMap}
-              onLeadClick={setSelectedLead}
-              onLeadsChange={setLeads}
+              contacts={contacts}
+            />
+          )}
+          {tab === "acquereur" && (
+            <PipelineAcquereur
+              biens={biens}
+              contacts={contacts}
             />
           )}
           {tab === "biens" && (
             <BiensList
               biens={biens}
-              leads={leads}
               typeModule="vente"
               onBiensChange={setBiens}
             />
           )}
           {tab === "transactions" && (
-            <TransactionsList transactions={transactions} contactMap={contactMap} bienMap={bienMap} />
-          )}
-          {tab === "dossiers" && (
-            <DossiersListSection
-              dossiers={dossiers}
-              typeModule="vente"
-              onDossierCreated={(d) => setDossiers(prev => [d, ...prev])}
+            <TransactionsList
+              transactions={transactions}
+              contactMap={contactMap}
+              bienMap={bienMap}
             />
           )}
         </>
-      )}
-
-      {/* Fiche lead modal */}
-      {selectedLead && (
-        <LeadFiche
-          lead={selectedLead}
-          contact={contactMap[selectedLead.contact_id]}
-          bien={bienMap[selectedLead.bien_id]}
-          biens={biens}
-          contacts={contacts}
-          onClose={() => setSelectedLead(null)}
-          onUpdate={(updated) => {
-            setLeads(prev => prev.map(l => l.id === updated.id ? updated : l));
-            setSelectedLead(updated);
-          }}
-        />
       )}
     </div>
   );
