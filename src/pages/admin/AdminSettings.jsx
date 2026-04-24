@@ -176,21 +176,37 @@ export default function AdminSettings() {
         </Section>
 
         {/* Gestion Emails IA */}
-        <div className="bg-gradient-to-r from-blue-50 to-blue-50/50 border border-blue-200/50 rounded-2xl p-5 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center flex-shrink-0">
-              <Mail className="w-5 h-5 text-blue-600" />
+        <div className="bg-gradient-to-r from-blue-50 to-blue-50/50 border border-blue-200/50 rounded-2xl p-5 space-y-3">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center flex-shrink-0">
+                <Mail className="w-5 h-5 text-blue-600" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold">Gestion emails IA</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Lecture, analyse, classification et réponse automatique aux emails entrants</p>
+              </div>
             </div>
-            <div>
-              <p className="text-sm font-semibold">Gestion emails IA</p>
-              <p className="text-xs text-muted-foreground mt-0.5">Lecture, analyse, classification et réponse automatique aux emails entrants</p>
-            </div>
+            <Link to="/admin/parametres/emails">
+              <Button variant="outline" className="rounded-full gap-2 h-9 text-sm flex-shrink-0 border-blue-300 text-blue-600 hover:bg-blue-600 hover:text-white">
+                Accéder <ArrowRight className="w-3.5 h-3.5" />
+              </Button>
+            </Link>
           </div>
-          <Link to="/admin/parametres/emails">
-            <Button variant="outline" className="rounded-full gap-2 h-9 text-sm flex-shrink-0 border-blue-300 text-blue-600 hover:bg-blue-600 hover:text-white">
-              Accéder <ArrowRight className="w-3.5 h-3.5" />
-            </Button>
-          </Link>
+          
+          {/* Configuration guide */}
+          <div className="bg-white/50 rounded-lg p-3 space-y-2 text-xs">
+            <p className="font-semibold text-blue-700">✅ Envoi d'emails : déjà actif</p>
+            <p className="text-muted-foreground">Les réponses IA peuvent être envoyées directement aux clients via la base44 Core integration.</p>
+            
+            <p className="font-semibold text-blue-700 mt-3">📧 Lecture d'emails entrants : à configurer</p>
+            <p className="text-muted-foreground mb-2">Quand vous aurez vos accès Google/Outlook, vous pourrez :</p>
+            <ul className="list-disc list-inside space-y-1 text-muted-foreground ml-1">
+              <li>Autoriser Gmail/Outlook pour lire vos emails entrants</li>
+              <li>Synchroniser automatiquement les emails en base de données</li>
+              <li>Créer des webhooks pour traiter les nouveaux messages en temps réel</li>
+            </ul>
+          </div>
         </div>
 
         {/* Accueil IA */}
