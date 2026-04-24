@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Users, FolderOpen, TicketIcon, Clock, ArrowUpRight } from "lucide-react";
+import { Users, FolderOpen, TicketIcon, Clock, ArrowUpRight, Euro, PenSquare, AlertCircle, Bot } from "lucide-react";
 
 const fmtRel = (d) => {
   if (!d) return "—";
@@ -17,36 +17,65 @@ const STATUT_COLORS = {
   en_cours: "bg-blue-100 text-blue-700",
   signe: "bg-green-100 text-green-700",
   termine: "bg-slate-100 text-slate-600",
+  paye: "bg-green-100 text-green-700",
+  en_retard: "bg-red-100 text-red-700",
+  impaye: "bg-red-200 text-red-800",
+  lead: "bg-slate-100 text-slate-600",
+  offre: "bg-purple-100 text-purple-700",
+  acte: "bg-emerald-100 text-emerald-700",
+  success: "bg-green-100 text-green-700",
+  error: "bg-red-100 text-red-700",
 };
 
 export default function CockpitActivite({ data }) {
-  // Merge and sort recent items
   const items = [
-    ...(data.leads || []).slice(0, 5).map(l => ({
+    // Leads
+    ...(data.leads || []).slice(0, 4).map(l => ({
       id: `lead-${l.id}`,
-      type: "lead",
       icon: <Users className="w-3.5 h-3.5 text-purple-500" />,
       bg: "bg-purple-50",
-      label: `Lead — ${data.contactMap?.[l.contact_id]?.nom || "Inconnu"}`,
+      label: `Nouveau lead — ${data.contactMap?.[l.contact_id]?.nom || "Inconnu"}`,
       sub: data.bienMap?.[l.bien_id]?.titre || "Bien non précisé",
       statut: l.statut,
       date: l.created_date,
       link: "/admin/modules/vente",
     })),
-    ...(data.dossiers || []).slice(0, 5).map(d => ({
+    // Dossiers immobiliers
+    ...(data.dossiers || []).slice(0, 3).map(d => ({
       id: `dossier-${d.id}`,
-      type: "dossier",
       icon: <FolderOpen className="w-3.5 h-3.5 text-blue-500" />,
       bg: "bg-blue-50",
-      label: `Dossier — ${d.titre || d.reference || "Sans titre"}`,
+      label: `Dossier — ${d.titre || "Sans titre"}`,
       sub: d.type === "vente" ? "Vente" : "Location",
       statut: d.statut,
       date: d.created_date,
       link: "/admin/dossiers",
     })),
-    ...(data.tickets || []).slice(0, 5).map(t => ({
+    // Quittances récentes
+    ...(data.quittances || []).slice(0, 4).map(q => ({
+      id: `quittance-${q.id}`,
+      icon: <Euro className="w-3.5 h-3.5 text-emerald-500" />,
+      bg: "bg-emerald-50",
+      label: `Paiement — ${q.locataire_nom || "—"}`,
+      sub: `${q.bien_titre || "—"} · ${q.montant_total?.toLocaleString("fr-FR")} €`,
+      statut: q.statut,
+      date: q.created_date,
+      link: "/admin/modules/location",
+    })),
+    // Acquéreurs (nouvelles étapes)
+    ...(data.acquereurs || []).slice(0, 3).map(a => ({
+      id: `acq-${a.id}`,
+      icon: <PenSquare className="w-3.5 h-3.5 text-violet-500" />,
+      bg: "bg-violet-50",
+      label: `Acquéreur — ${a.nom}`,
+      sub: `${a.localisation || "—"} · budget ${(a.budget_max||0).toLocaleString("fr-FR")} €`,
+      statut: a.etape,
+      date: a.created_date,
+      link: "/admin/modules/vente",
+    })),
+    // Tickets
+    ...(data.tickets || []).slice(0, 3).map(t => ({
       id: `ticket-${t.id}`,
-      type: "ticket",
       icon: <TicketIcon className="w-3.5 h-3.5 text-amber-500" />,
       bg: "bg-amber-50",
       label: `Ticket — ${t.appelant_nom || "Inconnu"}`,
@@ -55,7 +84,18 @@ export default function CockpitActivite({ data }) {
       date: t.created_date,
       link: "/admin/parametres/accueil-ia",
     })),
-  ].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 10);
+    // Logs IA récents
+    ...(data.logsIARecents || []).slice(0, 3).map(l => ({
+      id: `log-${l.id}`,
+      icon: <Bot className="w-3.5 h-3.5 text-primary" />,
+      bg: "bg-primary/5",
+      label: `IA — ${l.action_type || "Action"}`,
+      sub: l.details || l.target_contact || l.agent || "—",
+      statut: l.status,
+      date: l.created_date,
+      link: "/admin/securite",
+    })),
+  ].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 12);
 
   return (
     <div className="bg-white rounded-2xl border border-border/50 p-5">

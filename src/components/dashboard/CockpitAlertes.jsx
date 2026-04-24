@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { AlertTriangle, Clock, Home, TicketIcon, ChevronRight, CheckCircle2 } from "lucide-react";
+import { AlertTriangle, Clock, Home, TicketIcon, ChevronRight, CheckCircle2, Euro, TrendingDown, Bot, FileX } from "lucide-react";
 
 const fmt = (n) => new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(n || 0);
 const fmtDate = (d) => d ? new Date(d).toLocaleDateString("fr-FR") : "—";
@@ -7,55 +7,108 @@ const fmtDate = (d) => d ? new Date(d).toLocaleDateString("fr-FR") : "—";
 export default function CockpitAlertes({ data }) {
   const alertes = [];
 
-  // Paiements en retard
-  (data.paiementsRetardList || []).slice(0, 3).forEach(p => {
+  // ── CRITIQUES : Impayés quittances ──
+  const impayesCritiques = (data.quittances || [])
+    .filter(q => q.statut === "impaye" || (q.statut === "en_retard" && (q.relance_count||0) >= 2))
+    .slice(0, 3);
+  impayesCritiques.forEach(q => {
+    alertes.push({
+      type: "impaye_critique",
+      icon: <Euro className="w-4 h-4 text-red-600" />,
+      bg: "bg-red-50 border-red-300",
+      label: "🚨 Impayé critique",
+      detail: `${q.locataire_nom||"—"} · ${fmt(q.montant_total)} · relances: ${q.relance_count||0}`,
+      link: "/admin/modules/location",
+      urgent: true,
+    });
+  });
+
+  // ── Paiements en retard (compta) ──
+  (data.paiementsRetardList || []).slice(0, 2).forEach(p => {
     alertes.push({
       type: "retard_paiement",
       icon: <AlertTriangle className="w-4 h-4 text-red-500" />,
       bg: "bg-red-50 border-red-200",
-      dot: "bg-red-500",
       label: "Paiement en retard",
       detail: `${fmt(p.montant)} — échéance ${fmtDate(p.date_echeance)}`,
       link: "/admin/modules/comptabilite",
     });
   });
 
-  // Dossiers inactifs (pas d'update depuis 15j)
+  // ── Dossiers locatifs bloqués (sans activité 20j) ──
+  const vingtJours = new Date(Date.now() - 20 * 24 * 60 * 60 * 1000);
+  (data.dossiersLocatifsAll || [])
+    .filter(d => ["en_selection","candidat_valide"].includes(d.statut_dossier) && new Date(d.updated_date) < vingtJours)
+    .slice(0, 2).forEach(d => {
+      const jours = Math.floor((Date.now() - new Date(d.updated_date)) / 86400000);
+      alertes.push({
+        type: "dossier_bloque",
+        icon: <Clock className="w-4 h-4 text-amber-500" />,
+        bg: "bg-amber-50 border-amber-200",
+        label: "Dossier locatif bloqué",
+        detail: `${d.locataire_nom||d.bien_titre||"Dossier"} — ${jours}j sans activité`,
+        link: "/admin/modules/location",
+      });
+    });
+
+  // ── Dossiers immobiliers inactifs ──
   const quinzeJours = new Date(Date.now() - 15 * 24 * 60 * 60 * 1000);
-  (data.dossiers || []).filter(d => new Date(d.updated_date) < quinzeJours && d.statut === "en_cours").slice(0, 3).forEach(d => {
+  (data.dossiers || []).filter(d => new Date(d.updated_date) < quinzeJours && d.statut === "en_cours").slice(0, 2).forEach(d => {
     const jours = Math.floor((Date.now() - new Date(d.updated_date)) / 86400000);
     alertes.push({
       type: "dossier_inactif",
-      icon: <Clock className="w-4 h-4 text-amber-500" />,
+      icon: <Clock className="w-4 h-4 text-amber-400" />,
       bg: "bg-amber-50 border-amber-200",
-      dot: "bg-amber-500",
       label: "Dossier inactif",
-      detail: `${d.titre || d.reference || "Dossier"} — ${jours}j sans activité`,
+      detail: `${d.titre || "Dossier"} — ${jours}j sans activité`,
       link: "/admin/dossiers",
     });
   });
 
-  // Biens sans activité (aucun lead depuis 30j)
+  // ── Biens inactifs (+30j) ──
   const trenteJours = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
   (data.biens || []).filter(b => b.statut === "disponible" && new Date(b.updated_date) < trenteJours).slice(0, 2).forEach(b => {
     alertes.push({
       type: "bien_inactif",
       icon: <Home className="w-4 h-4 text-blue-500" />,
       bg: "bg-blue-50 border-blue-200",
-      dot: "bg-blue-400",
       label: "Bien sans activité",
-      detail: `${b.titre} — disponible depuis +30j`,
+      detail: `${b.titre} — disponible +30j`,
       link: "/admin/modules/biens",
     });
   });
 
-  // Tickets urgents
-  (data.tickets || []).filter(t => t.priorite === "urgent" && t.statut !== "resolu").slice(0, 3).forEach(t => {
+  // ── Ventes lentes (mandats > 90j sans évolution) ──
+  const quatreVingtDixJours = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000);
+  (data.mandats || []).filter(m => m.statut === "actif" && new Date(m.created_date) < quatreVingtDixJours).slice(0, 2).forEach(m => {
+    alertes.push({
+      type: "vente_lente",
+      icon: <TrendingDown className="w-4 h-4 text-orange-500" />,
+      bg: "bg-orange-50 border-orange-200",
+      label: "Vente lente",
+      detail: `${m.vendeur_nom||"—"} · mandat >90j · ${fmt(m.prix_demande)}`,
+      link: "/admin/modules/vente",
+    });
+  });
+
+  // ── Erreurs IA ──
+  (data.logsErreurs || []).slice(0, 2).forEach(l => {
+    alertes.push({
+      type: "erreur_ia",
+      icon: <Bot className="w-4 h-4 text-purple-500" />,
+      bg: "bg-purple-50 border-purple-200",
+      label: "Anomalie IA",
+      detail: `${l.agent||"—"} · ${l.error_message||l.details||"Erreur détectée"}`,
+      link: "/admin/securite",
+    });
+  });
+
+  // ── Tickets urgents ──
+  (data.tickets || []).filter(t => t.priorite === "urgent" && t.statut !== "resolu").slice(0, 2).forEach(t => {
     alertes.push({
       type: "ticket_urgent",
       icon: <TicketIcon className="w-4 h-4 text-orange-500" />,
       bg: "bg-orange-50 border-orange-200",
-      dot: "bg-orange-500",
       label: "Ticket urgent",
       detail: `${t.appelant_nom || "Inconnu"} — ${t.resume_ia || t.type_demande || "À traiter"}`,
       link: "/admin/parametres/accueil-ia",

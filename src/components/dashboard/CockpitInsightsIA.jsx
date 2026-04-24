@@ -40,19 +40,30 @@ export default function CockpitInsightsIA({ data, onAction }) {
     const fmt = (n) => n ? n.toLocaleString("fr-FR") + " €" : "0 €";
 
     const res = await base44.integrations.Core.InvokeLLM({
-      prompt: `Tu es l'IA de pilotage Rounded d'une agence immobilière. Analyse ce cockpit et génère des insights ACTIONNABLES.
+      prompt: `Tu es l'IA de pilotage Rounded d'une agence immobilière. Analyse ce cockpit COMPLET et génère des insights ACTIONNABLES.
 
-DONNÉES :
-- Biens actifs : ${data.biensActifs} (${data.biensVente} vente, ${data.biensLocation} location)
-- Ventes en cours : ${data.ventesEnCours} | Clôturées : ${data.ventesCloture}
-- Locations actives : ${data.locationsActives}
-- CA total encaissé : ${fmt(data.montantEncaisse)}
-- Paiements en attente : ${fmt(data.montantAttente)} (${data.paiementsAttente})
-- Paiements en retard : ${fmt(data.montantRetard)} (${data.paiementsRetard} impayés)
-- Leads totaux : ${data.totalLeads} | Qualifiés : ${data.leadsQualifies}
-- Taux conversion : ${data.totalLeads > 0 ? Math.round((data.leadsQualifies / data.totalLeads) * 100) : 0}%
+DONNÉES COMPLÈTES :
+MODULE LOCATION :
+- Dossiers locatifs actifs : ${data.dossiersLocatifsActifs||data.locationsActives}
+- Loyers encaissés : ${fmt(data.loyersEncaisses||data.caLocation)}
+- Impayés : ${data.impayesCount||data.paiementsRetard||0} dossiers · ${fmt(data.impayesMontant||data.montantRetard)}
+
+MODULE VENTE :
+- Mandats actifs : ${data.mandatsActifs||data.biensVente} (${data.mandatsSignes||0} signés)
+- Acquéreurs en pipeline : ${data.acquereursPipeline||data.ventesEnCours}
+- Ventes finalisées : ${data.ventesFinalisees||data.ventesCloture}
+- Commissions : ${fmt(data.caCommissions)}
+
+MODULE COMPTA :
+- CA Total Global : ${fmt(data.caTotalGlobal||data.caTotalTransactions)}
+- Encaissé : ${fmt(data.montantEncaisse)} | En attente : ${fmt(data.montantAttente)}
+- Bénéfice estimé : ${fmt(data.beneficeEstime)} | Marge : ${data.tauxMarge}%
+
+GLOBAL :
+- Taux de conversion : ${data.tauxConversion||0}%
+- Leads : ${data.totalLeads} | Qualifiés : ${data.leadsQualifies}
 - Tickets urgents : ${data.ticketsUrgents}
-- Dossiers actifs : ${(data.dossiers || []).filter(d => d.statut === "en_cours").length}
+- Total dossiers : ${data.totalDossiers}
 
 Génère :
 1. 4 insights avec priorité (critique/important/info/opportunite) — phrases courtes < 20 mots

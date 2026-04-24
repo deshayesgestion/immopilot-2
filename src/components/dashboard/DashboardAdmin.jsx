@@ -10,9 +10,13 @@ import CockpitBiens from "./CockpitBiens";
 import CockpitInsightsIA from "./CockpitInsightsIA";
 import CockpitActionsRapides from "./CockpitActionsRapides";
 import CockpitPeriodFilter, { filterByPeriod } from "./CockpitPeriodFilter";
+import CockpitSuperAgent from "./CockpitSuperAgent";
 
-function computeStats(biens, leads, contacts, transactions, paiements, tickets, dossiers, period, customStart, customEnd) {
-  // Filter by period where relevant
+function computeStats(
+  biens, leads, contacts, transactions, paiements, tickets, dossiers,
+  dossiersLocatifs, mandats, acquereurs, quittances, aiLogs,
+  period, customStart, customEnd
+) {
   const fp = (items, field = "created_date") => filterByPeriod(items, period, customStart, customEnd, field);
   const paiementsP = fp(paiements, "created_date");
   const transactionsP = fp(transactions, "created_date");
@@ -20,16 +24,15 @@ function computeStats(biens, leads, contacts, transactions, paiements, tickets, 
   const dossiersP = fp(dossiers, "created_date");
   const ticketsP = fp(tickets, "created_date");
 
-  // Maps (all time — for lookups)
   const contactMap = Object.fromEntries(contacts.map(c => [c.id, c]));
   const bienMap = Object.fromEntries(biens.map(b => [b.id, b]));
 
-  // ── BIENS (all time — stock) ──
+  // ── BIENS ──
   const biensActifs = biens.filter(b => b.statut === "disponible" || b.statut === "en_cours").length;
   const biensVente = biens.filter(b => b.type === "vente").length;
   const biensLocation = biens.filter(b => b.type === "location").length;
 
-  // ── TRANSACTIONS (period) ──
+  // ── TRANSACTIONS ──
   const ventesEnCours = transactionsP.filter(t => t.statut === "en_cours" && t.type === "vente").length;
   const ventesSigne = transactionsP.filter(t => t.statut === "signe" && t.type === "vente").length;
   const ventesCloture = transactionsP.filter(t => t.statut === "cloture" && t.type === "vente").length;
@@ -38,10 +41,9 @@ function computeStats(biens, leads, contacts, transactions, paiements, tickets, 
   const caCommissions = transactionsP.filter(t => ["signe","cloture"].includes(t.statut)).reduce((s,t) => s+(t.commission||0),0);
   const caVente = transactionsP.filter(t => t.type==="vente" && ["signe","cloture"].includes(t.statut)).reduce((s,t) => s+(t.commission||t.prix||0),0);
 
-  // ── PAIEMENTS (period) ──
+  // ── PAIEMENTS ──
   const paiementsPayes = paiementsP.filter(p => p.statut === "paye");
   const paiementsEnAttente = paiementsP.filter(p => p.statut === "en_attente");
-  // Retards: always from all paiements (not filtered by period)
   const paiementsEnRetard = paiements.filter(p => p.statut === "en_retard");
   const montantEncaisse = paiementsPayes.reduce((s,p) => s+(p.montant||0), 0);
   const montantAttente = paiementsEnAttente.reduce((s,p) => s+(p.montant||0), 0);
@@ -52,11 +54,11 @@ function computeStats(biens, leads, contacts, transactions, paiements, tickets, 
   const tauxMarge = montantEncaisse + caTotalTransactions > 0
     ? Math.round((beneficeEstime / (montantEncaisse + caTotalTransactions)) * 100) : 0;
 
-  // ── LEADS (period) ──
+  // ── LEADS ──
   const totalLeads = leadsP.length;
   const leadsQualifies = leadsP.filter(l => l.statut === "qualifie" || l.statut === "contacte").length;
 
-  // ── DOSSIERS (period) ──
+  // ── DOSSIERS ──
   const dossiersTermines = dossiersP.filter(d => d.statut === "termine" || d.statut === "signe");
   const dureeTotaleDossiers = dossiersTermines.reduce((s,d) => {
     const debut = new Date(d.created_date), fin = new Date(d.updated_date);
@@ -66,14 +68,36 @@ function computeStats(biens, leads, contacts, transactions, paiements, tickets, 
   // ── TICKETS ──
   const ticketsUrgents = ticketsP.filter(t => t.priorite === "urgent" && t.statut !== "resolu").length;
 
+  // ── MODULE LOCATION (DossierLocatif) ──
+  const dossiersLocatifsActifs = dossiersLocatifs.filter(d =>
+    d.statut_dossier === "en_cours" || d.statut_dossier === "bail_signe"
+  );
+  const loyersEncaisses = quittances.filter(q => q.statut === "paye").reduce((s,q) => s+(q.montant_total||0), 0);
+  const impayesCount = quittances.filter(q => q.statut === "en_retard" || q.statut === "impaye").length;
+  const impayesMontant = quittances.filter(q => q.statut === "en_retard" || q.statut === "impaye").reduce((s,q) => s+(q.montant_total||0), 0);
+
+  // ── MODULE VENTE (Mandats + Acquéreurs) ──
+  const mandatsActifs = mandats.filter(m => m.statut === "actif").length;
+  const mandatsSignes = mandats.filter(m => m.statut_mandat === "signe").length;
+  const acquereursPipeline = acquereurs.filter(a => a.etape !== "perdu" && a.etape !== "acte").length;
+  const ventesFinalisees = acquereurs.filter(a => a.etape === "acte").length;
+
+  // ── LOGS IA ──
+  const logsIARecents = fp(aiLogs, "created_date").slice(0, 20);
+  const logsErreurs = aiLogs.filter(l => l.status === "error").slice(0, 5);
+
+  // ── CA TOTAL GLOBAL ──
+  const caTotalGlobal = caTotalTransactions + loyersEncaisses + montantEncaisse;
+  const totalDossiers = dossiers.length + dossiersLocatifs.length + mandats.length;
+  const tauxConversion = (totalLeads + acquereurs.length) > 0
+    ? Math.round(((leadsQualifies + ventesFinalisees) / (totalLeads + acquereurs.length)) * 100) : 0;
+
   return {
-    // raw (all time for alerts/biens display)
     biens, leads: leadsP, contacts, transactions: transactionsP,
     paiements: paiementsP, tickets: ticketsP, dossiers: dossiersP,
-    // for alerts — need all retards
     paiementsRetardList: paiementsEnRetard,
     contactMap, bienMap,
-    // KPIs
+    // KPIs base
     biensActifs, biensVente, biensLocation,
     ventesEnCours, ventesSigne, ventesCloture,
     locationsActives, loyersAttente,
@@ -83,12 +107,33 @@ function computeStats(biens, leads, contacts, transactions, paiements, tickets, 
     paiementsAttente: paiementsEnAttente.length,
     paiementsRetard: paiementsEnRetard.length,
     beneficeEstime, tauxMarge,
-    // Performance
     totalLeads, leadsQualifies,
     dossiersTermines: dossiersTermines.length,
     dureeTotaleDossiers,
-    // Alertes
     ticketsUrgents,
+    // ── NOUVEAUX KPIs ──
+    // Location
+    dossiersLocatifsActifs: dossiersLocatifsActifs.length,
+    dossiersLocatifsAll: dossiersLocatifs,
+    loyersEncaisses,
+    impayesCount,
+    impayesMontant,
+    quittances,
+    // Vente
+    mandatsActifs,
+    mandatsSignes,
+    mandats,
+    acquereursPipeline,
+    ventesFinalisees,
+    acquereurs,
+    // Global
+    caTotalGlobal,
+    totalDossiers,
+    tauxConversion,
+    // IA Logs
+    logsIARecents,
+    logsErreurs,
+    aiLogs,
   };
 }
 
@@ -102,7 +147,8 @@ export default function DashboardAdmin({ agency }) {
 
   const load = async () => {
     setLoading(true);
-    const [biens, leads, contacts, transactions, paiements, tickets, dossiers] = await Promise.all([
+    const [biens, leads, contacts, transactions, paiements, tickets, dossiers,
+           dossiersLocatifs, mandats, acquereurs, quittances, aiLogs] = await Promise.all([
       base44.entities.Bien.list("-created_date", 300),
       base44.entities.Lead.list("-created_date", 300),
       base44.entities.Contact.list("-created_date", 300),
@@ -110,8 +156,14 @@ export default function DashboardAdmin({ agency }) {
       base44.entities.Paiement.list("-created_date", 500),
       base44.entities.TicketIA.list("-created_date", 200),
       base44.entities.DossierImmobilier.list("-created_date", 300),
+      base44.entities.DossierLocatif.list("-created_date", 200),
+      base44.entities.MandatVente.list("-created_date", 200),
+      base44.entities.Acquereur.list("-created_date", 200),
+      base44.entities.Quittance.list("-created_date", 300),
+      base44.entities.AIActionLog.list("-created_date", 100),
     ]);
-    setRawData({ biens, leads, contacts, transactions, paiements, tickets, dossiers });
+    setRawData({ biens, leads, contacts, transactions, paiements, tickets, dossiers,
+                 dossiersLocatifs, mandats, acquereurs, quittances, aiLogs });
     setLastRefresh(new Date());
     setLoading(false);
   };
@@ -123,6 +175,8 @@ export default function DashboardAdmin({ agency }) {
     return computeStats(
       rawData.biens, rawData.leads, rawData.contacts,
       rawData.transactions, rawData.paiements, rawData.tickets, rawData.dossiers,
+      rawData.dossiersLocatifs, rawData.mandats, rawData.acquereurs,
+      rawData.quittances, rawData.aiLogs,
       period, customStart, customEnd
     );
   }, [rawData, period, customStart, customEnd]);
@@ -164,6 +218,9 @@ export default function DashboardAdmin({ agency }) {
 
       {/* IA Actionnelle */}
       {!loading && data && <CockpitInsightsIA data={data} />}
+
+      {/* Super Agent IA */}
+      {!loading && data && <CockpitSuperAgent data={data} />}
 
       {/* Alertes + Activité */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
