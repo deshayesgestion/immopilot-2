@@ -20,7 +20,7 @@ export default function PropertyCard({ property, onFavorite }) {
   };
 
   return (
-    <div className="group bg-card rounded-2xl overflow-hidden border border-border/50 hover:border-border transition-all duration-300 hover:shadow-lg hover:shadow-primary/5">
+    <Link to={`/bien/${property.id}`} className="block group bg-card rounded-2xl overflow-hidden border border-border/50 hover:border-border transition-all duration-300 hover:shadow-lg hover:shadow-primary/5">
       <div className="relative aspect-[4/3] overflow-hidden">
         <img
           src={image}
@@ -79,12 +79,10 @@ export default function PropertyCard({ property, onFavorite }) {
           </div>
         </div>
 
-        <Link to={`/bien/${property.id}`}>
-          <Button variant="outline" size="sm" className="w-full mt-4 rounded-full">
-            Voir détails
-          </Button>
-        </Link>
+        <Button variant="outline" size="sm" className="w-full mt-4 rounded-full">
+          Voir détails
+        </Button>
       </div>
-    </div>
+    </Link>
   );
 }
