@@ -13,8 +13,10 @@
       "type": "string",
       "enum": [
         "ouvert",
+        "en_selection",
+        "candidat_valide",
+        "bail_signe",
         "en_cours",
-        "verrouille",
         "termine",
         "archive"
       ],
@@ -36,7 +38,7 @@
         "cloture"
       ],
       "default": "candidat",
-      "description": "\u00c9tape courante du cycle locatif"
+      "description": "\u00c9tape courante (legacy, remplac\u00e9e par statut_dossier)"
     },
     "bien_id": {
       "type": "string"
@@ -165,14 +167,13 @@
     },
     "edle_checklist": {
       "type": "object",
-      "description": "EDL entr\u00e9e par pi\u00e8ce: { piece_nom: { etat: neuf|bon|moyen|degrade, commentaire: string, photos: [url] } }"
+      "description": "EDL entr\u00e9e par pi\u00e8ce"
     },
     "edle_pieces": {
       "type": "array",
       "items": {
         "type": "string"
-      },
-      "description": "Liste des pi\u00e8ces inventori\u00e9es"
+      }
     },
     "edle_signe": {
       "type": "boolean",
@@ -194,7 +195,7 @@
     },
     "edls_checklist": {
       "type": "object",
-      "description": "EDL sortie par pi\u00e8ce: m\u00eame structure qu'edle_checklist"
+      "description": "EDL sortie par pi\u00e8ce"
     },
     "edls_pieces": {
       "type": "array",
@@ -259,7 +260,21 @@
       "items": {
         "type": "object"
       },
-      "description": "[{date, action, auteur}]"
+      "description": "[{date, action, auteur, type}] \u2014 journal automatique de toutes les actions"
+    },
+    "incidents": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "description": "[{id, type, gravite, statut, description, date, pieces_jointes, analyse_ia}]"
+    },
+    "notes_internes": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "description": "[{id, contenu, auteur, date, modifie_le, tags}] \u2014 notes agence, non visibles clients"
     }
   },
   "required": [

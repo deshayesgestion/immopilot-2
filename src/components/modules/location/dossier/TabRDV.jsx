@@ -67,6 +67,10 @@ export default function TabRDV({ dossier }) {
       notes: form.notes,
     });
     setVisites(p => [ev, ...p]);
+    // Historiser la création du RDV dans le dossier
+    const histEntry = { date: new Date().toISOString(), action: `RDV planifié : ${TYPE_LABELS[form.type] || "RDV"} le ${new Date(form.date_debut).toLocaleDateString("fr-FR")}`, auteur: currentUser?.full_name || "Agent", type: "rdv" };
+    const hist = [...(dossier.historique || []), histEntry];
+    await base44.entities.DossierLocatif.update(dossier.id, { historique: hist });
     setShowForm(false);
     setSaving(false);
   };

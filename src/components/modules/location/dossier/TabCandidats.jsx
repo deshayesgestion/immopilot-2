@@ -83,7 +83,11 @@ Retourne JSON: { score: number (0-100), solvabilite: number (0-100), risque: "fa
       }
       setScoringAuto(false);
     }
-    onSaved(candidat);
+    // Historiser l'ajout du candidat dans le dossier
+    const histEntry = { date: new Date().toISOString(), action: `Candidat ajouté : ${form.nom} (${form.situation_pro}, ${form.revenus_mensuels || "?"}€/mois)`, auteur: "Agent", type: "candidat" };
+    const hist = [...(dossier.historique || []), histEntry];
+    await base44.entities.DossierLocatif.update(dossier.id, { historique: hist });
+    onSaved({ ...candidat, _histUpdate: hist });
     setSaving(false);
     onClose();
   };
@@ -399,6 +403,8 @@ export default function TabCandidats({ dossier, onDossierUpdate }) {
       if (c.statut === "selectionne") return { ...c, statut: "dossier_complet" };
       return c;
     }));
+    const histEntry = { date: new Date().toISOString(), action: `Candidat sélectionné : ${candidat.nom} (score: ${candidat.scoring_ia || "N/A"}/100)`, auteur: "Agent", type: "selection" };
+    const hist = [...(dossier.historique || []), histEntry];
     await base44.entities.DossierLocatif.update(dossier.id, {
       candidat_selectionne_id: candidat.id,
       locataire_nom: candidat.nom,
@@ -406,8 +412,9 @@ export default function TabCandidats({ dossier, onDossierUpdate }) {
       locataire_telephone: candidat.telephone || "",
       scoring_ia: candidat.scoring_ia,
       statut_dossier: "candidat_valide",
+      historique: hist,
     });
-    onDossierUpdate({ candidat_selectionne_id: candidat.id, locataire_nom: candidat.nom, statut_dossier: "candidat_valide", scoring_ia: candidat.scoring_ia });
+    onDossierUpdate({ candidat_selectionne_id: candidat.id, locataire_nom: candidat.nom, statut_dossier: "candidat_valide", scoring_ia: candidat.scoring_ia, historique: hist });
   };
 
   const handleRefuse = async (candidat) => {
@@ -474,7 +481,11 @@ export default function TabCandidats({ dossier, onDossierUpdate }) {
       {showAdd && (
         <AddCandidatModal dossier={dossier} contacts={contacts}
           onClose={() => setShowAdd(false)}
-          onSaved={c => { setCandidats(prev => [c, ...prev]); setShowAdd(false); }}
+          onSaved={c => {
+        setCandidats(prev => [c, ...prev]);
+        if (c._histUpdate) onDossierUpdate({ historique: c._histUpdate });
+        setShowAdd(false);
+      }}
         />
       )}
     </div>
