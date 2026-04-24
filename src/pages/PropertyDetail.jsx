@@ -170,7 +170,7 @@ export default function PropertyDetail() {
                 </p>
               )}
 
-              <Link to="/contact">
+              <Link to={`/contact?bien_id=${property.id}`}>
                 <Button size="lg" className="w-full rounded-full h-12 text-sm font-medium">
                   Contacter l'agence
                 </Button>

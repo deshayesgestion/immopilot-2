@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,16 +10,27 @@ import { useAgency } from "../hooks/useAgency";
 
 export default function Contact() {
   const { agency } = useAgency();
+  const [searchParams] = useSearchParams();
+  const bien_id = searchParams.get("bien_id");
   const [form, setForm] = useState({ name: "", email: "", phone: "", message: "" });
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
+  const [bienTitre, setBienTitre] = useState("");
+
+  useEffect(() => {
+    if (bien_id) {
+      base44.entities.Bien.get(bien_id).then(b => setBienTitre(b.titre)).catch(() => {});
+    }
+  }, [bien_id]);
 
   const handleChange = (key, value) => setForm((p) => ({ ...p, [key]: value }));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    await base44.entities.ContactMessage.create({ ...form, agency_id: agency?.id || "default" });
+    const data = { ...form, agency_id: agency?.id || "default" };
+    if (bien_id) data.bien_id = bien_id;
+    await base44.entities.ContactMessage.create(data);
     setSent(true);
     setLoading(false);
   };
@@ -71,9 +83,15 @@ export default function Contact() {
                     <Input placeholder="06 12 34 56 78" value={form.phone} onChange={(e) => handleChange("phone", e.target.value)} className="h-11 rounded-xl" />
                   </div>
                 </div>
+                {bienTitre && (
+                  <div className="p-3 rounded-xl bg-accent/30 border border-accent text-sm">
+                    <p className="text-xs font-medium text-muted-foreground mb-1">Bien concerné</p>
+                    <p className="font-medium">{bienTitre}</p>
+                  </div>
+                )}
                 <div>
-                  <label className="text-sm font-medium mb-2 block">Votre message</label>
-                  <Textarea required placeholder="Comment pouvons-nous vous aider ?" value={form.message} onChange={(e) => handleChange("message", e.target.value)} className="rounded-xl min-h-[130px] resize-none" />
+                   <label className="text-sm font-medium mb-2 block">Votre message</label>
+                   <Textarea required placeholder="Comment pouvons-nous vous aider ?" value={form.message} onChange={(e) => handleChange("message", e.target.value)} className="rounded-xl min-h-[130px] resize-none" />
                 </div>
                 <Button type="submit" size="lg" className="w-full rounded-full h-12 text-sm font-medium gap-2" disabled={loading}>
                   {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><span>Envoyer le message</span><ArrowRight className="w-4 h-4" /></>}
