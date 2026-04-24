@@ -58,14 +58,13 @@ export default function HeroSection({
         {/* 3 actions rapides dans le hero */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-6 animate-fade-up" style={{ animationDelay: "0.45s" }}>
           {[
-            { icon: CalendarCheck, label: "Demander une visite", href: "#cta-strip" },
+            { icon: CalendarCheck, label: "Demander une visite", href: "#cta-strip", isAnchor: true },
             { icon: TrendingUp,    label: "Estimer mon bien",    href: "/estimation" },
-            { icon: Phone,         label: "Être rappelé",        href: `tel:${agency?.phone?.replace(/\s/g,"") || "#cta-strip"}` },
+            { icon: Phone,         label: "Être rappelé",        href: `tel:${agency?.phone?.replace(/\s/g,"")}`, isPhone: !!agency?.phone },
           ].map((a, i) => {
             const Icon = a.icon;
-            const isPhone = a.icon === Phone && agency?.phone;
-            const Tag = isPhone ? "a" : Link;
-            const linkProp = isPhone ? { href: a.href } : { to: a.href };
+            const Tag = a.isPhone || a.isAnchor ? "a" : Link;
+            const linkProp = a.isPhone || a.isAnchor ? { href: a.href } : { to: a.href };
             return (
               <Tag key={i} {...linkProp}
                 className="flex items-center gap-2 bg-white/15 hover:bg-white/25 border border-white/30 rounded-full px-4 py-2 text-white text-xs font-medium transition-all backdrop-blur-sm">
