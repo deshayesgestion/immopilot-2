@@ -20,8 +20,7 @@
         "termine",
         "archive"
       ],
-      "default": "ouvert",
-      "description": "Statut global du dossier"
+      "default": "ouvert"
     },
     "etape": {
       "type": "string",
@@ -37,8 +36,7 @@
         "edls",
         "cloture"
       ],
-      "default": "candidat",
-      "description": "\u00c9tape courante (legacy, remplac\u00e9e par statut_dossier)"
+      "default": "candidat"
     },
     "bien_id": {
       "type": "string"
@@ -57,8 +55,7 @@
       "default": 0
     },
     "contact_id": {
-      "type": "string",
-      "description": "ID locataire principal"
+      "type": "string"
     },
     "locataire_nom": {
       "type": "string"
@@ -82,12 +79,10 @@
       "type": "string"
     },
     "candidat_selectionne_id": {
-      "type": "string",
-      "description": "ID CandidatLocataire s\u00e9lectionn\u00e9"
+      "type": "string"
     },
     "docs_obligatoires": {
-      "type": "object",
-      "description": "Checklist documents"
+      "type": "object"
     },
     "scoring_ia": {
       "type": "number",
@@ -167,7 +162,7 @@
     },
     "edle_checklist": {
       "type": "object",
-      "description": "EDL entr\u00e9e par pi\u00e8ce"
+      "description": "EDL entr\u00e9e par pi\u00e8ce: {etat, commentaire, photos, elements}"
     },
     "edle_pieces": {
       "type": "array",
@@ -190,12 +185,16 @@
     "edle_observations": {
       "type": "string"
     },
+    "edle_pdf_url": {
+      "type": "string",
+      "description": "URL PDF archiv\u00e9 EDL entr\u00e9e"
+    },
     "edls_date": {
       "type": "string"
     },
     "edls_checklist": {
       "type": "object",
-      "description": "EDL sortie par pi\u00e8ce"
+      "description": "EDL sortie par pi\u00e8ce: m\u00eame structure"
     },
     "edls_pieces": {
       "type": "array",
@@ -218,12 +217,16 @@
     "edls_observations": {
       "type": "string"
     },
+    "edls_pdf_url": {
+      "type": "string",
+      "description": "URL PDF archiv\u00e9 EDL sortie"
+    },
     "edls_degradations": {
       "type": "array",
       "items": {
         "type": "object"
       },
-      "description": "[{piece, description, montant_estime}]"
+      "description": "[{piece, description, montant_estime, severite, imputable_locataire}]"
     },
     "comparaison_edl": {
       "type": "object",
@@ -260,7 +263,7 @@
       "items": {
         "type": "object"
       },
-      "description": "[{date, action, auteur, type}] \u2014 journal automatique de toutes les actions"
+      "description": "[{date, action, auteur, type}]"
     },
     "incidents": {
       "type": "array",
@@ -274,7 +277,7 @@
       "items": {
         "type": "object"
       },
-      "description": "[{id, contenu, auteur, date, modifie_le, tags}] \u2014 notes agence, non visibles clients"
+      "description": "[{id, contenu, auteur, date, modifie_le, tags}]"
     }
   },
   "required": [
