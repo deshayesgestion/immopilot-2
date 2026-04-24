@@ -65,7 +65,9 @@ export default function LocationQuittances() {
     const now = new Date();
     const mois = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
     const moisLabel = getMoisLabel(mois);
-    const dossierActifs = dossiers.filter(d => d.etape === "vie_bail" && d.bail_statut !== "termine");
+    const dossierActifs = dossiers.filter(d =>
+      (d.etape === "vie_bail" || d.statut_dossier === "bail_signe" || d.statut_dossier === "en_cours") && d.bail_statut !== "termine"
+    );
     let created = 0;
     for (const d of dossierActifs) {
       const exists = quittances.find(q => q.dossier_locatif_id === d.id && q.mois === mois);

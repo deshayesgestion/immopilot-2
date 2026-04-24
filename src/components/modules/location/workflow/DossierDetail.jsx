@@ -11,6 +11,7 @@ import TabInfos from "../dossier/TabInfos";
 import TabTimeline from "../dossier/TabTimeline";
 import TabIncidents from "../dossier/TabIncidents";
 import TabNotes from "../dossier/TabNotes";
+import TabFinances from "../dossier/TabFinances";
 
 const TABS = [
   { id: "candidats", label: "Candidats", emoji: "👤" },
@@ -20,6 +21,7 @@ const TABS = [
   { id: "bail",      label: "Bail",      emoji: "📝" },
   { id: "edle",      label: "EDL Entrée",emoji: "🔑" },
   { id: "edls",      label: "EDL Sortie",emoji: "📦" },
+  { id: "finances",  label: "Finances",  emoji: "💶" },
   { id: "incidents", label: "Incidents", emoji: "⚠️" },
   { id: "notes",     label: "Notes",     emoji: "🔒" },
   { id: "timeline",  label: "Journal",   emoji: "📋" },
@@ -96,6 +98,7 @@ export default function DossierDetail({ dossier: initialDossier, onClose, onUpda
           {tab === "bail"      && <TabBail dossier={d} onSave={handleSubSave} />}
           {tab === "edle"      && <TabEDL dossier={d} type="edle" onSave={handleSubSave} />}
           {tab === "edls"      && <TabEDL dossier={d} type="edls" onSave={handleSubSave} />}
+          {tab === "finances"  && <TabFinances dossier={d} />}
           {tab === "incidents" && <TabIncidents dossier={d} onUpdate={handleSubSave} />}
           {tab === "notes"     && <TabNotes dossier={d} onUpdate={handleSubSave} />}
           {tab === "timeline"  && <TabTimeline dossier={d} onUpdate={handleSubSave} />}
