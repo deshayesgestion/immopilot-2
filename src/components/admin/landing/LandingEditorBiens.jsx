@@ -6,22 +6,53 @@ const TYPE_COLORS = { vente: "bg-blue-100 text-blue-700", location: "bg-emerald-
 
 export default function LandingEditorBiens({ form, set, biens }) {
   const [filter, setFilter] = useState("all");
+  const [showAllAuto, setShowAllAuto] = useState(form.lp_featured_biens_ids === null || form.lp_featured_biens_ids?.length === 0);
 
   const filteredBiens = biens.filter(b => filter === "all" || b.type === filter);
   const selectedIds = form.lp_featured_biens_ids || [];
 
   const toggleBien = (id) => {
+    setShowAllAuto(false);
     const next = selectedIds.includes(id)
       ? selectedIds.filter(i => i !== id)
       : [...selectedIds, id];
     set("lp_featured_biens_ids", next);
   };
 
-  const selectAll = () => set("lp_featured_biens_ids", filteredBiens.map(b => b.id));
-  const clearAll = () => set("lp_featured_biens_ids", []);
+  const toggleAutoAll = (auto) => {
+    setShowAllAuto(auto);
+    set("lp_featured_biens_ids", auto ? null : []);
+  };
+
+  const selectAll = () => {
+    setShowAllAuto(false);
+    set("lp_featured_biens_ids", filteredBiens.map(b => b.id));
+  };
+  const clearAll = () => {
+    setShowAllAuto(false);
+    set("lp_featured_biens_ids", []);
+  };
 
   return (
     <div className="bg-white rounded-2xl border border-border/50 p-5 space-y-4">
+      {/* Option: Afficher tous les biens automatiquement */}
+      <div className="bg-gradient-to-r from-emerald-50 to-emerald-50/40 border border-emerald-200 rounded-xl p-4">
+        <div className="flex items-center gap-3">
+          <input
+            type="checkbox"
+            checked={showAllAuto}
+            onChange={(e) => toggleAutoAll(e.target.checked)}
+            className="w-4 h-4 rounded border-border cursor-pointer"
+          />
+          <div className="flex-1">
+            <p className="text-sm font-semibold text-emerald-900">Afficher tous les biens automatiquement</p>
+            <p className="text-xs text-emerald-700 mt-0.5">Tous les biens disponibles s'afficheront sur la landing page en temps réel</p>
+          </div>
+        </div>
+      </div>
+
+      {!showAllAuto && (
+        <>
       <div className="flex items-start justify-between gap-3">
         <div>
           <h3 className="text-sm font-semibold">Biens en avant sur la landing</h3>
@@ -101,6 +132,8 @@ export default function LandingEditorBiens({ form, set, biens }) {
           ))}
         </div>
       </div>
+        </>
+      )}
     </div>
   );
 }
