@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertTriangle, ArrowRight, Loader2, TrendingUp, Home, Ruler, CheckCircle } from "lucide-react";
 import AnimatedSection from "../components/AnimatedSection";
+import AddressInput from "../components/AddressInput";
 import { Link } from "react-router-dom";
 import { useAgency } from "../hooks/useAgency";
 
@@ -90,7 +91,7 @@ Donne une fourchette réaliste basée sur le marché français actuel.`,
             <form onSubmit={handleSubmit} className="bg-white rounded-2xl border border-border/50 shadow-sm p-8 space-y-5">
               <div>
                 <label className="text-sm font-medium mb-2 block">Adresse du bien</label>
-                <Input required placeholder="12 rue de la Paix, 75002 Paris" value={form.address} onChange={(e) => handleChange("address", e.target.value)} className="h-11 rounded-xl" />
+                <AddressInput required placeholder="12 rue de la Paix, 75002 Paris" value={form.address} onChange={(value) => handleChange("address", value)} />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
