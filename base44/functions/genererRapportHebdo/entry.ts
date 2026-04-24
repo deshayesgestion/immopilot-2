@@ -242,45 +242,79 @@ Deno.serve(async (req) => {
         pdf.text(`${agency?.name || "Agence"}`, 160, y, { align: "right" });
 
         // ────────────────────────────────────────────────────────────
-        // 7. ENVOYER EMAIL + PDF
+        // 7. UPLOADER PDF ET ENVOYER EMAIL
         // ────────────────────────────────────────────────────────────
         const pdfBlob = pdf.output("blob");
-        const pdfBase64 = pdf.output("dataurlstring");
+        const pdfFile = new File([pdfBlob], `rapport-hebdo-${semaineLundi}.pdf`, { type: "application/pdf" });
 
-        const resumeEmail = `
-Bonjour ${user.full_name || user.email},
+        // Uploader le PDF
+        let pdfUrl = null;
+        try {
+          const uploadResult = await base44.asServiceRole.integrations.Core.UploadFile({ file: pdfFile });
+          pdfUrl = uploadResult.file_url;
+        } catch (uploadError) {
+          console.warn("⚠️ Erreur upload PDF:", uploadError.message);
+        }
 
-Voici votre rapport hebdomadaire pour la semaine du ${semaineLundi} au ${semaineFinale}.
+        const resumeEmailHtml = `
+<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #f5f5f5; padding: 20px; border-radius: 8px;">
+  <div style="background: ${agency?.primary_color || "#4F46E5"}; color: white; padding: 20px; border-radius: 8px 8px 0 0; text-align: center;">
+    <h1 style="margin: 0; font-size: 18px;">${agency?.name || "Rapport Hebdomadaire"}</h1>
+    <p style="margin: 8px 0 0 0; font-size: 12px; opacity: 0.9;">Semaine du ${semaineLundi} au ${semaineFinale}</p>
+  </div>
 
-📍 RÉSUMÉ LOCATION
-${resumeLocation}
+  <div style="background: white; padding: 20px; border-radius: 0 0 8px 8px;">
+    <p style="margin-top: 0;">Bonjour <strong>${user.full_name || user.email}</strong>,</p>
 
-📍 RÉSUMÉ VENTE
-${resumeVente}
+    <h3 style="color: ${agency?.primary_color || "#4F46E5"}; margin-top: 20px; margin-bottom: 10px;">📍 ACTIVITÉ LOCATION</h3>
+    <ul style="margin: 0; padding-left: 20px; line-height: 1.8;">
+      <li>Dossiers créés: <strong>${dossiersCrees}</strong></li>
+      <li>Dossiers modifiés: <strong>${dossiersModifies}</strong></li>
+      <li>Dossiers clôturés: <strong>${dossiersClotures}</strong></li>
+    </ul>
 
-📍 PRODUCTIVITÉ
-• Tâches complétées: ${tachesCompletees}
-• Interactions clients: ${activitesClients}
+    <h3 style="color: ${agency?.primary_color || "#4F46E5"}; margin-top: 20px; margin-bottom: 10px;">📍 ACTIVITÉ VENTE</h3>
+    <ul style="margin: 0; padding-left: 20px; line-height: 1.8;">
+      <li>Transactions en cours: <strong>${transactionsAvancees}</strong></li>
+      <li>Offres reçues: <strong>${offres}</strong></li>
+      <li>Ventes finalisées: <strong>${vendus}</strong></li>
+    </ul>
 
-Veuillez trouver le rapport détaillé en pièce jointe.
+    <h3 style="color: ${agency?.primary_color || "#4F46E5"}; margin-top: 20px; margin-bottom: 10px;">📍 PRODUCTIVITÉ</h3>
+    <ul style="margin: 0; padding-left: 20px; line-height: 1.8;">
+      <li>Tâches complétées: <strong>${tachesCompletees}</strong></li>
+      <li>Interactions clients: <strong>${activitesClients}</strong></li>
+    </ul>
 
-Cordialement,
-${agency?.name || "L'agence"}
-${agency?.email || ""}
-${agency?.phone || ""}
+    ${pdfUrl ? `
+      <div style="margin-top: 30px; text-align: center;">
+        <a href="${pdfUrl}" style="background: ${agency?.primary_color || "#4F46E5"}; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: bold;">
+          📄 Télécharger le rapport détaillé
+        </a>
+      </div>
+    ` : ''}
+
+    <p style="margin-top: 30px; margin-bottom: 0; color: #666; font-size: 12px;">
+      Cordialement,<br>
+      <strong>${agency?.name || "L'agence"}</strong><br>
+      ${agency?.email || ""} | ${agency?.phone || ""}
+    </p>
+  </div>
+</div>
         `.trim();
 
         try {
           await base44.asServiceRole.integrations.Core.SendEmail({
             to: user.email,
             subject: `📊 Votre rapport hebdomadaire — ${agency?.name || "Agence"}`,
-            body: resumeEmail,
+            body: resumeEmailHtml,
           });
 
           // Mettre à jour le rapport comme envoyé
           await base44.asServiceRole.entities.RapportHebdo.update(rapportRecord.id, {
             statut: "envoye",
             date_envoi: new Date().toISOString(),
+            pdf_url: pdfUrl,
             nb_dossiers_crees: dossiersCrees,
             nb_dossiers_modifies: dossiersModifies,
             nb_dossiers_clotures: dossiersClotures,
