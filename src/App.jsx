@@ -12,14 +12,12 @@ import PropertiesSale from './pages/PropertiesSale';
 import PropertiesRent from './pages/PropertiesRent';
 import Estimation from './pages/Estimation';
 import Contact from './pages/Contact';
-
 import PropertyDetail from './pages/PropertyDetail';
 import AdminLayout from './components/admin/AdminLayout';
 import Dashboard from './pages/admin/Dashboard';
 
 import AdminSettings from './pages/admin/AdminSettings';
 import AdminUsers from './pages/admin/AdminUsers';
-import AdminSuiviDetail from './pages/admin/AdminSuiviDetail';
 import AccueilIA from './pages/admin/AccueilIA';
 import GestionEmails from './pages/admin/GestionEmails';
 import AdminImport from './pages/admin/AdminImport';
@@ -100,7 +98,6 @@ const AuthenticatedApp = () => {
 
 
         <Route path="/admin/utilisateurs" element={<AdminUsers />} />
-        <Route path="/admin/suivi/:id" element={<AdminSuiviDetail />} />
         <Route path="/admin/parametres" element={<AdminSettings />} />
         {/* Legacy redirects → nouvelles routes */}
         <Route path="/admin/location" element={<Navigate to="/admin/modules/location" replace />} />
