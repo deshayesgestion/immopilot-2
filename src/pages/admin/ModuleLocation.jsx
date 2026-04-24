@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import {
   KeySquare, Home, Users, Euro, Search, Loader2,
-  AlertCircle, FolderOpen, Activity, Shield, FileText, GitCompare
+  AlertCircle, FolderOpen, Activity, Shield, FileText
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import BiensList from "@/components/shared/BiensList";
@@ -12,12 +12,10 @@ import LocationWorkflow from "@/components/modules/location/LocationWorkflow";
 import LocationQuittances from "@/components/modules/location/LocationQuittances";
 import LocationDepotGarantie from "@/components/modules/location/LocationDepotGarantie";
 import LocationTempsReel from "@/components/modules/location/LocationTempsReel";
-import PipelineSelection from "@/components/modules/location/PipelineSelection";
 
 const TABS = [
-  { id: "temps_reel", label: "Tableau de bord",    icon: Activity,    group: "Vue d'ensemble" },
-  { id: "pipeline",   label: "Pipeline Candidats",  icon: GitCompare,  group: "Sélection" },
-  { id: "workflow",   label: "Dossiers & Cycle",   icon: FolderOpen,  group: "Sélection" },
+  { id: "temps_reel", label: "Tableau de bord",  icon: Activity,   group: "Vue d'ensemble" },
+  { id: "workflow",   label: "Dossiers & Cycle", icon: FolderOpen, group: "Sélection" },
   { id: "quittances", label: "Quittances",          icon: FileText,    group: "Gestion" },
   { id: "depot",      label: "Dépôts de garantie", icon: Shield,      group: "Gestion" },
   { id: "biens",      label: "Biens",               icon: Home,        group: "Référentiel" },
@@ -139,7 +137,6 @@ export default function ModuleLocation() {
       ) : (
         <>
           {tab === "temps_reel"  && <LocationTempsReel />}
-          {tab === "pipeline"    && <PipelineSelection biens={biens} contacts={contacts} />}
           {tab === "workflow"    && <LocationWorkflow biens={biens} contacts={contacts} />}
           {tab === "quittances"  && <LocationQuittances />}
           {tab === "depot"       && <LocationDepotGarantie />}

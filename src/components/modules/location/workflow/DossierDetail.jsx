@@ -5,11 +5,12 @@ import { Input } from "@/components/ui/input";
 import { Link } from "react-router-dom";
 import {
   X, Loader2, CheckCircle2, ChevronRight, ArrowRight, Sparkles,
-  CalendarPlus, Calendar, MapPin, Download, ExternalLink, Star,
-  Users, FileText, AlertTriangle
+  CalendarPlus, Calendar, MapPin, Download, ExternalLink,
+  FileText, AlertTriangle
 } from "lucide-react";
 import StepEDL from "./StepEDL";
 import StepCloture from "./StepCloture";
+import StepCandidats from "./StepCandidats";
 
 const ETAPES = [
   { id: "candidat",   label: "Candidat",      emoji: "👤", color: "bg-slate-500" },
@@ -156,34 +157,6 @@ function PlanifierSection({ dossier, onRefresh }) {
   );
 }
 
-function CandidatsMini({ dossier }) {
-  const [candidats, setCandidats] = useState([]);
-  useEffect(() => {
-    base44.entities.CandidatLocataire.filter({ bien_id: dossier.bien_id }).then(setCandidats);
-  }, [dossier.bien_id]);
-
-  if (!candidats.length) return null;
-  const actifs = candidats.filter(c => c.statut !== "refuse");
-  return (
-    <div className="bg-slate-50 border border-slate-200 rounded-2xl p-3 space-y-2">
-      <p className="text-xs font-semibold flex items-center gap-1.5"><Users className="w-3.5 h-3.5" /> Candidats ({actifs.length})</p>
-      <div className="flex gap-2 flex-wrap">
-        {actifs.map(c => (
-          <div key={c.id} className={`text-[10px] px-2 py-1 rounded-full font-medium flex items-center gap-1 ${
-            c.statut === "selectionne" ? "bg-green-100 text-green-700" :
-            c.statut === "converti" ? "bg-emerald-100 text-emerald-700" :
-            "bg-slate-100 text-slate-600"
-          }`}>
-            {c.statut === "selectionne" && <Star className="w-2.5 h-2.5" />}
-            {c.nom}
-            {c.scoring_ia > 0 && <span className="ml-1 opacity-70">· {c.scoring_ia}/100</span>}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 export default function DossierDetail({ dossier: initialDossier, onClose, onUpdate }) {
   const [d, setD] = useState(initialDossier);
   const [saving, setSaving] = useState(false);
@@ -299,11 +272,17 @@ Retourne JSON: { score: number (0-100), commentaire: string (max 180 chars), rec
         </div>
 
         <div className="p-5 space-y-5">
-          {/* Candidats mini */}
-          <CandidatsMini dossier={d} />
+          {/* ETAPE: Candidats (1ère étape — pipeline intégré) */}
+          {d.etape === "candidat" && (
+            <StepCandidats
+              dossier={d}
+              contacts={[]}
+              onDossierUpdate={handleSubSave}
+            />
+          )}
 
-          {/* RDV Visites */}
-          <PlanifierSection dossier={d} />
+          {/* RDV Visites (toutes étapes sauf candidat) */}
+          {d.etape !== "candidat" && <PlanifierSection dossier={d} />}
 
           {/* Infos générales */}
           <div className="grid grid-cols-2 gap-2">
