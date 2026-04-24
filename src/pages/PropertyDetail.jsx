@@ -14,15 +14,17 @@ export default function PropertyDetail() {
 
   useEffect(() => {
     const load = async () => {
-      const data = await base44.entities.Property.filter({ id }, null, 1);
-      if (data.length > 0) setProperty(data[0]);
+      const data = await base44.entities.Bien.get(id);
+      setProperty(data);
       setLoading(false);
     };
     load();
   }, [id]);
 
-  const formatPrice = (price) =>
-    new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(price);
+  const formatPrice = (price) => {
+    if (!price || isNaN(price)) return "—";
+    return new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(price);
+  };
 
   const typeLabels = { maison: "Maison", appartement: "Appartement", terrain: "Terrain", local_commercial: "Local commercial", bureau: "Bureau" };
   const conditionLabels = { neuf: "Neuf", renove: "Rénové", bon_etat: "Bon état", a_renover: "À rénover" };
@@ -55,7 +57,7 @@ export default function PropertyDetail() {
       <div className="max-w-6xl mx-auto px-6">
         <AnimatedSection>
           <div className="flex items-center gap-3 mb-6 pt-4">
-            <Link to={property.transaction === "location" ? "/location" : "/vente"}>
+            <Link to={property.type === "location" ? "/location" : "/vente"}>
               <Button variant="ghost" size="sm" className="rounded-full gap-2 text-muted-foreground">
                 <ArrowLeft className="w-4 h-4" /> Retour
               </Button>
@@ -79,61 +81,58 @@ export default function PropertyDetail() {
                   {typeLabels[property.type] || property.type}
                 </span>
                 <span className="px-3 py-1 bg-secondary rounded-full text-xs font-medium">
-                  {property.transaction === "location" ? "Location" : "Vente"}
+                  {property.type === "location" ? "Location" : "Vente"}
                 </span>
               </div>
-              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{property.title}</h1>
+              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{property.titre || property.title || "Sans titre"}</h1>
               <div className="flex items-center gap-1.5 mt-2 text-muted-foreground">
                 <MapPin className="w-4 h-4" />
-                <span>{property.address || property.city}{property.postal_code ? ` (${property.postal_code})` : ""}</span>
+                <span>{property.adresse || property.address || property.city || ""}</span>
               </div>
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               <div className="bg-secondary/50 rounded-xl p-4 text-center">
                 <Maximize className="w-5 h-5 text-primary mx-auto mb-1" />
-                <p className="text-lg font-bold">{property.surface} m²</p>
+                <p className="text-lg font-bold">{property.surface || "—"} m²</p>
                 <p className="text-xs text-muted-foreground">Surface</p>
               </div>
               <div className="bg-secondary/50 rounded-xl p-4 text-center">
                 <BedDouble className="w-5 h-5 text-primary mx-auto mb-1" />
-                <p className="text-lg font-bold">{property.rooms}</p>
+                <p className="text-lg font-bold">{property.nb_pieces || property.rooms || "—"}</p>
                 <p className="text-xs text-muted-foreground">Pièces</p>
               </div>
               <div className="bg-secondary/50 rounded-xl p-4 text-center">
                 <Home className="w-5 h-5 text-primary mx-auto mb-1" />
-                <p className="text-lg font-bold">{conditionLabels[property.condition] || "—"}</p>
-                <p className="text-xs text-muted-foreground">État</p>
+                <p className="text-lg font-bold">{property.dpe || "—"}</p>
+                <p className="text-xs text-muted-foreground">DPE</p>
               </div>
-              {property.year_built && (
-                <div className="bg-secondary/50 rounded-xl p-4 text-center">
-                  <Calendar className="w-5 h-5 text-primary mx-auto mb-1" />
-                  <p className="text-lg font-bold">{property.year_built}</p>
-                  <p className="text-xs text-muted-foreground">Construction</p>
-                </div>
-              )}
             </div>
 
             {property.description && (
-              <div>
-                <h2 className="text-lg font-semibold mb-3">Description</h2>
-                <p className="text-muted-foreground leading-relaxed whitespace-pre-line">{property.description}</p>
-              </div>
-            )}
+               <div>
+                 <h2 className="text-lg font-semibold mb-3">Description</h2>
+                 <p className="text-muted-foreground leading-relaxed whitespace-pre-line">{property.description || property.titre || ""}</p>
+               </div>
+             )}
 
-            {property.features?.length > 0 && (
-              <div>
-                <h2 className="text-lg font-semibold mb-3">Caractéristiques</h2>
-                <div className="flex flex-wrap gap-2">
-                  {property.features.map((f, i) => (
-                    <span key={i} className="flex items-center gap-1.5 px-3 py-1.5 bg-secondary/50 rounded-full text-sm">
-                      <CheckCircle className="w-3.5 h-3.5 text-primary" />
-                      {f}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
+            {(property.features?.length > 0 || property.balcon || property.terrasse || property.jardin || property.garage) && (
+               <div>
+                 <h2 className="text-lg font-semibold mb-3">Caractéristiques</h2>
+                 <div className="flex flex-wrap gap-2">
+                   {property.features?.map((f, i) => (
+                     <span key={i} className="flex items-center gap-1.5 px-3 py-1.5 bg-secondary/50 rounded-full text-sm">
+                       <CheckCircle className="w-3.5 h-3.5 text-primary" />
+                       {f}
+                     </span>
+                   ))}
+                   {property.balcon && <span className="flex items-center gap-1.5 px-3 py-1.5 bg-secondary/50 rounded-full text-sm"><CheckCircle className="w-3.5 h-3.5 text-primary" /> Balcon</span>}
+                   {property.terrasse && <span className="flex items-center gap-1.5 px-3 py-1.5 bg-secondary/50 rounded-full text-sm"><CheckCircle className="w-3.5 h-3.5 text-primary" /> Terrasse</span>}
+                   {property.jardin && <span className="flex items-center gap-1.5 px-3 py-1.5 bg-secondary/50 rounded-full text-sm"><CheckCircle className="w-3.5 h-3.5 text-primary" /> Jardin</span>}
+                   {property.garage && <span className="flex items-center gap-1.5 px-3 py-1.5 bg-secondary/50 rounded-full text-sm"><CheckCircle className="w-3.5 h-3.5 text-primary" /> Garage</span>}
+                 </div>
+               </div>
+             )}
 
             <div>
               <h2 className="text-lg font-semibold mb-3">Localisation</h2>
@@ -146,15 +145,15 @@ export default function PropertyDetail() {
               <div>
                 <p className="text-sm text-muted-foreground">Prix</p>
                 <p className="text-3xl font-bold text-primary">
-                  {formatPrice(property.price)}
-                  {property.transaction === "location" && <span className="text-base font-normal text-muted-foreground">/mois</span>}
-                </p>
-                {property.transaction === "location" && property.monthly_charges && (
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Charges : {formatPrice(property.monthly_charges)}/mois
-                    {property.charges_included ? " (incluses)" : " (en sus)"}
-                  </p>
-                )}
+                   {formatPrice(property.price)}
+                   {property.type === "location" && <span className="text-base font-normal text-muted-foreground">/mois</span>}
+                 </p>
+                {property.type === "location" && property.monthly_charges && (
+                   <p className="text-sm text-muted-foreground mt-1">
+                     Charges : {formatPrice(property.monthly_charges)}/mois
+                     {property.charges_included ? " (incluses)" : " (en sus)"}
+                   </p>
+                 )}
               </div>
 
               {property.available_date && (
