@@ -12,6 +12,7 @@ export default function Estimation() {
   const { agency } = useAgency();
   const [form, setForm] = useState({ address: "", property_type: "", surface: "", rooms: "", condition: "", year_built: "" });
   const [result, setResult] = useState(null);
+  const [estimationId, setEstimationId] = useState(null);
   const [loading, setLoading] = useState(false);
 
   const handleChange = (key, value) => setForm((p) => ({ ...p, [key]: value }));
@@ -37,7 +38,7 @@ Donne une fourchette réaliste basée sur le marché français actuel.`,
       },
     });
 
-    await base44.entities.Estimation.create({
+    const estimation = await base44.entities.Estimation.create({
       address: form.address,
       property_type: form.property_type,
       surface: Number(form.surface),
@@ -50,6 +51,7 @@ Donne une fourchette réaliste basée sur le marché français actuel.`,
     });
 
     setResult(response);
+    setEstimationId(estimation.id);
     setLoading(false);
   };
 
@@ -179,12 +181,12 @@ Donne une fourchette réaliste basée sur le marché français actuel.`,
               )}
 
               <div className="flex flex-col sm:flex-row gap-3">
-                <Link to="/contact" className="flex-1">
-                  <Button size="lg" className="w-full rounded-full h-12 text-sm font-medium gap-2">
-                    Être contacté par l'agence
-                    <ArrowRight className="w-4 h-4" />
-                  </Button>
-                </Link>
+                <Link to={`/contact?estimation_id=${estimationId}`} className="flex-1">
+                    <Button size="lg" className="w-full rounded-full h-12 text-sm font-medium gap-2">
+                      Être contacté par l'agence
+                      <ArrowRight className="w-4 h-4" />
+                    </Button>
+                  </Link>
                 <Button variant="outline" size="lg" className="rounded-full h-12 text-sm font-medium"
                   onClick={() => { setResult(null); setForm({ address: "", property_type: "", surface: "", rooms: "", condition: "", year_built: "" }); }}>
                   Nouvelle estimation

@@ -12,16 +12,21 @@ export default function Contact() {
   const { agency } = useAgency();
   const [searchParams] = useSearchParams();
   const bien_id = searchParams.get("bien_id");
+  const estimation_id = searchParams.get("estimation_id");
   const [form, setForm] = useState({ name: "", email: "", phone: "", message: "" });
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
   const [bienTitre, setBienTitre] = useState("");
+  const [estimation, setEstimation] = useState(null);
 
   useEffect(() => {
     if (bien_id) {
       base44.entities.Bien.get(bien_id).then(b => setBienTitre(b.titre)).catch(() => {});
     }
-  }, [bien_id]);
+    if (estimation_id) {
+      base44.entities.Estimation.get(estimation_id).then(e => setEstimation(e)).catch(() => {});
+    }
+  }, [bien_id, estimation_id]);
 
   const handleChange = (key, value) => setForm((p) => ({ ...p, [key]: value }));
 
@@ -30,6 +35,7 @@ export default function Contact() {
     setLoading(true);
     const data = { ...form, agency_id: agency?.id || "default" };
     if (bien_id) data.bien_id = bien_id;
+    if (estimation_id) data.estimation_id = estimation_id;
     await base44.entities.ContactMessage.create(data);
     setSent(true);
     setLoading(false);
@@ -87,6 +93,29 @@ export default function Contact() {
                   <div className="p-3 rounded-xl bg-accent/30 border border-accent text-sm">
                     <p className="text-xs font-medium text-muted-foreground mb-1">Bien concerné</p>
                     <p className="font-medium">{bienTitre}</p>
+                  </div>
+                )}
+                {estimation && (
+                  <div className="p-3 rounded-xl bg-blue-50 border border-blue-200 text-sm space-y-2">
+                    <p className="text-xs font-medium text-muted-foreground">Estimation soumise</p>
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      <div>
+                        <p className="text-muted-foreground">Adresse</p>
+                        <p className="font-medium">{estimation.address}</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground">Type</p>
+                        <p className="font-medium">{estimation.property_type}</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground">Surface</p>
+                        <p className="font-medium">{estimation.surface} m²</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground">Estimation</p>
+                        <p className="font-medium">{Math.round(estimation.estimated_min / 1000)}k - {Math.round(estimation.estimated_max / 1000)}k €</p>
+                      </div>
+                    </div>
                   </div>
                 )}
                 <div>
