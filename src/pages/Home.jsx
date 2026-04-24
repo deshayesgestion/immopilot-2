@@ -24,10 +24,12 @@ export default function Home() {
       // Afficher tous les biens disponibles (automatique)
       const typeFilter = agency.lp_featured_filter;
       const filter = typeFilter && typeFilter !== "all" ? { statut: "disponible", type: typeFilter } : { statut: "disponible" };
-      base44.entities.Bien.filter(filter, "-created_date", 6).then(setFeaturedBiens);
+      base44.entities.Bien.filter(filter, "-created_date", 6).then(setFeaturedBiens).catch(() => setFeaturedBiens([]));
     } else if (Array.isArray(ids) && ids.length > 0) {
-      // Charger les biens sélectionnés manuellement
-      Promise.all(ids.slice(0, 6).map(id => base44.entities.Bien.get(id))).then(results => {
+      // Charger les biens sélectionnés manuellement avec gestion d'erreur
+      Promise.all(
+        ids.slice(0, 6).map(id => base44.entities.Bien.get(id).catch(() => null))
+      ).then(results => {
         setFeaturedBiens(results.filter(Boolean));
       });
     }
