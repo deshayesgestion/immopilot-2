@@ -15,7 +15,7 @@ export default function PropertiesSale() {
   useEffect(() => {
     const load = async () => {
       setLoading(true);
-      const data = await base44.entities.Property.filter({ transaction: "vente", status: "disponible" }, "-created_date", 50);
+      const data = await base44.entities.Bien.filter({ type: "vente", statut: "disponible" }, "-created_date", 50);
       setProperties(data);
       setLoading(false);
     };

@@ -15,7 +15,7 @@ export default function PropertiesRent() {
   useEffect(() => {
     const load = async () => {
       setLoading(true);
-      const data = await base44.entities.Property.filter({ transaction: "location", status: "disponible" }, "-created_date", 50);
+      const data = await base44.entities.Bien.filter({ type: "location", statut: "disponible" }, "-created_date", 50);
       setProperties(data);
       setLoading(false);
     };
