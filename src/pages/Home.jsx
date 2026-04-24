@@ -22,8 +22,8 @@ export default function Home() {
     const ids = agency.lp_featured_biens_ids;
     if (ids && ids.length > 0) {
       // Charger les biens sélectionnés manuellement
-      Promise.all(ids.slice(0, 6).map(id => base44.entities.Bien.filter({ id }))).then(results => {
-        setFeaturedBiens(results.flat().filter(Boolean));
+      Promise.all(ids.slice(0, 6).map(id => base44.entities.Bien.get(id))).then(results => {
+        setFeaturedBiens(results.filter(Boolean));
       });
     } else {
       // Fallback : biens disponibles
