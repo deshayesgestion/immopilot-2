@@ -6,19 +6,10 @@
  */
 
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
+import crypto from 'node:crypto';
 
 Deno.serve(async (req) => {
   try {
-    // ── VALIDATION SECRETS (obligatoire au démarrage) ──
-    const ADMIN_SECRET = Deno.env.get('ADMIN_SECRET');
-    if (!ADMIN_SECRET || ADMIN_SECRET.trim() === '') {
-      console.error('🚨 ERREUR: Variable ADMIN_SECRET manquante!');
-      return Response.json(
-        { error: 'Configuration serveur invalide' },
-        { status: 500 }
-      );
-    }
-
     if (req.method !== 'POST') {
       return Response.json({ error: 'Method not allowed' }, { status: 405 });
     }
@@ -42,9 +33,7 @@ Deno.serve(async (req) => {
     }
 
     // Générer code et tenant_id uniques
-    const code = 'PAIR-' + crypto.getRandomValues(new Uint8Array(8))
-      .reduce((acc, byte) => acc + byte.toString(16).padStart(2, '0'), '')
-      .toUpperCase();
+    const code = 'PAIR-' + crypto.randomBytes(8).toString('hex').toUpperCase();
     const tenantId = crypto.randomUUID();
     const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(); // 7 jours
 
