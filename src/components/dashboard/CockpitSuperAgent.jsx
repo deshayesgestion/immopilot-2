@@ -122,8 +122,8 @@ Format JSON strict.`,
             <Bot className="w-4 h-4 text-primary" />
           </div>
           <div>
-            <p className="text-sm font-bold">Super Agent IA — Rounded</p>
-            <p className="text-[11px] text-muted-foreground">Analyse globale SaaS · Détection problèmes · Priorisation</p>
+            <p className="text-sm font-bold">🤖 Super Agent IA</p>
+            <p className="text-[11px] text-muted-foreground">Cerveau SaaS · Analyse métier · Alertes · Recommandations</p>
           </div>
         </div>
         <Button
@@ -155,7 +155,7 @@ Format JSON strict.`,
       {loading && (
         <div className="text-center py-10 space-y-3">
           <Loader2 className="w-10 h-10 text-primary/30 mx-auto animate-spin" />
-          <p className="text-xs text-muted-foreground animate-pulse">Rounded IA analyse l'intégralité de votre SaaS…</p>
+          <p className="text-xs text-muted-foreground animate-pulse">Super Agent IA analyse l'intégralité de votre SaaS…</p>
           <div className="flex justify-center gap-1">
             {["Location","Vente","Compta","Biens","IA","Alertes"].map((m, i) => (
               <span key={m} className="text-[10px] px-1.5 py-0.5 bg-primary/10 text-primary rounded animate-pulse" style={{ animationDelay: `${i * 0.15}s` }}>{m}</span>

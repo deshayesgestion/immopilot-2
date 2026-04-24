@@ -11,6 +11,7 @@ import CockpitInsightsIA from "./CockpitInsightsIA";
 import CockpitActionsRapides from "./CockpitActionsRapides";
 import CockpitPeriodFilter, { filterByPeriod } from "./CockpitPeriodFilter";
 import CockpitSuperAgent from "./CockpitSuperAgent";
+import CockpitRounded from "./CockpitRounded";
 
 function computeStats(
   biens, leads, contacts, transactions, paiements, tickets, dossiers,
@@ -216,11 +217,27 @@ export default function DashboardAdmin({ agency }) {
       {/* Actions rapides */}
       {!loading && data && <CockpitActionsRapides data={data} onRefresh={load} />}
 
-      {/* IA Actionnelle */}
-      {!loading && data && <CockpitInsightsIA data={data} />}
+      {/* ── SÉPARATION CLAIRE : IA MÉTIER vs COMMUNICATION ── */}
+      {!loading && data && (
+        <div className="space-y-1">
+          <div className="flex items-center gap-2 px-1">
+            <div className="h-px flex-1 bg-border/40" />
+            <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest px-2">Intelligence & Communication</span>
+            <div className="h-px flex-1 bg-border/40" />
+          </div>
+        </div>
+      )}
 
-      {/* Super Agent IA */}
-      {!loading && data && <CockpitSuperAgent data={data} />}
+      {/* 🤖 Super Agent IA (cerveau métier SaaS) + 📞 Rounded (communication) */}
+      {!loading && data && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <CockpitSuperAgent data={data} />
+          <CockpitRounded tickets={data.tickets} />
+        </div>
+      )}
+
+      {/* IA Actionnelle (insights rapides) */}
+      {!loading && data && <CockpitInsightsIA data={data} />}
 
       {/* Alertes + Activité */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
