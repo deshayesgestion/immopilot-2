@@ -1,72 +1,90 @@
 import { Link, useLocation } from "react-router-dom";
 import {
   LayoutDashboard, Building2, FolderOpen, Calculator,
-  Settings, Users, Bot, Bell, Upload, Shield,
+  Settings, Users, Bot, Upload, Shield,
   MessageSquare, ListTodo, CalendarDays, ExternalLink,
-  ChevronDown, TrendingUp, KeySquare, Mail, Zap, BarChart3, Cpu, PenTool,
+  ChevronDown, TrendingUp, KeySquare, Mail, BarChart3, Cpu, PenTool,
+  LogOut,
 } from "lucide-react";
 import { useState } from "react";
+import { useUser } from "@/lib/UserContext";
+import RoleBadge from "./RoleBadge";
+import { base44 } from "@/api/base44Client";
 
-/**
- * Sidebar simplifiée — 6 sections claires
- *
- *  Dashboard
- *  Agenda / Tâches
- *  ── OPÉRATIONS ──
- *  Biens
- *  Dossiers
- *  Comptabilité
- *  Communications
- *  ── IA ──
- *  Accueil IA (Tickets · Relances · Emails · Rounded)
- *  ── ADMINISTRATION ──
- *  Utilisateurs
- *  Paramètres agence
- *  Import · Sécurité
- */
-
-const NAV = [
-  // ── Core ──
+// NAV definition avec required permissions (module + action minimum)
+// Si pas de `requires`, toujours visible pour les rôles internes
+const NAV_DEF = [
   { label: "Dashboard",      path: "/admin",            icon: LayoutDashboard },
-  { label: "Agenda",         path: "/admin/agenda",     icon: CalendarDays },
-  { label: "Tâches",         path: "/admin/taches",     icon: ListTodo },
+  { label: "Agenda",         path: "/admin/agenda",     icon: CalendarDays,   requires: { module: "agenda" } },
+  { label: "Tâches",         path: "/admin/taches",     icon: ListTodo,       requires: { module: "taches" } },
 
-  // ── Opérations ──
   { type: "section", label: "Opérations" },
-  { label: "Biens",          path: "/admin/modules/biens",        icon: Building2 },
+  { label: "Biens",          path: "/admin/modules/biens",        icon: Building2,    requires: { module: "biens" } },
   {
     label: "Dossiers",
     icon: FolderOpen,
     children: [
-      { label: "Tous les dossiers", path: "/admin/dossiers",              icon: FolderOpen },
-      { label: "Location",          path: "/admin/modules/location",      icon: KeySquare },
-      { label: "Vente",             path: "/admin/modules/vente",         icon: TrendingUp },
+      { label: "Tous les dossiers", path: "/admin/dossiers",           icon: FolderOpen,  requires: { module: "location" } },
+      { label: "Location",          path: "/admin/modules/location",   icon: KeySquare,   requires: { module: "location" } },
+      { label: "Vente",             path: "/admin/modules/vente",      icon: TrendingUp,  requires: { module: "vente" } },
     ],
   },
-  { label: "Comptabilité",   path: "/admin/modules/comptabilite", icon: Calculator },
-  { label: "Communications", path: "/admin/communications",       icon: MessageSquare },
-  { label: "Signatures",     path: "/admin/signatures",           icon: PenTool },
+  { label: "Comptabilité",    path: "/admin/modules/comptabilite", icon: Calculator,   requires: { module: "comptabilite" } },
+  { label: "Communications",  path: "/admin/communications",       icon: MessageSquare, requires: { module: "communications" } },
+  { label: "Signatures",      path: "/admin/signatures",           icon: PenTool,      requires: { module: "signatures" } },
 
-  // ── IA ──
   { type: "section", label: "Intelligence IA" },
-  { label: "Accueil IA",    path: "/admin/parametres/accueil-ia", icon: Bot },
-  { label: "Emails IA",     path: "/admin/parametres/emails",     icon: Mail },
-  { label: "BI & Prédictions", path: "/admin/bi",                 icon: BarChart3 },
-  { label: "Agents IA",       path: "/admin/agents",             icon: Cpu },
+  { label: "Accueil IA",       path: "/admin/parametres/accueil-ia", icon: Bot,      requires: { module: "ia" } },
+  { label: "Emails IA",        path: "/admin/parametres/emails",     icon: Mail,     requires: { module: "ia" } },
+  { label: "BI & Prédictions", path: "/admin/bi",                    icon: BarChart3,requires: { module: "bi" } },
+  { label: "Agents IA",        path: "/admin/agents",                icon: Cpu,      requires: { module: "agents" } },
 
-  // ── Admin ──
   { type: "section", label: "Administration" },
   {
     label: "Paramètres",
     icon: Settings,
+    requires: { module: "parametres" },
     children: [
-      { label: "Agence",           path: "/admin/parametres",   icon: Settings },
-      { label: "Utilisateurs",     path: "/admin/utilisateurs", icon: Users },
-      { label: "Import données",   path: "/admin/import",       icon: Upload },
-      { label: "Sécurité & Logs",  path: "/admin/securite",     icon: Shield },
+      { label: "Agence",          path: "/admin/parametres",   icon: Settings,  requires: { module: "parametres" } },
+      { label: "Utilisateurs",    path: "/admin/utilisateurs", icon: Users,     requires: { module: "utilisateurs" } },
+      { label: "Import données",  path: "/admin/import",       icon: Upload,    requires: { module: "parametres" } },
+      { label: "Sécurité & Logs", path: "/admin/securite",     icon: Shield,    requires: { module: "parametres" } },
     ],
   },
 ];
+
+function useNavFiltered() {
+  const { can, isAdmin } = useUser();
+
+  const isVisible = (item) => {
+    if (!item.requires) return true;
+    if (isAdmin) return true;
+    return can(item.requires.module, item.requires.action || "voir");
+  };
+
+  const filtered = [];
+  for (const item of NAV_DEF) {
+    if (item.type === "section") { filtered.push(item); continue; }
+    if (item.children) {
+      const visibleChildren = item.children.filter(isVisible);
+      if (visibleChildren.length === 0) continue;
+      // Only show group if at least parent OR children are visible
+      if (!item.requires || isVisible(item)) {
+        filtered.push({ ...item, children: visibleChildren });
+      } else if (visibleChildren.length > 0) {
+        filtered.push({ ...item, children: visibleChildren });
+      }
+      continue;
+    }
+    if (isVisible(item)) filtered.push(item);
+  }
+  // Clean trailing section headers
+  return filtered.filter((item, i, arr) => {
+    if (item.type !== "section") return true;
+    const next = arr[i + 1];
+    return next && next.type !== "section";
+  });
+}
 
 function NavLink({ item, collapsed }) {
   const location = useLocation();
@@ -150,6 +168,9 @@ function NavGroup({ item, collapsed }) {
 }
 
 export default function AdminSidebar({ agency, collapsed, onToggle }) {
+  const nav = useNavFiltered();
+  const { user } = useUser();
+
   return (
     <div className={`${collapsed ? "w-14" : "w-52"} h-screen bg-white border-r border-border/50 flex flex-col py-4 transition-all duration-200`}>
       {/* Brand */}
@@ -166,9 +187,16 @@ export default function AdminSidebar({ agency, collapsed, onToggle }) {
         </button>
       </div>
 
-      {/* Nav */}
+      {/* User role badge */}
+      {!collapsed && user && (
+        <div className="px-2 mb-4">
+          <RoleBadge />
+        </div>
+      )}
+
+      {/* Nav filtré par rôle */}
       <nav className="flex-1 px-2 overflow-y-auto space-y-0.5">
-        {NAV.map((item, i) => {
+        {nav.map((item, i) => {
           if (item.type === "section") {
             if (collapsed) return null;
             return (
@@ -184,11 +212,16 @@ export default function AdminSidebar({ agency, collapsed, onToggle }) {
 
       {/* Footer */}
       {!collapsed && (
-        <div className="px-3 pt-3 border-t border-border/50">
-          <Link to="/" className="flex items-center gap-2 text-xs text-muted-foreground/50 hover:text-muted-foreground transition-colors">
+        <div className="px-3 pt-3 border-t border-border/50 space-y-1">
+          <Link to="/" className="flex items-center gap-2 text-xs text-muted-foreground/50 hover:text-muted-foreground transition-colors py-1">
             <ExternalLink className="w-3.5 h-3.5" />
             Voir le site public
           </Link>
+          <button onClick={() => base44.auth.logout()}
+            className="flex items-center gap-2 text-xs text-muted-foreground/50 hover:text-red-500 transition-colors py-1 w-full text-left">
+            <LogOut className="w-3.5 h-3.5" />
+            Se déconnecter
+          </button>
         </div>
       )}
     </div>

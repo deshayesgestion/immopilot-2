@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import RoleGuard from "@/components/admin/RoleGuard";
 import { base44 } from "@/api/base44Client";
 import { Loader2, BarChart3, Brain, TrendingUp, AlertTriangle, Star, Zap, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -38,6 +39,7 @@ export default function AdminBI() {
   useEffect(() => { load(); }, []);
 
   return (
+    <RoleGuard module="bi">
     <div className="space-y-5 max-w-6xl">
       {/* Header */}
       <div className="flex items-start justify-between">
@@ -103,5 +105,6 @@ export default function AdminBI() {
         </>
       )}
     </div>
+    </RoleGuard>
   );
 }

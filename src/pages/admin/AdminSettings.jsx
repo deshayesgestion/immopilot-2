@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { Link } from "react-router-dom";
 import { useAgency } from "../../hooks/useAgency";
+import RoleGuard from "@/components/admin/RoleGuard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -75,6 +76,7 @@ export default function AdminSettings() {
   );
 
   return (
+    <RoleGuard module="parametres">
     <div className="space-y-6 max-w-5xl">
       <div>
         <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
@@ -221,5 +223,6 @@ export default function AdminSettings() {
         </Button>
       </form>}
     </div>
+    </RoleGuard>
   );
 }

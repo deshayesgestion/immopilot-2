@@ -1,11 +1,12 @@
 import { Outlet } from "react-router-dom";
 import AdminSidebar from "./AdminSidebar";
 import { useAgency } from "../../hooks/useAgency";
-import { Menu, X } from "lucide-react";
+import { Menu } from "lucide-react";
 import { useState } from "react";
 import OnboardingFAB from "../onboarding/OnboardingFAB.jsx";
 import { AIProvider } from "@/lib/AIContext";
 import AIStatusBar from "./AIStatusBar";
+import { UserProvider } from "@/lib/UserContext";
 
 export default function AdminLayout() {
   const { agency } = useAgency();
@@ -14,6 +15,7 @@ export default function AdminLayout() {
 
   return (
     <AIProvider>
+    <UserProvider>
     <div className="flex min-h-screen bg-[#F9F9FB]">
       {/* Desktop sidebar */}
       <div className="hidden lg:block sticky top-0 h-screen flex-shrink-0">
@@ -47,6 +49,7 @@ export default function AdminLayout() {
 
       <OnboardingFAB />
     </div>
+    </UserProvider>
     </AIProvider>
   );
 }

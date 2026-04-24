@@ -6,51 +6,37 @@
       "type": "string",
       "enum": [
         "admin",
+        "directeur",
+        "responsable_location",
+        "responsable_vente",
+        "comptable",
         "agent",
         "gestionnaire",
-        "comptable",
+        "responsable",
         "locataire",
         "proprietaire",
         "acquereur",
         "prestataire"
       ],
       "default": "agent",
-      "description": "R\u00f4le dans l'agence"
+      "description": "R\u00f4le de l'utilisateur dans l'agence"
     },
     "agency_id": {
       "type": "string",
-      "description": "ID de l'agence"
+      "description": "ID de l'agence (multi-tenant)"
     },
     "phone": {
-      "type": "string"
-    },
-    "statut": {
       "type": "string",
-      "enum": [
-        "actif",
-        "inactif",
-        "invite"
-      ],
-      "default": "actif"
+      "description": "T\u00e9l\u00e9phone professionnel"
     },
-    "permissions": {
-      "type": "object",
-      "description": "Permissions personnalis\u00e9es (override du r\u00f4le)"
+    "avatar_url": {
+      "type": "string",
+      "description": "URL avatar"
     },
-    "biens_assignes": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      },
-      "description": "IDs des biens assign\u00e9s"
-    },
-    "dossiers_assignes": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      },
-      "description": "IDs des dossiers assign\u00e9s"
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Compte actif"
     }
-  },
-  "required": []
+  }
 }

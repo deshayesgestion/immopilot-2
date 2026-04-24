@@ -1,3 +1,4 @@
+import RoleGuard from "@/components/admin/RoleGuard";
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import {
@@ -128,6 +129,7 @@ export default function ModuleComptabilite() {
   ];
 
   return (
+    <RoleGuard module="comptabilite">
     <div className="space-y-5 max-w-7xl">
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-3">
@@ -259,5 +261,6 @@ export default function ModuleComptabilite() {
         </>
       )}
     </div>
+    </RoleGuard>
   );
 }

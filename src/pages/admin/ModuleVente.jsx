@@ -1,3 +1,4 @@
+import RoleGuard from "@/components/admin/RoleGuard";
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import {
@@ -118,6 +119,7 @@ export default function ModuleVente() {
   });
 
   return (
+    <RoleGuard module="vente">
     <div className="space-y-5 max-w-7xl">
       {/* Header */}
       <div className="flex items-center gap-3">
@@ -231,5 +233,6 @@ export default function ModuleVente() {
         />
       )}
     </div>
+    </RoleGuard>
   );
 }

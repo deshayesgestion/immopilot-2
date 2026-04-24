@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search, UserPlus, Users, Shield, AlertTriangle, Loader2, Mail, Lock } from "lucide-react";
 import { INTERNAL_ROLES, CLIENT_ROLES, ROLE_LABELS, ROLE_COLORS, USER_MANAGEMENT_ROLES } from "@/lib/roles";
+import RoleGuard from "@/components/admin/RoleGuard";
 import UserEditModal from "../../components/admin/users/UserEditModal";
 import UserListItem from "../../components/admin/users/UserListItem";
 import RolesPermissionTab from "../../components/admin/users/RolesPermissionTab";
@@ -203,6 +204,7 @@ export default function AdminUsers() {
   ];
 
   return (
+    <RoleGuard module="utilisateurs">
     <div className="max-w-6xl mx-auto space-y-6">
       {showInvite && (
         <InviteUserModal
@@ -370,5 +372,6 @@ export default function AdminUsers() {
         </div>
       )}
     </div>
+    </RoleGuard>
   );
 }
