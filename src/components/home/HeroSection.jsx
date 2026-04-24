@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Phone, TrendingUp, CalendarCheck } from "lucide-react";
 
 const HERO_BG_DEFAULT = "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=1800&q=85";
 
@@ -9,6 +9,7 @@ export default function HeroSection({
   heroImageUrl, logoUrl,
   cta1Label, cta1Url,
   cta2Label, cta2Url,
+  agency,
 }) {
   const name = agencyName || "Agence Immobilière";
   const tagline = slogan || "Des biens d'exception au cœur de votre région.";
@@ -40,6 +41,7 @@ export default function HeroSection({
           {tagline}
         </p>
 
+        {/* CTAs principaux */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-10 animate-fade-up" style={{ animationDelay: "0.3s" }}>
           <Link to={c1Url}>
             <Button size="lg" className="rounded-full px-8 h-12 text-sm font-medium gap-2 bg-white text-black hover:bg-white/90 shadow-xl">
@@ -51,6 +53,26 @@ export default function HeroSection({
               {c2Label}
             </Button>
           </Link>
+        </div>
+
+        {/* 3 actions rapides dans le hero */}
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-6 animate-fade-up" style={{ animationDelay: "0.45s" }}>
+          {[
+            { icon: CalendarCheck, label: "Demander une visite", href: "#cta-strip" },
+            { icon: TrendingUp,    label: "Estimer mon bien",    href: "/estimation" },
+            { icon: Phone,         label: "Être rappelé",        href: `tel:${agency?.phone?.replace(/\s/g,"") || "#cta-strip"}` },
+          ].map((a, i) => {
+            const Icon = a.icon;
+            const isPhone = a.icon === Phone && agency?.phone;
+            const Tag = isPhone ? "a" : Link;
+            const linkProp = isPhone ? { href: a.href } : { to: a.href };
+            return (
+              <Tag key={i} {...linkProp}
+                className="flex items-center gap-2 bg-white/15 hover:bg-white/25 border border-white/30 rounded-full px-4 py-2 text-white text-xs font-medium transition-all backdrop-blur-sm">
+                <Icon className="w-3.5 h-3.5" />{a.label}
+              </Tag>
+            );
+          })}
         </div>
       </div>
 

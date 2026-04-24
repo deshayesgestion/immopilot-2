@@ -8,6 +8,10 @@ import TestimonialsSection from "../components/home/TestimonialsSection";
 import CTASection from "../components/home/CTASection";
 import FeaturedProperties from "../components/home/FeaturedProperties";
 import ServicesSection from "../components/home/ServicesSection";
+import LeadCTAStrip from "../components/home/LeadCTAStrip";
+import LeadPopup from "../components/home/LeadPopup";
+import StickyMobileCTA from "../components/home/StickyMobileCTA";
+import SocialProofSection from "../components/home/SocialProofSection";
 
 export default function Home() {
   const { agency } = useAgency();
@@ -33,6 +37,7 @@ export default function Home() {
 
   return (
     <div>
+      {/* ── Hero avec 3 CTAs ── */}
       {agency.lp_section_hero_enabled !== false && (
         <HeroSection
           agencyName={agency.lp_hero_title || agency.name}
@@ -43,26 +48,53 @@ export default function Home() {
           cta1Url={agency.lp_hero_cta1_url}
           cta2Label={agency.lp_hero_cta2_label}
           cta2Url={agency.lp_hero_cta2_url}
+          agency={agency}
         />
       )}
+
+      {/* ── Biens mis en avant ── */}
       {agency.lp_section_featured_enabled !== false && featuredBiens.length > 0 && (
         <FeaturedProperties properties={featuredBiens} />
       )}
+
+      {/* ── CTA Strip milieu page (3 actions + formulaire) ── */}
+      <div id="cta-strip">
+        <LeadCTAStrip agency={agency} />
+      </div>
+
+      {/* ── Agence ── */}
       {agency.lp_section_agency_enabled !== false && (
         <AgencySection agency={agency} />
       )}
+
+      {/* ── Services ── */}
       {agency.lp_section_services_enabled !== false && agency.lp_services?.length > 0 && (
         <ServicesSection services={agency.lp_services} />
       )}
+
+      {/* ── Preuve sociale : stats + avis ── */}
+      <SocialProofSection agency={agency} />
+
+      {/* ── Stats section originale (si activée) ── */}
       {agency.lp_section_stats_enabled !== false && (
         <StatsSection stats={agency.lp_stats} />
       )}
+
+      {/* ── Témoignages ── */}
       {agency.lp_section_testimonials_enabled !== false && (
         <TestimonialsSection testimonials={agency.lp_testimonials} />
       )}
+
+      {/* ── CTA bas de page avec formulaire rapide ── */}
       {agency.lp_section_contact_enabled !== false && (
         <CTASection agencyName={agency.name} agency={agency} />
       )}
+
+      {/* ── Popup lead (12s ou scroll 50%) ── */}
+      <LeadPopup agency={agency} />
+
+      {/* ── Sticky mobile : appel 1 clic ── */}
+      <StickyMobileCTA agency={agency} />
     </div>
   );
 }
