@@ -88,9 +88,10 @@ export default function LocationWorkflow({ biens, contacts }) {
           {filtered.map(d => {
             const statut = STATUT_CFG[d.statut_dossier || "ouvert"] || STATUT_CFG.ouvert;
             return (
-              <div key={d.id} onClick={() => setSelected(d)}
-                className="bg-white rounded-2xl border border-border/50 hover:border-primary/30 hover:shadow-sm transition-all cursor-pointer">
-                <div className="flex items-center gap-4 px-4 py-3.5">
+              <div key={d.id}
+                className="bg-white rounded-2xl border border-border/50 hover:border-primary/20 hover:shadow-sm transition-all">
+                {/* Ligne principale — clic = ouvre détail */}
+                <div className="flex items-center gap-3 px-4 py-3 cursor-pointer" onClick={() => setSelected(d)}>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="text-sm font-semibold">{d.locataire_nom || "Sans nom"}</span>
@@ -108,10 +109,41 @@ export default function LocationWorkflow({ biens, contacts }) {
                     <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-2 flex-wrap">
                       {d.bien_titre && <span className="flex items-center gap-1"><Home className="w-3 h-3" />{d.bien_titre}</span>}
                       {d.loyer_mensuel > 0 && <span className="flex items-center gap-1"><Euro className="w-3 h-3" />{d.loyer_mensuel?.toLocaleString("fr-FR")} €/mois</span>}
-                      {d.reference && <span className="opacity-50">· {d.reference}</span>}
                     </p>
                   </div>
-                  <ChevronRight className="w-4 h-4 text-muted-foreground/40 flex-shrink-0" />
+                  <ChevronRight className="w-4 h-4 text-muted-foreground/30 flex-shrink-0" />
+                </div>
+
+                {/* Quick actions inline — visibles sans clic */}
+                <div className="flex gap-1.5 px-4 pb-3 flex-wrap" onClick={e => e.stopPropagation()}>
+                  <button onClick={() => setSelected(d)}
+                    className="text-[10px] px-2.5 py-1 rounded-full bg-primary/10 text-primary font-semibold hover:bg-primary hover:text-white transition-all">
+                    👁 Ouvrir
+                  </button>
+                  {d.statut_dossier === "ouvert" || d.statut_dossier === "en_selection" ? (
+                    <button onClick={() => { setSelected(d); }}
+                      className="text-[10px] px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 font-semibold hover:bg-blue-500 hover:text-white transition-all">
+                      👤 Candidats
+                    </button>
+                  ) : null}
+                  {d.statut_dossier === "candidat_valide" ? (
+                    <button onClick={() => setSelected(d)}
+                      className="text-[10px] px-2.5 py-1 rounded-full bg-purple-50 text-purple-700 font-semibold hover:bg-purple-500 hover:text-white transition-all">
+                      📝 Bail
+                    </button>
+                  ) : null}
+                  {(d.statut_dossier === "bail_signe" || d.statut_dossier === "en_cours") && (
+                    <button onClick={() => setSelected(d)}
+                      className="text-[10px] px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 font-semibold hover:bg-emerald-500 hover:text-white transition-all">
+                      🔑 EDL
+                    </button>
+                  )}
+                  {d.locataire_email && (
+                    <a href={`mailto:${d.locataire_email}`}
+                      className="text-[10px] px-2.5 py-1 rounded-full bg-slate-50 text-slate-600 font-semibold hover:bg-slate-500 hover:text-white transition-all">
+                      ✉️ Email
+                    </a>
+                  )}
                 </div>
               </div>
             );

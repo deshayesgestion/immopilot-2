@@ -13,6 +13,15 @@ import TabIncidents from "../dossier/TabIncidents";
 import TabNotes from "../dossier/TabNotes";
 import TabFinances from "../dossier/TabFinances";
 
+// Guide visuel de progression par étape
+const ETAPE_GUIDE = {
+  ouvert:          { next: "en_selection",    label: "📢 Publier et ouvrir aux candidats", tab: "candidats" },
+  en_selection:    { next: "candidat_valide", label: "✅ Valider un candidat",             tab: "candidats" },
+  candidat_valide: { next: "bail_signe",      label: "📝 Générer et signer le bail",       tab: "bail" },
+  bail_signe:      { next: "en_cours",        label: "🔑 Remettre les clés / EDL entrée",  tab: "edle" },
+  en_cours:        { next: "termine",         label: "📦 Clôturer le bail",                tab: "edls" },
+};
+
 const TABS = [
   { id: "candidats", label: "Candidats", emoji: "👤" },
   { id: "documents", label: "Documents", emoji: "📂" },
@@ -68,6 +77,19 @@ export default function DossierDetail({ dossier: initialDossier, onClose, onUpda
           onClose={onClose}
           onStatutChange={handleStatutChange}
         />
+
+        {/* Guide étape suivante — 1 clic pour avancer */}
+        {ETAPE_GUIDE[d.statut_dossier] && (
+          <div className="flex items-center gap-2 px-4 py-2 bg-primary/5 border-b border-primary/10 flex-shrink-0">
+            <span className="text-[10px] text-muted-foreground flex-shrink-0">Prochaine étape :</span>
+            <button
+              onClick={() => setTab(ETAPE_GUIDE[d.statut_dossier].tab)}
+              className="text-xs font-semibold text-primary hover:underline truncate"
+            >
+              {ETAPE_GUIDE[d.statut_dossier].label} →
+            </button>
+          </div>
+        )}
 
         {/* Onglets — tous librement accessibles, pas de blocage */}
         <div className="border-b border-border/30 bg-secondary/5 overflow-x-auto flex-shrink-0">

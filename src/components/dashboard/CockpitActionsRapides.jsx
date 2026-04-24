@@ -382,14 +382,26 @@ function ModalPaiement({ onClose, onDone, paiementsRetard }) {
   );
 }
 
+// ── Raccourcis navigation ──────────────────────────────────────────────────
+import { Link } from "react-router-dom";
+
+const NAV_SHORTCUTS = [
+  { label: "Location", emoji: "🔑", href: "/admin/modules/location", color: "border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-500 hover:text-white" },
+  { label: "Vente", emoji: "📈", href: "/admin/modules/vente", color: "border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-500 hover:text-white" },
+  { label: "Compta", emoji: "💳", href: "/admin/modules/comptabilite", color: "border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-500 hover:text-white" },
+  { label: "Biens", emoji: "🏠", href: "/admin/modules/biens", color: "border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-500 hover:text-white" },
+  { label: "Agenda", emoji: "📅", href: "/admin/agenda", color: "border-purple-200 bg-purple-50 text-purple-700 hover:bg-purple-500 hover:text-white" },
+  { label: "Tâches", emoji: "✅", href: "/admin/taches", color: "border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-500 hover:text-white" },
+];
+
 // ── Main ───────────────────────────────────────────────────────────────────
 const ACTIONS = [
-  { id: "bien", label: "Créer un bien", icon: Home, color: "bg-blue-500" },
-  { id: "dossier", label: "Créer un dossier", icon: FolderOpen, color: "bg-indigo-500" },
-  { id: "contact", label: "Contacter client", icon: MessageSquare, color: "bg-green-500" },
-  { id: "ticket", label: "Créer ticket", icon: TicketIcon, color: "bg-amber-500" },
-  { id: "relance", label: "Lancer relance", icon: Bell, color: "bg-orange-500" },
-  { id: "paiement", label: "Traiter paiement", icon: CheckCircle2, color: "bg-purple-500" },
+  { id: "bien", label: "Créer un bien", icon: Home, color: "bg-blue-500", emoji: "🏠" },
+  { id: "dossier", label: "Créer un dossier", icon: FolderOpen, color: "bg-indigo-500", emoji: "📂" },
+  { id: "contact", label: "Contacter client", icon: MessageSquare, color: "bg-green-500", emoji: "💬" },
+  { id: "ticket", label: "Créer ticket", icon: TicketIcon, color: "bg-amber-500", emoji: "🎫" },
+  { id: "relance", label: "Lancer relance", icon: Bell, color: "bg-orange-500", emoji: "🔔" },
+  { id: "paiement", label: "Traiter paiement", icon: CheckCircle2, color: "bg-purple-500", emoji: "💰" },
 ];
 
 export default function CockpitActionsRapides({ data, onRefresh }) {
@@ -405,24 +417,41 @@ export default function CockpitActionsRapides({ data, onRefresh }) {
 
   return (
     <>
-      <div className="bg-white rounded-2xl border border-border/50 p-4">
-        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Actions rapides</p>
-        <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
-          {ACTIONS.map(a => {
-            const Icon = a.icon;
-            return (
-              <button
-                key={a.id}
-                onClick={() => setActive(a.id)}
-                className="flex flex-col items-center gap-1.5 p-3 rounded-xl hover:bg-secondary/40 transition-all group"
-              >
-                <div className={`w-9 h-9 rounded-xl ${a.color} flex items-center justify-center group-hover:scale-105 transition-transform`}>
-                  <Icon className="w-4 h-4 text-white" />
-                </div>
-                <span className="text-[11px] font-medium text-center leading-tight">{a.label}</span>
-              </button>
-            );
-          })}
+      <div className="bg-white rounded-2xl border border-border/50 p-4 space-y-4">
+        {/* Accès rapide modules */}
+        <div>
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Accès rapide</p>
+          <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+            {NAV_SHORTCUTS.map(s => (
+              <Link key={s.href} to={s.href}
+                className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border text-center transition-all hover:shadow-sm active:scale-95 ${s.color}`}>
+                <span className="text-2xl">{s.emoji}</span>
+                <span className="text-[10px] font-semibold">{s.label}</span>
+              </Link>
+            ))}
+          </div>
+        </div>
+
+        {/* Actions métier */}
+        <div>
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Actions</p>
+          <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+            {ACTIONS.map(a => {
+              const Icon = a.icon;
+              return (
+                <button
+                  key={a.id}
+                  onClick={() => setActive(a.id)}
+                  className="flex flex-col items-center gap-1.5 p-3 rounded-xl bg-secondary/20 border border-border/30 hover:border-primary/30 hover:bg-white hover:shadow-sm transition-all group active:scale-95"
+                >
+                  <div className={`w-9 h-9 rounded-xl ${a.color} flex items-center justify-center group-hover:scale-105 transition-transform shadow-sm`}>
+                    <Icon className="w-4 h-4 text-white" />
+                  </div>
+                  <span className="text-[10px] font-medium text-center leading-tight text-muted-foreground group-hover:text-foreground">{a.label}</span>
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
 

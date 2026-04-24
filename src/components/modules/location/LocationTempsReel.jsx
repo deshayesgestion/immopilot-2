@@ -1,190 +1,222 @@
+/**
+ * LocationTempsReel — Dashboard actionnel Location
+ * Tableau de bord avec actions directes, alertes et pipeline visuel
+ */
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { AlertTriangle, CheckCircle2, Clock, Euro, Home, TrendingUp, RefreshCw, Loader2, Bell, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  Loader2, AlertCircle, CheckCircle2, Clock, ChevronRight,
+  TrendingUp, Home, Users, Euro, Star, FileText, Calendar, Plus
+} from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import DossierDetail from "./workflow/DossierDetail";
 
-const fmt = (d) => d ? new Date(d).toLocaleDateString("fr-FR") : "—";
+const STATUT_CFG = {
+  ouvert:          { label: "Ouvert",          emoji: "📂", color: "bg-slate-100 text-slate-700" },
+  en_selection:    { label: "En sélection",    emoji: "👥", color: "bg-blue-100 text-blue-700" },
+  candidat_valide: { label: "Candidat validé", emoji: "✅", color: "bg-indigo-100 text-indigo-700" },
+  bail_signe:      { label: "Bail signé",      emoji: "📝", color: "bg-purple-100 text-purple-700" },
+  en_cours:        { label: "En cours",        emoji: "🏡", color: "bg-emerald-100 text-emerald-700" },
+  termine:         { label: "Terminé",         emoji: "🏁", color: "bg-gray-100 text-gray-600" },
+};
+
+const fmt = n => (n || 0).toLocaleString("fr-FR") + " €";
+const fmtDate = d => d ? new Date(d).toLocaleDateString("fr-FR", { day: "2-digit", month: "short" }) : "—";
 
 export default function LocationTempsReel() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [analysing, setAnalysing] = useState(false);
-  const [aiInsight, setAiInsight] = useState(null);
+  const [selectedDossier, setSelectedDossier] = useState(null);
 
   const load = async () => {
     setLoading(true);
-    const [quittances, dossiers] = await Promise.all([
-      base44.entities.Quittance.list("-created_date", 500),
-      base44.entities.DossierLocatif.list("-created_date", 200),
+    const [dossiers, quittances, rdvs] = await Promise.all([
+      base44.entities.DossierLocatif.list("-updated_date", 100),
+      base44.entities.Quittance.list("-created_date", 200),
+      base44.entities.Evenement.filter({ module: "location" }),
     ]);
-    const now = new Date();
-    const fin30 = new Date(now.getTime() + 30 * 86400000);
-
-    const loyersEnAttente = quittances.filter(q => q.statut === "en_attente");
-    const loyersPayes = quittances.filter(q => q.statut === "paye");
-    const loyersEnRetard = quittances.filter(q => q.statut === "en_retard" || q.statut === "impaye");
-    const bailsEcheance = dossiers.filter(d => {
-      if (!d.date_fin_bail) return false;
-      const fin = new Date(d.date_fin_bail);
-      return fin >= now && fin <= fin30;
-    });
-    const dossiersActifs = dossiers.filter(d => d.etape === "vie_bail");
-    const encaisseTotal = loyersPayes.reduce((s, q) => s + (q.montant_total || 0), 0);
-    const attenduTotal = [...loyersEnAttente, ...loyersEnRetard].reduce((s, q) => s + (q.montant_total || 0), 0);
-
-    setData({ loyersEnAttente, loyersPayes, loyersEnRetard, bailsEcheance, dossiersActifs, encaisseTotal, attenduTotal, quittances, dossiers });
+    setData({ dossiers, quittances, rdvs });
     setLoading(false);
   };
 
   useEffect(() => { load(); }, []);
 
-  const analyseIA = async () => {
-    if (!data) return;
-    setAnalysing(true);
-    const result = await base44.integrations.Core.InvokeLLM({
-      prompt: `Tu es expert en gestion locative. Analyse cette situation et donne 3 recommandations prioritaires.
-Dossiers actifs: ${data.dossiersActifs.length}
-Loyers en attente: ${data.loyersEnAttente.length} (${data.attenduTotal.toLocaleString("fr-FR")}€)
-Loyers payés ce mois: ${data.loyersPayes.length} (${data.encaisseTotal.toLocaleString("fr-FR")}€)
-Retards/Impayés: ${data.loyersEnRetard.length}
-Baux arrivant à échéance dans 30j: ${data.bailsEcheance.length}
-Retourne JSON: { recommandations: [{ priorite: "haute"|"moyenne"|"faible", action: string (max 80 chars), detail: string (max 120 chars) }] }`,
-      response_json_schema: {
-        type: "object",
-        properties: { recommandations: { type: "array", items: { type: "object" } } }
-      }
-    });
-    setAiInsight(result?.recommandations || []);
-    setAnalysing(false);
+  const updateDossier = (updated) => {
+    setData(prev => ({
+      ...prev,
+      dossiers: prev.dossiers.map(d => d.id === updated.id ? updated : d),
+    }));
+    if (selectedDossier?.id === updated.id) setSelectedDossier(updated);
   };
 
-  if (loading) return <div className="flex justify-center py-12"><Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /></div>;
-  if (!data) return null;
+  if (loading) return (
+    <div className="flex justify-center py-16">
+      <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+    </div>
+  );
 
-  const PRIO_COLOR = { haute: "bg-red-100 text-red-700 border-red-200", moyenne: "bg-amber-100 text-amber-700 border-amber-200", faible: "bg-blue-100 text-blue-700 border-blue-200" };
+  const { dossiers, quittances, rdvs } = data;
+
+  // KPIs
+  const actifs = dossiers.filter(d => d.statut_dossier === "en_cours" || d.statut_dossier === "bail_signe");
+  const impayees = quittances.filter(q => q.statut === "en_retard" || q.statut === "impaye");
+  const encaisse = quittances.filter(q => q.statut === "paye").reduce((s, q) => s + (q.montant_total || 0), 0);
+  const rdvsProchains = rdvs.filter(r => r.statut === "planifie" && new Date(r.date_debut) > new Date())
+    .sort((a, b) => new Date(a.date_debut) - new Date(b.date_debut)).slice(0, 3);
+  const dossiersUrgents = dossiers.filter(d => {
+    if (d.statut_dossier === "en_cours" || d.statut_dossier === "bail_signe") return false;
+    const age = (Date.now() - new Date(d.updated_date || d.created_date)) / 86400000;
+    return age > 7;
+  }).slice(0, 5);
+  const dossiersActifs = dossiers.filter(d => ["en_cours", "bail_signe", "en_selection", "candidat_valide"].includes(d.statut_dossier)).slice(0, 8);
 
   return (
-    <div className="space-y-5">
-      <div className="flex items-center justify-between">
-        <div>
-          <h3 className="text-sm font-semibold">Tableau de bord temps réel</h3>
-          <p className="text-xs text-muted-foreground">Vue consolidée de la gestion locative</p>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" className="rounded-full gap-1.5 h-8 text-xs" onClick={load}>
-            <RefreshCw className="w-3 h-3" />
-          </Button>
-          <Button size="sm" className="rounded-full gap-1.5 h-8 text-xs" onClick={analyseIA} disabled={analysing}>
-            {analysing ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
-            Analyse IA
-          </Button>
-        </div>
-      </div>
-
-      {/* KPIs */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+    <div className="space-y-4">
+      {/* KPIs en ligne */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {[
-          { label: "Dossiers actifs", value: data.dossiersActifs.length, icon: Home, color: "text-primary", bg: "bg-primary/10" },
-          { label: "Encaissé (mois)", value: `${data.encaisseTotal.toLocaleString("fr-FR")} €`, icon: CheckCircle2, color: "text-emerald-600", bg: "bg-emerald-50" },
-          { label: "En attente", value: `${data.attenduTotal.toLocaleString("fr-FR")} €`, icon: Clock, color: "text-amber-600", bg: "bg-amber-50" },
-          { label: "Retards/Impayés", value: data.loyersEnRetard.length, icon: AlertTriangle, color: "text-red-600", bg: "bg-red-50" },
-        ].map(kpi => {
-          const Icon = kpi.icon;
-          return (
-            <div key={kpi.label} className="bg-white rounded-2xl border border-border/50 p-4">
-              <div className={`w-8 h-8 rounded-xl ${kpi.bg} flex items-center justify-center mb-2`}>
-                <Icon className={`w-4 h-4 ${kpi.color}`} />
-              </div>
-              <p className={`text-xl font-bold ${kpi.color}`}>{kpi.value}</p>
-              <p className="text-xs text-muted-foreground mt-0.5">{kpi.label}</p>
-            </div>
-          );
-        })}
+          { icon: "🏡", label: "Dossiers actifs", value: actifs.length, color: "text-emerald-600", bg: "bg-emerald-50", action: null },
+          { icon: "💶", label: "Encaissé (mois)", value: fmt(encaisse), color: "text-green-600", bg: "bg-green-50" },
+          { icon: "⚠️", label: "Impayés", value: impayees.length, color: impayees.length > 0 ? "text-red-600" : "text-muted-foreground", bg: impayees.length > 0 ? "bg-red-50" : "bg-secondary/30" },
+          { icon: "📅", label: "RDV à venir", value: rdvsProchains.length, color: "text-blue-600", bg: "bg-blue-50" },
+        ].map((k, i) => (
+          <div key={i} className="bg-white rounded-2xl border border-border/50 p-4">
+            <div className={`w-9 h-9 ${k.bg} rounded-xl flex items-center justify-center text-lg mb-2`}>{k.icon}</div>
+            <p className={`text-2xl font-bold ${k.color}`}>{k.value}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">{k.label}</p>
+          </div>
+        ))}
       </div>
 
-      {/* IA Insights */}
-      {aiInsight && aiInsight.length > 0 && (
-        <div className="bg-white rounded-2xl border border-border/50 p-5 space-y-3">
-          <p className="text-sm font-semibold flex items-center gap-2"><Sparkles className="w-4 h-4 text-primary" /> Recommandations IA</p>
-          {aiInsight.map((r, i) => (
-            <div key={i} className={`flex gap-3 p-3 rounded-xl border ${PRIO_COLOR[r.priorite] || PRIO_COLOR.faible}`}>
-              <div className="flex-shrink-0 text-sm font-bold capitalize">{r.priorite}</div>
-              <div>
-                <p className="text-sm font-semibold">{r.action}</p>
-                <p className="text-xs opacity-80 mt-0.5">{r.detail}</p>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {/* ── DOSSIERS ACTIFS (colonne large) ── */}
+        <div className="lg:col-span-2 bg-white rounded-2xl border border-border/50 overflow-hidden">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-border/30">
+            <p className="text-sm font-semibold">Dossiers en cours</p>
+            <span className="text-xs text-muted-foreground">{dossiersActifs.length} dossier{dossiersActifs.length > 1 ? "s" : ""}</span>
+          </div>
+          {dossiersActifs.length === 0 ? (
+            <div className="py-10 text-center">
+              <p className="text-sm text-muted-foreground">Aucun dossier actif</p>
+            </div>
+          ) : (
+            <div className="divide-y divide-border/20">
+              {dossiersActifs.map(d => {
+                const statut = STATUT_CFG[d.statut_dossier || "ouvert"] || STATUT_CFG.ouvert;
+                return (
+                  <button key={d.id} onClick={() => setSelectedDossier(d)}
+                    className="w-full flex items-center gap-3 px-4 py-3 hover:bg-secondary/20 transition-colors text-left group">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-sm font-semibold truncate">{d.locataire_nom || "Sans nom"}</span>
+                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium flex-shrink-0 ${statut.color}`}>
+                          {statut.emoji} {statut.label}
+                        </span>
+                        {d.scoring_ia > 0 && (
+                          <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium flex items-center gap-0.5 ${
+                            d.scoring_ia >= 70 ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"
+                          }`}>
+                            <Star className="w-2.5 h-2.5" /> {d.scoring_ia}
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-3">
+                        {d.bien_titre && <span className="flex items-center gap-1 truncate"><Home className="w-3 h-3 flex-shrink-0" />{d.bien_titre}</span>}
+                        {d.loyer_mensuel > 0 && <span className="flex items-center gap-1 flex-shrink-0"><Euro className="w-3 h-3" />{d.loyer_mensuel?.toLocaleString("fr-FR")} €/mois</span>}
+                      </p>
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-muted-foreground/30 group-hover:text-primary flex-shrink-0 transition-colors" />
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* ── COLONNE DROITE ── */}
+        <div className="space-y-4">
+          {/* RDV à venir */}
+          <div className="bg-white rounded-2xl border border-border/50 overflow-hidden">
+            <div className="px-4 py-3 border-b border-border/30 flex items-center gap-2">
+              <Calendar className="w-4 h-4 text-blue-600" />
+              <p className="text-sm font-semibold">Prochains RDV</p>
+            </div>
+            {rdvsProchains.length === 0 ? (
+              <p className="text-xs text-muted-foreground text-center py-6">Aucun RDV planifié</p>
+            ) : (
+              <div className="divide-y divide-border/20">
+                {rdvsProchains.map(r => (
+                  <div key={r.id} className="px-4 py-2.5">
+                    <p className="text-xs font-semibold truncate">{r.titre}</p>
+                    <p className="text-[11px] text-muted-foreground">{fmtDate(r.date_debut)} · {r.contact_nom || "—"}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Alertes urgentes */}
+          {(dossiersUrgents.length > 0 || impayees.length > 0) && (
+            <div className="bg-white rounded-2xl border border-border/50 overflow-hidden">
+              <div className="px-4 py-3 border-b border-border/30 flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 text-red-500" />
+                <p className="text-sm font-semibold text-red-700">Alertes</p>
+              </div>
+              <div className="divide-y divide-border/20">
+                {impayees.slice(0, 3).map(q => (
+                  <div key={q.id} className="px-4 py-2.5 flex items-center gap-2">
+                    <span className="text-base">💸</span>
+                    <div className="min-w-0">
+                      <p className="text-xs font-semibold text-red-700 truncate">{q.locataire_nom || "Locataire"}</p>
+                      <p className="text-[11px] text-muted-foreground">{fmt(q.montant_total)} · {q.mois_label || q.mois}</p>
+                    </div>
+                  </div>
+                ))}
+                {dossiersUrgents.slice(0, 2).map(d => (
+                  <button key={d.id} onClick={() => setSelectedDossier(d)}
+                    className="w-full px-4 py-2.5 flex items-center gap-2 hover:bg-secondary/20 text-left">
+                    <span className="text-base">⏱️</span>
+                    <div className="min-w-0">
+                      <p className="text-xs font-semibold truncate">{d.locataire_nom}</p>
+                      <p className="text-[11px] text-muted-foreground">Inactif depuis +7j → relancer</p>
+                    </div>
+                    <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/40 ml-auto flex-shrink-0" />
+                  </button>
+                ))}
               </div>
             </div>
-          ))}
-        </div>
-      )}
+          )}
 
-      {/* Impayés */}
-      {data.loyersEnRetard.length > 0 && (
-        <div className="bg-white rounded-2xl border border-border/50 p-5 space-y-3">
-          <div className="flex items-center gap-2">
-            <AlertTriangle className="w-4 h-4 text-red-500" />
-            <p className="text-sm font-semibold">Retards & Impayés</p>
-            <span className="ml-auto text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full">{data.loyersEnRetard.length}</span>
-          </div>
-          <div className="space-y-2">
-            {data.loyersEnRetard.map(q => (
-              <div key={q.id} className="flex items-center gap-3 p-3 bg-red-50 rounded-xl">
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium">{q.locataire_nom}</p>
-                  <p className="text-xs text-muted-foreground">{q.bien_titre} · Échéance : {fmt(q.date_echeance)}</p>
-                </div>
-                <div className="text-right flex-shrink-0">
-                  <p className="text-sm font-bold text-red-600">{q.montant_total?.toLocaleString("fr-FR")} €</p>
-                  <p className="text-[10px] text-red-500 capitalize">{q.statut?.replace("_", " ")}</p>
-                </div>
-              </div>
-            ))}
+          {/* Pipeline mini */}
+          <div className="bg-white rounded-2xl border border-border/50 p-4">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Pipeline</p>
+            <div className="space-y-2">
+              {Object.entries(STATUT_CFG).map(([key, cfg]) => {
+                const count = dossiers.filter(d => (d.statut_dossier || "ouvert") === key).length;
+                if (count === 0) return null;
+                const pct = Math.round((count / Math.max(dossiers.length, 1)) * 100);
+                return (
+                  <div key={key} className="flex items-center gap-2">
+                    <span className="text-xs w-24 text-muted-foreground truncate">{cfg.emoji} {cfg.label}</span>
+                    <div className="flex-1 bg-secondary/30 rounded-full h-1.5">
+                      <div className="h-full bg-primary rounded-full transition-all" style={{ width: `${pct}%` }} />
+                    </div>
+                    <span className="text-xs font-bold w-5 text-right">{count}</span>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </div>
-      )}
+      </div>
 
-      {/* Baux arrivant à échéance */}
-      {data.bailsEcheance.length > 0 && (
-        <div className="bg-white rounded-2xl border border-border/50 p-5 space-y-3">
-          <div className="flex items-center gap-2">
-            <Bell className="w-4 h-4 text-amber-500" />
-            <p className="text-sm font-semibold">Baux arrivant à échéance (30j)</p>
-            <span className="ml-auto text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">{data.bailsEcheance.length}</span>
-          </div>
-          <div className="space-y-2">
-            {data.bailsEcheance.map(d => (
-              <div key={d.id} className="flex items-center gap-3 p-3 bg-amber-50 rounded-xl">
-                <div className="flex-1">
-                  <p className="text-sm font-medium">{d.locataire_nom}</p>
-                  <p className="text-xs text-muted-foreground">{d.bien_titre}</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-xs font-bold text-amber-700">Fin le {fmt(d.date_fin_bail)}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Loyers en attente */}
-      {data.loyersEnAttente.length > 0 && (
-        <div className="bg-white rounded-2xl border border-border/50 p-5 space-y-3">
-          <div className="flex items-center gap-2">
-            <Clock className="w-4 h-4 text-amber-500" />
-            <p className="text-sm font-semibold">Loyers en attente de paiement</p>
-            <span className="ml-auto text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">{data.loyersEnAttente.length}</span>
-          </div>
-          <div className="space-y-2">
-            {data.loyersEnAttente.slice(0, 8).map(q => (
-              <div key={q.id} className="flex items-center gap-3 p-2.5 bg-secondary/20 rounded-xl text-xs">
-                <span className="flex-1 font-medium">{q.locataire_nom}</span>
-                <span className="text-muted-foreground">{q.bien_titre}</span>
-                <span className="font-bold">{q.montant_total?.toLocaleString("fr-FR")} €</span>
-              </div>
-            ))}
-          </div>
-        </div>
+      {selectedDossier && (
+        <DossierDetail
+          dossier={selectedDossier}
+          onClose={() => setSelectedDossier(null)}
+          onUpdate={updateDossier}
+        />
       )}
     </div>
   );

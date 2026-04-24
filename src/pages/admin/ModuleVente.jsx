@@ -1,15 +1,96 @@
 import RoleGuard from "@/components/admin/RoleGuard";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { base44 } from "@/api/base44Client";
 import {
   TrendingUp, Home, Users, FileSignature, BarChart2, Loader2,
-  Euro, Target, Zap, AlertCircle, LayoutGrid
+  Euro, Target, Zap, AlertCircle, LayoutGrid, Plus
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import BiensList from "@/components/shared/BiensList";
 import PipelineVendeur from "@/components/modules/vente/PipelineVendeur";
 import PipelineAcquereur from "@/components/modules/vente/PipelineAcquereur";
 import KanbanVente from "@/components/modules/vente/KanbanVente";
 import VenteDossierUnifie from "@/components/modules/vente/VenteDossierUnifie";
+
+// ── Modal générique pour quick actions vente ─────────────────────────────────
+function VenteActionModal({ actionId, actions, onClose }) {
+  const action = actions.find(a => a.id === actionId);
+  const [values, setValues] = useState(() => {
+    const init = {};
+    action?.fields?.forEach(f => { init[f.key] = f.default ?? ""; });
+    return init;
+  });
+  const [saving, setSaving] = useState(false);
+  const [done, setDone] = useState(false);
+  const set = (k, v) => setValues(p => ({ ...p, [k]: v }));
+
+  if (!action || !action.fields) return null;
+
+  const isValid = action.fields.filter(f => f.required).every(f => values[f.key]);
+
+  const handleSubmit = async () => {
+    setSaving(true);
+    await action.onSubmit(values);
+    setSaving(false);
+    setDone(true);
+    setTimeout(onClose, 1500);
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={onClose}>
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between px-5 py-4 border-b border-border/50">
+          <div className="flex items-center gap-2">
+            <span className="text-xl">{action.emoji}</span>
+            <p className="text-sm font-bold">{action.label}</p>
+          </div>
+          <button onClick={onClose} className="text-muted-foreground hover:text-foreground">✕</button>
+        </div>
+        <div className="p-5 space-y-3">
+          {done ? (
+            <div className="py-4 text-center">
+              <p className="text-2xl mb-1">✅</p>
+              <p className="text-sm font-semibold text-green-700">{action.successMsg || "Action effectuée ✓"}</p>
+            </div>
+          ) : (
+            <>
+              {action.fields.map(field => (
+                <div key={field.key}>
+                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5 block">
+                    {field.label}{field.required ? " *" : ""}
+                  </label>
+                  {field.type === "select" ? (
+                    <select value={values[field.key]} onChange={e => set(field.key, e.target.value)}
+                      className="w-full h-9 rounded-xl border border-input bg-white px-3 text-sm">
+                      <option value="">— Choisir —</option>
+                      {field.options?.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                    </select>
+                  ) : field.type === "textarea" ? (
+                    <textarea value={values[field.key]} onChange={e => set(field.key, e.target.value)}
+                      placeholder={field.placeholder} rows={3}
+                      className="w-full rounded-xl border border-input bg-white px-3 py-2 text-sm resize-none focus:outline-none focus:ring-1 focus:ring-ring" />
+                  ) : (
+                    <input type={field.type || "text"} value={values[field.key]} onChange={e => set(field.key, e.target.value)}
+                      placeholder={field.placeholder}
+                      className="w-full h-9 rounded-xl border border-input bg-white px-3 text-sm focus:outline-none focus:ring-1 focus:ring-ring" />
+                  )}
+                </div>
+              ))}
+              <div className="flex gap-2 pt-2">
+                <button onClick={onClose} className="flex-1 h-9 rounded-full border border-border/50 text-sm text-muted-foreground hover:bg-secondary/50">Annuler</button>
+                <button onClick={handleSubmit} disabled={saving || !isValid}
+                  className="flex-1 h-9 rounded-full bg-primary text-white text-sm font-semibold disabled:opacity-50 hover:bg-primary/90 flex items-center justify-center gap-1.5">
+                  {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : action.emoji}
+                  {saving ? "En cours…" : action.cta || "Confirmer"}
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 const TABS = [
   { id: "kanban",      label: "Pipeline Kanban",    icon: LayoutGrid,    desc: "Vue globale · Drag étapes · Actions rapides" },
@@ -67,6 +148,7 @@ function TransactionsList({ transactions, contactMap, bienMap }) {
 
 export default function ModuleVente() {
   const [tab, setTab] = useState("kanban");
+  const [activeVenteAction, setActiveVenteAction] = useState(null);
   const [biens, setBiens] = useState([]);
   const [contacts, setContacts] = useState([]);
   const [transactions, setTransactions] = useState([]);
@@ -118,47 +200,133 @@ export default function ModuleVente() {
     return jours > 60 && b.statut !== "vendu";
   });
 
+  // Quick actions vente
+  const VENTE_QUICK_ACTIONS = [
+    {
+      id: "new_mandat", label: "Nouveau mandat", emoji: "📋",
+      color: "bg-primary/10 border-primary/30 text-primary hover:bg-primary hover:text-white",
+      onClick: () => setTab("vendeur"),
+    },
+    {
+      id: "new_acquereur", label: "Nouvel acquéreur", emoji: "👤",
+      color: "bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-500 hover:text-white",
+      onClick: () => setTab("acquereur"),
+    },
+    {
+      id: "planifier_visite", label: "Planifier visite", emoji: "📅",
+      color: "bg-indigo-50 border-indigo-200 text-indigo-700 hover:bg-indigo-500 hover:text-white",
+      fields: [
+        { key: "titre", label: "Bien / Objet", required: true, placeholder: "Visite appartement T3…" },
+        { key: "contact_nom", label: "Acquéreur", placeholder: "Nom…" },
+        { key: "date_debut", label: "Date & heure", type: "datetime-local", required: true },
+      ],
+      onSubmit: async (v) => {
+        await base44.entities.Evenement.create({
+          titre: v.titre, date_debut: v.date_debut, type: "visite",
+          contact_nom: v.contact_nom, module: "vente", statut: "planifie",
+        });
+      },
+      successMsg: "Visite planifiée ✓", cta: "Planifier",
+    },
+    {
+      id: "estimation_ia", label: "Estimation IA", emoji: "🤖",
+      color: "bg-violet-50 border-violet-200 text-violet-700 hover:bg-violet-500 hover:text-white",
+      fields: [
+        { key: "bien_id", label: "Bien à estimer", required: true, type: "select", options: biens.slice(0, 30).map(b => ({ value: b.id, label: b.titre })) },
+      ],
+      onSubmit: async (v) => {
+        const b = biens.find(x => x.id === v.bien_id);
+        if (!b) return;
+        const r = await base44.integrations.Core.InvokeLLM({
+          prompt: `Expert immobilier FR. Estimation bien: ${b.adresse || b.titre}, ${b.surface || "?"}m², ${b.nb_pieces || "?"}p, DPE:${b.dpe || "—"}. JSON: {prix_min:number, prix_max:number, prix_recommande:number, delai_vente_estime:string}`,
+          response_json_schema: { type: "object", properties: { prix_min: { type: "number" }, prix_max: { type: "number" }, prix_recommande: { type: "number" }, delai_vente_estime: { type: "string" } } },
+        });
+        const mandat = mandats.find(m => m.bien_id === b.id);
+        if (mandat) await base44.entities.MandatVente.update(mandat.id, { estimation_ia: r });
+      },
+      successMsg: "Estimation IA lancée ✓", cta: "Estimer",
+    },
+    {
+      id: "relancer_acquereur", label: "Relancer acquéreur", emoji: "🔔",
+      color: "bg-amber-50 border-amber-200 text-amber-700 hover:bg-amber-500 hover:text-white",
+      fields: [
+        { key: "acquereur_id", label: "Acquéreur", required: true, type: "select", options: acquereurs.slice(0, 30).map(a => ({ value: a.id, label: a.nom })) },
+        { key: "message", label: "Message (optionnel)", type: "textarea", placeholder: "Rappel suite à la visite…" },
+      ],
+      onSubmit: async (v) => {
+        const a = acquereurs.find(x => x.id === v.acquereur_id);
+        if (!a) return;
+        await base44.entities.Relance.create({
+          type_relance: "reponse_client", contact_nom: a.nom, contact_email: a.email,
+          canal: "email", statut: "planifiee", niveau: 1, auto: false, raison: v.message,
+        });
+        if (a.email && v.message) {
+          await base44.integrations.Core.SendEmail({ to: a.email, subject: "Suivi de votre recherche immobilière", body: `<p>Bonjour ${a.nom},</p><p>${v.message}</p>` });
+        }
+      },
+      successMsg: "Relance envoyée ✓", cta: "Relancer",
+    },
+    {
+      id: "voir_transactions", label: "Transactions", emoji: "💰",
+      color: "bg-green-50 border-green-200 text-green-700 hover:bg-green-500 hover:text-white",
+      onClick: () => setTab("transactions"),
+    },
+  ];
+
   return (
     <RoleGuard module="vente">
-    <div className="space-y-5 max-w-7xl">
-      {/* Header */}
-      <div className="flex items-center gap-3">
-        <div className="p-2.5 bg-blue-50 rounded-xl">
-          <TrendingUp className="w-5 h-5 text-blue-600" />
-        </div>
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Module Vente</h1>
-          <p className="text-sm text-muted-foreground">
-            Mandats · Estimation IA · Pipeline acquéreur · Offres · Compromis · Closing
-          </p>
-        </div>
-      </div>
-
-      {/* Alertes IA */}
-      {biensBloqués.length > 0 && (
-        <div className="bg-amber-50 border border-amber-300 rounded-2xl px-4 py-3 flex items-start gap-3">
-          <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
-          <div>
-            <p className="text-sm font-bold text-amber-800">⚠ {biensBloqués.length} bien{biensBloqués.length > 1 ? "s" : ""} en vente depuis + de 60 jours</p>
-            <p className="text-xs text-amber-700 mt-0.5">{biensBloqués.map(b => b.titre).join(" · ")} — Envisagez une révision de prix.</p>
+    <div className="space-y-4 max-w-7xl">
+      {/* ── HEADER ACTIONNEL ── */}
+      <div className="bg-white rounded-2xl border border-border/50 p-4 space-y-3">
+        <div className="flex items-center justify-between flex-wrap gap-3">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 bg-blue-50 rounded-xl">
+              <TrendingUp className="w-5 h-5 text-blue-600" />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold tracking-tight">Module Vente</h1>
+              <p className="text-xs text-muted-foreground">Mandats · Pipeline acquéreur · Offres · Compromis · Closing</p>
+            </div>
+          </div>
+          {/* KPIs inline */}
+          <div className="flex items-center gap-5">
+            {stats.map((s, i) => (
+              <div key={i} className="text-center hidden sm:block">
+                <p className={`text-lg font-bold ${s.color}`}>{s.value}</p>
+                <p className="text-[10px] text-muted-foreground">{s.label}</p>
+              </div>
+            ))}
+            <Button className="rounded-full gap-1.5 h-9 text-sm" onClick={() => setTab("vendeur")}>
+              <Plus className="w-3.5 h-3.5" /> Nouveau mandat
+            </Button>
           </div>
         </div>
-      )}
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        {stats.map((s) => {
-          const Icon = s.icon;
-          return (
-            <div key={s.label} className="bg-white rounded-2xl border border-border/50 p-4">
-              <div className={`inline-flex p-1.5 rounded-lg ${s.bg} mb-2`}>
-                <Icon className={`w-3.5 h-3.5 ${s.color}`} />
-              </div>
-              <p className="text-xl font-bold">{s.value}</p>
-              <p className="text-xs text-muted-foreground mt-0.5">{s.label}</p>
-            </div>
-          );
-        })}
+        {/* Quick actions pills */}
+        <div className="flex flex-wrap gap-2 pt-1">
+          {VENTE_QUICK_ACTIONS.map(action => (
+            <button
+              key={action.id}
+              onClick={() => {
+                if (action.onClick) { action.onClick(); return; }
+                setActiveVenteAction(action.id);
+              }}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all hover:shadow-sm active:scale-95 ${action.color}`}
+            >
+              <span>{action.emoji}</span> {action.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Alertes IA */}
+        {biensBloqués.length > 0 && (
+          <div className="bg-amber-50 border border-amber-200 rounded-xl px-3 py-2 flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0" />
+            <p className="text-xs font-semibold text-amber-800">
+              ⚠ {biensBloqués.length} bien{biensBloqués.length > 1 ? "s" : ""} en vente depuis +60 jours → {biensBloqués.map(b => b.titre).join(", ")}
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Navigation tabs */}
@@ -167,15 +335,18 @@ export default function ModuleVente() {
           const Icon = t.icon;
           return (
             <button key={t.id} onClick={() => setTab(t.id)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all flex-shrink-0 ${
+              className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium transition-all flex-shrink-0 ${
                 tab === t.id ? "bg-primary text-white shadow-sm" : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
               }`}>
-              <Icon className="w-4 h-4" />
+              <Icon className="w-3.5 h-3.5" />
               <span>{t.label}</span>
             </button>
           );
         })}
       </div>
+
+      {/* Quick Action Modal */}
+      {activeVenteAction && <VenteActionModal actionId={activeVenteAction} actions={VENTE_QUICK_ACTIONS} onClose={() => setActiveVenteAction(null)} />}
 
       {loading ? (
         <div className="flex justify-center py-16">
