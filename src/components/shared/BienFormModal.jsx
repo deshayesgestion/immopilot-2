@@ -47,6 +47,7 @@ export default function BienFormModal({ bien, typeDefaut, onClose, onSave }) {
     photo_principale: "",
     is_published_internal: false,
     is_published_external: false,
+    exclusivite: false,
     ...bien,
   });
   const [saving, setSaving] = useState(false);
@@ -112,9 +113,10 @@ Génère un titre accrocheur et une description immobilière professionnelle de 
       meuble: !!form.meuble,
       ascenseur: !!form.ascenseur,
       photos: form.photos || [],
-      photo_principale: form.photo_principale || null,
-      is_published_internal: !!form.is_published_internal,
-      is_published_external: !!form.is_published_external,
+       photo_principale: form.photo_principale || null,
+       is_published_internal: !!form.is_published_internal,
+       is_published_external: !!form.is_published_external,
+       exclusivite: !!form.exclusivite,
     };
     let saved;
     if (isEdit) {
@@ -307,7 +309,25 @@ Génère un titre accrocheur et une description immobilière professionnelle de 
                       <div className={`w-4 h-4 bg-white rounded-full shadow transition-all mt-0.5 ${form.is_published_external ? "translate-x-5" : "translate-x-0.5"}`} />
                     </div>
                   </div>
-                </div>
+
+                  <div
+                    onClick={() => set("exclusivite", !form.exclusivite)}
+                    className={`flex items-center gap-4 p-4 rounded-2xl border-2 cursor-pointer transition-all ${
+                      form.exclusivite ? "border-violet-500 bg-violet-50" : "border-border hover:border-violet-200"
+                    }`}
+                  >
+                    <div className={`p-2.5 rounded-xl ${form.exclusivite ? "bg-violet-500" : "bg-secondary"}`}>
+                      <span className={`text-lg ${form.exclusivite ? "text-white" : "text-muted-foreground"}`}>⭐</span>
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-semibold text-sm">Exclusivité</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">Bien en exclusivité (visible sur landing)</p>
+                    </div>
+                    <div className={`w-10 h-5 rounded-full transition-all ${form.exclusivite ? "bg-violet-500" : "bg-muted"}`}>
+                      <div className={`w-4 h-4 bg-white rounded-full shadow transition-all mt-0.5 ${form.exclusivite ? "translate-x-5" : "translate-x-0.5"}`} />
+                    </div>
+                  </div>
+                  </div>
 
                 {/* Status summary */}
                 <div className="bg-secondary/40 rounded-xl p-3 space-y-1">

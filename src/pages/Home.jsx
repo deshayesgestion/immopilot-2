@@ -21,9 +21,11 @@ export default function Home() {
     if (!agency) return;
     const ids = agency.lp_featured_biens_ids;
     if (ids === null || (Array.isArray(ids) && ids.length === 0)) {
-      // Afficher tous les biens disponibles (automatique)
+      // Afficher tous les biens publiés en interne, triés par type
       const typeFilter = agency.lp_featured_filter;
-      const filter = typeFilter && typeFilter !== "all" ? { statut: "disponible", type: typeFilter } : { statut: "disponible" };
+      const filter = typeFilter && typeFilter !== "all" 
+        ? { is_published_internal: true, type: typeFilter } 
+        : { is_published_internal: true };
       base44.entities.Bien.filter(filter, "-created_date", 6).then(setFeaturedBiens).catch(() => setFeaturedBiens([]));
     } else if (Array.isArray(ids) && ids.length > 0) {
       // Charger les biens sélectionnés manuellement avec gestion d'erreur

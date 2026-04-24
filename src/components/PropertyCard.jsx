@@ -28,20 +28,25 @@ export default function PropertyCard({ property, onFavorite }) {
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
         <div className="absolute top-3 left-3 flex gap-2">
-          <span className="px-3 py-1 bg-background/90 backdrop-blur-sm rounded-full text-xs font-medium">
-            {typeLabels[property.type] || property.type}
-          </span>
-          {property.status === "sous_compromis" && (
-            <span className="px-3 py-1 bg-orange-500/90 text-white backdrop-blur-sm rounded-full text-xs font-medium">
-              Sous compromis
-            </span>
-          )}
-          {property.status === "bientot_disponible" && (
-            <span className="px-3 py-1 bg-emerald-500/90 text-white backdrop-blur-sm rounded-full text-xs font-medium">
-              Bientôt disponible
-            </span>
-          )}
-        </div>
+           <span className="px-3 py-1 bg-background/90 backdrop-blur-sm rounded-full text-xs font-medium">
+             {typeLabels[property.type] || property.type}
+           </span>
+           {property.exclusivite && (
+             <span className="px-3 py-1 bg-violet-500/90 text-white backdrop-blur-sm rounded-full text-xs font-medium gap-1 flex items-center">
+               ⭐ Exclusivité
+             </span>
+           )}
+           {property.status === "sous_compromis" && (
+             <span className="px-3 py-1 bg-orange-500/90 text-white backdrop-blur-sm rounded-full text-xs font-medium">
+               Sous compromis
+             </span>
+           )}
+           {property.status === "bientot_disponible" && (
+             <span className="px-3 py-1 bg-emerald-500/90 text-white backdrop-blur-sm rounded-full text-xs font-medium">
+               Bientôt disponible
+             </span>
+           )}
+         </div>
         <button
           onClick={(e) => {
             e.preventDefault();

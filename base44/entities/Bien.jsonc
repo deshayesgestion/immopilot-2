@@ -119,6 +119,11 @@
       "default": false,
       "description": "Pr\u00e9par\u00e9 pour export externe"
     },
+    "exclusivite": {
+      "type": "boolean",
+      "default": false,
+      "description": "Bien en exclusivit\u00e9"
+    },
     "owner_id": {
       "type": "string",
       "description": "ID du propri\u00e9taire (relation vers Contact)"
