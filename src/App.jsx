@@ -12,7 +12,7 @@ import PropertiesSale from './pages/PropertiesSale';
 import PropertiesRent from './pages/PropertiesRent';
 import Estimation from './pages/Estimation';
 import Contact from './pages/Contact';
-import About from './pages/About';
+
 import PropertyDetail from './pages/PropertyDetail';
 import AdminLayout from './components/admin/AdminLayout';
 import Dashboard from './pages/admin/Dashboard';
@@ -91,7 +91,7 @@ const AuthenticatedApp = () => {
         <Route path="/location" element={<PropertiesRent />} />
         <Route path="/estimation" element={<Estimation />} />
         <Route path="/contact" element={<Contact />} />
-        <Route path="/a-propos" element={<About />} />
+
         <Route path="/bien/:id" element={<PropertyDetail />} />
       </Route>
 
