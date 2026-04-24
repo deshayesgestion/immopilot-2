@@ -75,7 +75,7 @@ function AddCandidatModal({ bien, contacts, onClose, onSaved }) {
   };
 
   const handleSave = async () => {
-    if (!form.nom) return;
+    if (!form.nom || !bien?.id) return;
     setSaving(true);
     const candidat = await base44.entities.CandidatLocataire.create({
       ...form,

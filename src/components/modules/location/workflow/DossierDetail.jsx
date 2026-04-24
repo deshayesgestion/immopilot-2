@@ -276,7 +276,6 @@ Retourne JSON: { score: number (0-100), commentaire: string (max 180 chars), rec
           {d.etape === "candidat" && (
             <StepCandidats
               dossier={d}
-              contacts={[]}
               onDossierUpdate={handleSubSave}
             />
           )}
