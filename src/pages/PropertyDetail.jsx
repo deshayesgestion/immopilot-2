@@ -10,13 +10,21 @@ export default function PropertyDetail() {
   const { id } = useParams();
   const [property, setProperty] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [isFav, setIsFav] = useState(false);
 
   useEffect(() => {
     const load = async () => {
-      const data = await base44.entities.Bien.get(id);
-      setProperty(data);
-      setLoading(false);
+      try {
+        const data = await base44.entities.Bien.get(id);
+        setProperty(data);
+        setError(null);
+      } catch (err) {
+        setProperty(null);
+        setError(err?.message || "Bien non trouvé");
+      } finally {
+        setLoading(false);
+      }
     };
     load();
   }, [id]);
@@ -40,7 +48,7 @@ export default function PropertyDetail() {
   if (!property) {
     return (
       <div className="pt-24 min-h-screen flex flex-col items-center justify-center gap-4">
-        <p className="text-lg text-muted-foreground">Bien introuvable.</p>
+        <p className="text-lg text-muted-foreground">{error || "Bien introuvable."}</p>
         <Link to="/vente">
           <Button variant="outline" className="rounded-full gap-2">
             <ArrowLeft className="w-4 h-4" /> Retour aux biens
