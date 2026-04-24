@@ -5,8 +5,8 @@ import {
   Euro, Target, Zap, AlertCircle
 } from "lucide-react";
 import BiensList from "@/components/shared/BiensList";
-import PipelineVendeur from "@/components/modules/vente/PipelineVendeur.jsx";
-import PipelineAcquereur from "@/components/modules/vente/PipelineAcquereur.jsx";
+import PipelineVendeur from "@/components/modules/vente/PipelineVendeur";
+import PipelineAcquereur from "@/components/modules/vente/PipelineAcquereur";
 
 const TABS = [
   { id: "vendeur",     label: "Pipeline Vendeur",   icon: Home,          desc: "Mandats · Estimation IA · Documents" },
