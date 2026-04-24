@@ -1,30 +1,26 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
-import { Plus, FolderOpen, ChevronRight, Loader2, Star, CheckCircle2 } from "lucide-react";
+import { Plus, FolderOpen, ChevronRight, Loader2, Star, Euro, Home } from "lucide-react";
 import DossierCreationModal from "./workflow/DossierCreationModal";
 import DossierDetail from "./workflow/DossierDetail";
 
-const ETAPES = [
-  { id: "candidat",   label: "Candidat",      emoji: "👤", color: "bg-slate-500" },
-  { id: "documents",  label: "Documents",     emoji: "📂", color: "bg-blue-500" },
-  { id: "validation", label: "Validation IA", emoji: "✅", color: "bg-amber-500" },
-  { id: "rdv_visite", label: "RDV Visite",    emoji: "📅", color: "bg-indigo-500" },
-  { id: "visite",     label: "Visite faite",  emoji: "🏠", color: "bg-cyan-500" },
-  { id: "signature",  label: "Signature",     emoji: "📝", color: "bg-purple-500" },
-  { id: "edle",       label: "EDL Entrée",    emoji: "🔑", color: "bg-teal-500" },
-  { id: "vie_bail",   label: "Vie du bail",   emoji: "🏡", color: "bg-emerald-500" },
-  { id: "edls",       label: "EDL Sortie",    emoji: "📦", color: "bg-orange-500" },
-  { id: "cloture",    label: "Clôture",       emoji: "🏁", color: "bg-gray-500" },
-];
-const ETAPE_IDX = Object.fromEntries(ETAPES.map((e, i) => [e.id, i]));
+const STATUT_CFG = {
+  ouvert:          { label: "Ouvert",           color: "bg-slate-500",   emoji: "📂" },
+  en_selection:    { label: "En sélection",     color: "bg-blue-500",    emoji: "👥" },
+  candidat_valide: { label: "Candidat validé",  color: "bg-indigo-500",  emoji: "✅" },
+  bail_signe:      { label: "Bail signé",        color: "bg-purple-500",  emoji: "📝" },
+  en_cours:        { label: "En cours",          color: "bg-emerald-500", emoji: "🏡" },
+  termine:         { label: "Terminé",           color: "bg-gray-400",    emoji: "🏁" },
+};
+
+const STATUTS_ORDER = Object.keys(STATUT_CFG);
 
 export default function LocationWorkflow({ biens, contacts }) {
   const [dossiers, setDossiers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showNew, setShowNew] = useState(false);
   const [selected, setSelected] = useState(null);
-  const [filterEtape, setFilterEtape] = useState("all");
   const [filterStatut, setFilterStatut] = useState("all");
 
   useEffect(() => {
@@ -34,14 +30,16 @@ export default function LocationWorkflow({ biens, contacts }) {
     });
   }, []);
 
-  const stats = ETAPES.map(e => ({ ...e, count: dossiers.filter(d => d.etape === e.id).length }));
+  // Stats par statut
+  const stats = STATUTS_ORDER.map(s => ({
+    ...STATUT_CFG[s],
+    id: s,
+    count: dossiers.filter(d => (d.statut_dossier || "ouvert") === s).length,
+  }));
 
-  const filtered = dossiers.filter(d => {
-    if (filterEtape !== "all" && d.etape !== filterEtape) return false;
-    if (filterStatut === "actifs" && d.statut_dossier === "termine") return false;
-    if (filterStatut === "termines" && d.statut_dossier !== "termine") return false;
-    return true;
-  });
+  const filtered = filterStatut === "all"
+    ? dossiers
+    : dossiers.filter(d => (d.statut_dossier || "ouvert") === filterStatut);
 
   const update = (updated) => {
     setDossiers(prev => prev.map(d => d.id === updated.id ? updated : d));
@@ -50,37 +48,26 @@ export default function LocationWorkflow({ biens, contacts }) {
 
   return (
     <div className="space-y-4">
-      {/* Pipeline étapes cliquables */}
-      <div className="grid grid-cols-5 sm:grid-cols-10 gap-1.5">
-        {stats.map(e => (
-          <button key={e.id} onClick={() => setFilterEtape(filterEtape === e.id ? "all" : e.id)}
-            className={`text-center p-2 rounded-xl border transition-all ${
-              filterEtape === e.id ? "border-primary bg-primary/5 ring-1 ring-primary/20" : "bg-white border-border/40 hover:border-primary/30"
+      {/* Kanban statuts */}
+      <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+        {stats.map(s => (
+          <button key={s.id} onClick={() => setFilterStatut(filterStatut === s.id ? "all" : s.id)}
+            className={`text-center p-3 rounded-2xl border transition-all ${
+              filterStatut === s.id ? "border-primary bg-primary/5 ring-1 ring-primary/20 shadow-sm" : "bg-white border-border/40 hover:border-primary/30"
             }`}>
-            <span className="text-base block">{e.emoji}</span>
-            <span className="text-sm font-bold block">{e.count}</span>
-            <span className="text-[8px] text-muted-foreground leading-tight block truncate">{e.label}</span>
+            <span className="text-xl block mb-1">{s.emoji}</span>
+            <span className="text-lg font-bold block">{s.count}</span>
+            <span className="text-[9px] text-muted-foreground leading-tight block">{s.label}</span>
           </button>
         ))}
       </div>
 
       {/* Toolbar */}
       <div className="flex items-center justify-between flex-wrap gap-2">
-        <div className="flex items-center gap-2">
-          <p className="text-sm text-muted-foreground">{filtered.length} dossier{filtered.length > 1 ? "s" : ""}</p>
-          <div className="flex gap-1 bg-white border border-border/50 rounded-xl p-0.5">
-            {[
-              { id: "all", label: "Tous" },
-              { id: "actifs", label: "Actifs" },
-              { id: "termines", label: "Terminés" },
-            ].map(f => (
-              <button key={f.id} onClick={() => setFilterStatut(f.id)}
-                className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${
-                  filterStatut === f.id ? "bg-primary text-white" : "text-muted-foreground hover:text-foreground"
-                }`}>{f.label}</button>
-            ))}
-          </div>
-        </div>
+        <p className="text-sm text-muted-foreground">
+          {filtered.length} dossier{filtered.length > 1 ? "s" : ""}
+          {filterStatut !== "all" && ` · ${STATUT_CFG[filterStatut]?.label}`}
+        </p>
         <Button className="rounded-full gap-1.5 h-9 text-sm" onClick={() => setShowNew(true)}>
           <Plus className="w-3.5 h-3.5" /> Nouveau dossier
         </Button>
@@ -93,59 +80,38 @@ export default function LocationWorkflow({ biens, contacts }) {
           <FolderOpen className="w-10 h-10 text-muted-foreground/20 mx-auto mb-3" />
           <p className="text-sm text-muted-foreground">Aucun dossier locatif</p>
           <Button className="rounded-full gap-2 mt-4 h-9 text-sm" onClick={() => setShowNew(true)}>
-            <Plus className="w-3.5 h-3.5" /> Créer un dossier
+            <Plus className="w-3.5 h-3.5" /> Créer le premier dossier
           </Button>
         </div>
       ) : (
         <div className="space-y-2">
           {filtered.map(d => {
-            const etapeCfg = ETAPES.find(e => e.id === d.etape) || ETAPES[0];
-            const idx = ETAPE_IDX[d.etape] ?? 0;
-            const progress = Math.round((idx / (ETAPES.length - 1)) * 100);
-            const isTermine = d.statut_dossier === "termine";
+            const statut = STATUT_CFG[d.statut_dossier || "ouvert"] || STATUT_CFG.ouvert;
             return (
               <div key={d.id} onClick={() => setSelected(d)}
-                className={`bg-white rounded-2xl border hover:border-primary/30 hover:shadow-sm transition-all cursor-pointer ${
-                  isTermine ? "border-border/30 opacity-70" : "border-border/50"
-                }`}>
+                className="bg-white rounded-2xl border border-border/50 hover:border-primary/30 hover:shadow-sm transition-all cursor-pointer">
                 <div className="flex items-center gap-4 px-4 py-3.5">
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-sm font-semibold">{d.locataire_nom}</span>
-                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium text-white ${etapeCfg.color}`}>
-                        {etapeCfg.emoji} {etapeCfg.label}
+                      <span className="text-sm font-semibold">{d.locataire_nom || "Sans nom"}</span>
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium text-white ${statut.color}`}>
+                        {statut.emoji} {statut.label}
                       </span>
-                      {d.validation_statut === "valide" && (
-                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-green-100 text-green-700 flex items-center gap-0.5">
-                          <CheckCircle2 className="w-2.5 h-2.5" /> Validé
+                      {d.scoring_ia > 0 && (
+                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium flex items-center gap-0.5 ${
+                          d.scoring_ia >= 70 ? "bg-green-100 text-green-700" : d.scoring_ia >= 50 ? "bg-amber-100 text-amber-700" : "bg-red-100 text-red-700"
+                        }`}>
+                          <Star className="w-2.5 h-2.5" />{d.scoring_ia}/100
                         </span>
                       )}
-                      {d.validation_statut === "refuse" && (
-                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-red-100 text-red-700">Refusé</span>
-                      )}
-                      {isTermine && (
-                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">Terminé</span>
-                      )}
                     </div>
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      {d.bien_titre || "—"} · {d.loyer_mensuel?.toLocaleString("fr-FR")} €/mois
-                      {d.reference && <span className="ml-2 opacity-50">· {d.reference}</span>}
+                    <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-2 flex-wrap">
+                      {d.bien_titre && <span className="flex items-center gap-1"><Home className="w-3 h-3" />{d.bien_titre}</span>}
+                      {d.loyer_mensuel > 0 && <span className="flex items-center gap-1"><Euro className="w-3 h-3" />{d.loyer_mensuel?.toLocaleString("fr-FR")} €/mois</span>}
+                      {d.reference && <span className="opacity-50">· {d.reference}</span>}
                     </p>
-                    <div className="mt-2 flex items-center gap-2">
-                      <div className="flex-1 bg-secondary/40 rounded-full h-1.5">
-                        <div className="bg-primary h-1.5 rounded-full transition-all" style={{ width: `${progress}%` }} />
-                      </div>
-                      <span className="text-[10px] text-muted-foreground">{progress}%</span>
-                    </div>
                   </div>
-                  <div className="text-right flex-shrink-0">
-                    {d.scoring_ia > 0 && (
-                      <div className={`text-xs font-bold ${d.scoring_ia >= 70 ? "text-green-600" : d.scoring_ia >= 50 ? "text-amber-600" : "text-red-600"}`}>
-                        <Star className="w-3 h-3 inline mr-0.5" />{d.scoring_ia}/100
-                      </div>
-                    )}
-                    <ChevronRight className="w-4 h-4 text-muted-foreground/40 ml-auto mt-1" />
-                  </div>
+                  <ChevronRight className="w-4 h-4 text-muted-foreground/40 flex-shrink-0" />
                 </div>
               </div>
             );
